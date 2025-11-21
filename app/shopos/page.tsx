@@ -23,9 +23,16 @@ import {
 } from '@mui/icons-material';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
+import { useOrganization } from '@clerk/nextjs';
+import OrganizationRequired from '@/components/OrganizationRequired';
 
 export default function ShopOSDashboard() {
+  const { organization } = useOrganization();
   const jobs = useQuery(api.jobs.listJobs);
+
+  if (!organization) {
+    return <OrganizationRequired />;
+  }
 
   if (jobs === undefined) {
     return (
