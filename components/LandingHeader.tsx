@@ -42,28 +42,6 @@ export default function LandingHeader({ isLoggedIn = false, onMenuClick }: Landi
             />
           </Box>
 
-          {/* Center - Home button if logged in */}
-          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-            {isLoggedIn && (
-              <Button
-                component={Link}
-                href="/shopos"
-                sx={{
-                  color: '#B3B3B3',
-                  fontWeight: 500,
-                  fontSize: '1rem',
-                  px: 3,
-                  '&:hover': {
-                    color: '#FFFFFF',
-                    background: 'rgba(255, 255, 255, 0.05)',
-                  },
-                }}
-              >
-                Dashboard
-              </Button>
-            )}
-          </Box>
-
           {/* Login or Hamburger - Right */}
           {isLoggedIn ? (
             <IconButton
