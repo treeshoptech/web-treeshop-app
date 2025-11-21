@@ -4,7 +4,7 @@ import { v } from "convex/values";
 export default defineSchema({
   // Jobs (Work Orders)
   jobs: defineTable({
-    companyId: v.optional(v.id("companies")), // Will add companies later
+    companyId: v.optional(v.string()), // Clerk organization ID
     jobNumber: v.string(), // Auto-generated like "WO-1234"
     customerId: v.optional(v.id("customers")), // Links to customer record (optional for backward compat)
 
@@ -118,7 +118,7 @@ export default defineSchema({
 
   // Employees (Crew Members)
   employees: defineTable({
-    companyId: v.optional(v.id("companies")),
+    companyId: v.optional(v.string()),
     name: v.string(),
 
     // TreeShop Qualification Code System
@@ -159,7 +159,7 @@ export default defineSchema({
 
   // Crews (Team Assignments)
   crews: defineTable({
-    companyId: v.optional(v.id("companies")),
+    companyId: v.optional(v.string()),
     name: v.string(), // "Mulching Crew A"
     memberIds: v.array(v.id("employees")),
     isActive: v.boolean(),
@@ -168,7 +168,7 @@ export default defineSchema({
 
   // Equipment (For cost tracking)
   equipment: defineTable({
-    companyId: v.optional(v.id("companies")),
+    companyId: v.optional(v.string()),
     name: v.string(), // "Forestry Mulcher #2"
     type: v.string(), // "mulcher", "chipper", "stump_grinder"
 
@@ -226,7 +226,7 @@ export default defineSchema({
 
   // Company Production Rate Defaults (for pricing)
   companyProductionRates: defineTable({
-    companyId: v.optional(v.id("companies")),
+    companyId: v.optional(v.string()),
     serviceType: v.string(), // "forestry_mulching", "stump_grinding", etc.
 
     unit: v.string(), // "acres", "stumps", "trees"
@@ -242,7 +242,7 @@ export default defineSchema({
     .index("by_company", ["companyId"]),
 
   customers: defineTable({
-    companyId: v.optional(v.id("companies")),
+    companyId: v.optional(v.string()),
 
     // Personal Info
     firstName: v.string(),
@@ -297,7 +297,7 @@ export default defineSchema({
 
   // Proposals (Pre-sale estimates)
   proposals: defineTable({
-    companyId: v.optional(v.id("companies")),
+    companyId: v.optional(v.string()),
     proposalNumber: v.string(), // Auto-generated like "PROP-1234"
     customerId: v.id("customers"),
 
@@ -366,7 +366,7 @@ export default defineSchema({
 
   // Loadouts (Pre-configured resource groups)
   loadouts: defineTable({
-    companyId: v.optional(v.id("companies")),
+    companyId: v.optional(v.string()),
     name: v.string(), // "Mulching Crew A", "Heavy Clearing Setup", etc.
     description: v.optional(v.string()),
 

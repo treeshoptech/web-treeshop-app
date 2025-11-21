@@ -9,17 +9,17 @@ export async function getUserIdentity(ctx: QueryCtx | MutationCtx) {
   return identity;
 }
 
-export async function getOrganizationId(ctx: QueryCtx | MutationCtx) {
+export async function getOrganizationId(ctx: QueryCtx | MutationCtx): Promise<string> {
   const identity = await getUserIdentity(ctx);
 
   // Clerk stores the active organization in the token
   const orgId = identity.orgId;
 
-  if (!orgId) {
+  if (!orgId || typeof orgId !== 'string') {
     throw new Error("No organization selected. Please create or join an organization.");
   }
 
-  return orgId;
+  return orgId as string;
 }
 
 export async function getUserRole(ctx: QueryCtx | MutationCtx) {
