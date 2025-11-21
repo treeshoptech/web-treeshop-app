@@ -20,6 +20,7 @@ import type * as jobLineItems from "../jobLineItems.js";
 import type * as jobs from "../jobs.js";
 import type * as loadouts from "../loadouts.js";
 import type * as productionRates from "../productionRates.js";
+import type * as projectReports from "../projectReports.js";
 import type * as timeLogs from "../timeLogs.js";
 
 import type {
@@ -41,6 +42,7 @@ declare const fullApi: ApiFromModules<{
   jobs: typeof jobs;
   loadouts: typeof loadouts;
   productionRates: typeof productionRates;
+  projectReports: typeof projectReports;
   timeLogs: typeof timeLogs;
 }>;
 

@@ -187,9 +187,10 @@ export const markJobComplete = mutation({
       updatedAt: Date.now(),
     });
 
-    // Generate project completion report
-    const { generateProjectReport } = await import("./projectReports");
-    await generateProjectReport(ctx, { jobId: args.jobId });
+    // Schedule project report generation
+    await ctx.scheduler.runAfter(0, "projectReports:generateProjectReport" as any, {
+      jobId: args.jobId,
+    });
 
     return { success: true };
   },
