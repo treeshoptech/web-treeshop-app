@@ -291,7 +291,7 @@ export default function ShopOSDashboard() {
                             {job.jobNumber}
                           </Typography>
                           <Typography sx={{ color: '#B3B3B3', fontSize: { xs: '0.75rem', sm: '0.813rem' } }}>
-                            • {new Date(job.startDate).toLocaleDateString()}
+                            • {job.startDate ? new Date(job.startDate).toLocaleDateString() : 'Not scheduled'}
                           </Typography>
                           <Typography sx={{ color: '#B3B3B3', fontSize: { xs: '0.75rem', sm: '0.813rem' } }}>
                             • ${job.totalInvestment.toLocaleString()}
