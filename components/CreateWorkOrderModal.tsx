@@ -49,7 +49,6 @@ export default function CreateWorkOrderModal({
 
   const [mode, setMode] = useState<'select' | 'create'>('select');
   const [customerId, setCustomerId] = useState<string>('');
-  const [startDate, setStartDate] = useState('');
   const [notes, setNotes] = useState('');
   const [assignedCrewId, setAssignedCrewId] = useState<string>('');
 
@@ -91,9 +90,12 @@ export default function CreateWorkOrderModal({
           state: newCustomer.state,
           zipCode: newCustomer.zipCode,
           propertyType: newCustomer.propertyType || undefined,
+          howDidTheyFindUs: undefined,
+          notes: undefined,
         });
       } catch (error: any) {
-        alert('Error creating customer: ' + error.message);
+        console.error('Error creating customer:', error);
+        alert('Error creating customer: ' + (error.message || 'Unknown error'));
         return;
       }
     } else if (!customerId) {
@@ -103,8 +105,7 @@ export default function CreateWorkOrderModal({
 
     onSubmit({
       customerId: finalCustomerId as Id<'customers'>,
-      startDate: startDate || undefined,
-      status: startDate ? 'scheduled' : 'draft',
+      status: 'draft', // Always start as draft
       notes: notes || undefined,
       assignedCrewId: assignedCrewId ? (assignedCrewId as Id<'crews'>) : undefined,
     });
@@ -112,7 +113,6 @@ export default function CreateWorkOrderModal({
     // Reset form
     setMode('select');
     setCustomerId('');
-    setStartDate('');
     setNotes('');
     setAssignedCrewId('');
     setNewCustomer({
@@ -465,25 +465,6 @@ export default function CreateWorkOrderModal({
             </Typography>
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <TextField
-            fullWidth
-            label="Start Date (Optional - for scheduling)"
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-            helperText="Leave blank if creating a quote/draft"
-            sx={{
-              '& .MuiInputLabel-root': { color: '#B3B3B3' },
-              '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
-              '& .MuiOutlinedInput-root': {
-                color: '#FFFFFF',
-                '& fieldset': { borderColor: '#2A2A2A' },
-                '&:hover fieldset': { borderColor: '#007AFF' },
-                '&.Mui-focused fieldset': { borderColor: '#007AFF' },
-              },
-            }}
-          />
 
               {crews.length > 0 && (
                 <FormControl fullWidth>
