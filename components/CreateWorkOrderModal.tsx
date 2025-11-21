@@ -103,7 +103,8 @@ export default function CreateWorkOrderModal({
 
     onSubmit({
       customerId: finalCustomerId as Id<'customers'>,
-      startDate,
+      startDate: startDate || undefined,
+      status: startDate ? 'scheduled' : 'draft',
       notes: notes || undefined,
       assignedCrewId: assignedCrewId ? (assignedCrewId as Id<'crews'>) : undefined,
     });
