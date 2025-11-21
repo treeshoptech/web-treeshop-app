@@ -270,11 +270,11 @@ export default function CustomerDetailPage() {
                         {job.jobNumber}
                       </Typography>
                       <Typography variant="body2" sx={{ color: '#666' }}>
-                        {new Date(job.startDate).toLocaleDateString('en-US', {
+                        {job.startDate ? new Date(job.startDate).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
                           year: 'numeric',
-                        })}
+                        }) : 'Not scheduled'}
                       </Typography>
                     </Box>
                     <Chip
