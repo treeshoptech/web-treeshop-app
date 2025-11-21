@@ -12,6 +12,7 @@ import type * as auth from "../auth.js";
 import type * as companies from "../companies.js";
 import type * as crews from "../crews.js";
 import type * as customers from "../customers.js";
+import type * as debug from "../debug.js";
 import type * as employees from "../employees.js";
 import type * as equipment from "../equipment.js";
 import type * as jobLineItems from "../jobLineItems.js";
@@ -31,6 +32,7 @@ declare const fullApi: ApiFromModules<{
   companies: typeof companies;
   crews: typeof crews;
   customers: typeof customers;
+  debug: typeof debug;
   employees: typeof employees;
   equipment: typeof equipment;
   jobLineItems: typeof jobLineItems;

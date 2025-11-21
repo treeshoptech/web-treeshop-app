@@ -49,7 +49,13 @@ export const createCustomer = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const orgId = await requireOrganizationId(ctx);
+    let orgId;
+    try {
+      orgId = await requireOrganizationId(ctx);
+    } catch (error: any) {
+      console.error("Organization ID error:", error.message);
+      throw new Error(`Failed to get organization: ${error.message}. Make sure you have created or joined an organization in Clerk.`);
+    }
 
     const customerId = await ctx.db.insert("customers", {
       companyId: orgId,
