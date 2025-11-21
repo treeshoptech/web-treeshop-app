@@ -3,14 +3,16 @@ import { QueryCtx, MutationCtx } from "./_generated/server";
 
 export async function getUserIdentity(ctx: QueryCtx | MutationCtx) {
   const identity = await ctx.auth.getUserIdentity();
-  if (!identity) {
-    throw new Error("Not authenticated");
-  }
+  // Allow null identity for now during auth debugging
   return identity;
 }
 
 export async function getOrganizationId(ctx: QueryCtx | MutationCtx): Promise<string | null> {
   const identity = await getUserIdentity(ctx);
+
+  if (!identity) {
+    return null;
+  }
 
   // Clerk stores the active organization in the token
   const orgId = identity.orgId;
