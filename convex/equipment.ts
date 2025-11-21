@@ -1,4 +1,4 @@
-import { getOrganizationId } from "./auth";
+import { getOrganizationId, requireOrganizationId } from "./auth";
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
@@ -7,6 +7,10 @@ export const listEquipment = query({
   args: {},
   handler: async (ctx) => {
     const orgId = await getOrganizationId(ctx);
+
+    if (!orgId) {
+      return [];
+    }
     const equipment = await ctx.db
       .query("equipment")
       .filter((q) => q.eq(q.field("companyId"), orgId))
@@ -44,7 +48,7 @@ export const createEquipment = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const orgId = await getOrganizationId(ctx);
+    const orgId = await requireOrganizationId(ctx);
 
     // Calculate hourly costs using Army Corps method
     const annualDepreciation = (args.purchasePrice - args.salvageValue) / args.usefulLifeYears;

@@ -9,17 +9,27 @@ export async function getUserIdentity(ctx: QueryCtx | MutationCtx) {
   return identity;
 }
 
-export async function getOrganizationId(ctx: QueryCtx | MutationCtx): Promise<string> {
+export async function getOrganizationId(ctx: QueryCtx | MutationCtx): Promise<string | null> {
   const identity = await getUserIdentity(ctx);
 
   // Clerk stores the active organization in the token
   const orgId = identity.orgId;
 
   if (!orgId || typeof orgId !== 'string') {
-    throw new Error("No organization selected. Please create or join an organization.");
+    return null;
   }
 
   return orgId as string;
+}
+
+export async function requireOrganizationId(ctx: QueryCtx | MutationCtx): Promise<string> {
+  const orgId = await getOrganizationId(ctx);
+
+  if (!orgId) {
+    throw new Error("No organization selected. Please create or join an organization in your account settings.");
+  }
+
+  return orgId;
 }
 
 export async function getUserRole(ctx: QueryCtx | MutationCtx) {

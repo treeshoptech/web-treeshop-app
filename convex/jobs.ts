@@ -1,12 +1,17 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { getOrganizationId } from "./auth";
+import { getOrganizationId, requireOrganizationId } from "./auth";
 
 // Get all jobs for user's organization
 export const listJobs = query({
   args: {},
   handler: async (ctx) => {
     const orgId = await getOrganizationId(ctx);
+
+    // If no org, return empty array
+    if (!orgId) {
+      return [];
+    }
 
     const jobs = await ctx.db
       .query("jobs")
@@ -169,7 +174,7 @@ export const createJob = mutation({
     assignedCrewId: v.optional(v.id("crews")),
   },
   handler: async (ctx, args) => {
-    const orgId = await getOrganizationId(ctx);
+    const orgId = await requireOrganizationId(ctx);
 
     // Generate job number
     const allJobs = await ctx.db.query("jobs").collect();
