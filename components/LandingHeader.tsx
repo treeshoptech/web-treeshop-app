@@ -95,7 +95,7 @@ export default function LandingHeader({ isLoggedIn = false, onMenuClick }: Landi
                 },
               }}
             >
-              Get Started
+              Sign In
             </Button>
           )}
         </Toolbar>

@@ -1,12 +1,16 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { getOrganizationId } from "./auth";
 
-// List all customers
+// List all customers for user's organization
 export const listCustomers = query({
   args: {},
   handler: async (ctx) => {
+    const orgId = await getOrganizationId(ctx);
+
     const customers = await ctx.db
       .query("customers")
+      .filter((q) => q.eq(q.field("companyId"), orgId))
       .order("desc")
       .collect();
 
@@ -40,7 +44,10 @@ export const createCustomer = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const orgId = await getOrganizationId(ctx);
+
     const customerId = await ctx.db.insert("customers", {
+      companyId: orgId,
       firstName: args.firstName,
       lastName: args.lastName,
       businessName: args.businessName,

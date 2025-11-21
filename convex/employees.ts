@@ -1,3 +1,4 @@
+import { getOrganizationId } from "./auth";
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
@@ -5,8 +6,10 @@ import { v } from "convex/values";
 export const listEmployees = query({
   args: {},
   handler: async (ctx) => {
+    const orgId = await getOrganizationId(ctx);
     const employees = await ctx.db
       .query("employees")
+      .filter((q) => q.eq(q.field("companyId"), orgId))
       .order("desc")
       .collect();
 
@@ -52,8 +55,11 @@ export const createEmployee = mutation({
   },
   handler: async (ctx, args) => {
     const effectiveRate = args.effectiveRate || args.qualificationRate || 40;
+    const orgId = await getOrganizationId(ctx);
+
 
     const employeeId = await ctx.db.insert("employees", {
+      companyId: orgId,
       name: args.name,
       positionCode: args.positionCode,
       tierLevel: args.tierLevel,

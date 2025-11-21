@@ -48,7 +48,8 @@ export default defineSchema({
   })
     .index("by_status", ["status"])
     .index("by_start_date", ["startDate"])
-    .index("by_customer", ["customerId"]),
+    .index("by_customer", ["customerId"])
+    .index("by_company", ["companyId"]),
 
   // Job Line Items (Service Items in Work Order)
   jobLineItems: defineTable({

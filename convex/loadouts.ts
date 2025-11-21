@@ -1,11 +1,14 @@
+import { getOrganizationId } from "./auth";
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
 export const listLoadouts = query({
   args: {},
   handler: async (ctx) => {
+    const orgId = await getOrganizationId(ctx);
     const loadouts = await ctx.db
       .query("loadouts")
+      .filter((q) => q.eq(q.field("companyId"), orgId))
       .withIndex("by_active", (q) => q.eq("isActive", true))
       .collect();
 
@@ -79,6 +82,8 @@ export const createLoadout = mutation({
     treeTrimmingRate: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    const orgId = await getOrganizationId(ctx);
+
     // Calculate total hourly cost
     const employees = await Promise.all(
       args.employeeIds.map((id) => ctx.db.get(id))
@@ -98,6 +103,7 @@ export const createLoadout = mutation({
     const totalHourlyCost = employeeCost + equipmentCost;
 
     const loadoutId = await ctx.db.insert("loadouts", {
+      companyId: orgId,
       name: args.name,
       description: args.description,
       employeeIds: args.employeeIds,

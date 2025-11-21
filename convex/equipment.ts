@@ -1,3 +1,4 @@
+import { getOrganizationId } from "./auth";
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 
@@ -5,8 +6,10 @@ import { v } from "convex/values";
 export const listEquipment = query({
   args: {},
   handler: async (ctx) => {
+    const orgId = await getOrganizationId(ctx);
     const equipment = await ctx.db
       .query("equipment")
+      .filter((q) => q.eq(q.field("companyId"), orgId))
       .order("desc")
       .collect();
 
@@ -18,6 +21,8 @@ export const listEquipment = query({
 export const getEquipment = query({
   args: { equipmentId: v.id("equipment") },
   handler: async (ctx, args) => {
+    const orgId = await getOrganizationId(ctx);
+
     return await ctx.db.get(args.equipmentId);
   },
 });
@@ -39,6 +44,8 @@ export const createEquipment = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const orgId = await getOrganizationId(ctx);
+
     // Calculate hourly costs using Army Corps method
     const annualDepreciation = (args.purchasePrice - args.salvageValue) / args.usefulLifeYears;
     const hourlyDepreciation = annualDepreciation / args.annualOperatingHours;
@@ -52,6 +59,7 @@ export const createEquipment = mutation({
     const hourlyCost = hourlyCostBeforeOverhead * overheadMultiplier;
 
     const equipmentId = await ctx.db.insert("equipment", {
+      companyId: orgId,
       name: args.name,
       type: args.type,
       purchasePrice: args.purchasePrice,
@@ -97,6 +105,8 @@ export const updateEquipment = mutation({
     isActive: v.boolean(),
   },
   handler: async (ctx, args) => {
+    const orgId = await getOrganizationId(ctx);
+
     const { equipmentId, ...data } = args;
 
     // Recalculate hourly costs
@@ -130,6 +140,8 @@ export const updateEquipment = mutation({
 export const deleteEquipment = mutation({
   args: { equipmentId: v.id("equipment") },
   handler: async (ctx, args) => {
+    const orgId = await getOrganizationId(ctx);
+
     await ctx.db.delete(args.equipmentId);
     return { success: true };
   },

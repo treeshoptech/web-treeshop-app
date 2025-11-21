@@ -23,7 +23,7 @@ import BuildIcon from '@mui/icons-material/Build';
 import PeopleIcon from '@mui/icons-material/People';
 import PersonIcon from '@mui/icons-material/Person';
 import Link from 'next/link';
-import { useUser } from '@clerk/nextjs';
+import { useUser, useOrganization } from '@clerk/nextjs';
 
 interface RightSidebarProps {
   open: boolean;
@@ -32,6 +32,7 @@ interface RightSidebarProps {
 
 export default function RightSidebar({ open, onClose }: RightSidebarProps) {
   const { user } = useUser();
+  const { organization } = useOrganization();
   const menuSections = [
     {
       title: 'OPERATIONS',
@@ -194,6 +195,27 @@ export default function RightSidebar({ open, onClose }: RightSidebarProps) {
             </Box>
           ))}
         </Box>
+
+        <Divider sx={{ borderColor: '#1A1A1A' }} />
+
+        {/* Organization Name */}
+        {organization && (
+          <Box
+            sx={{
+              px: 3,
+              py: 2,
+              background: 'rgba(0, 122, 255, 0.1)',
+              borderTop: '1px solid rgba(0, 122, 255, 0.2)',
+            }}
+          >
+            <Typography variant="caption" sx={{ color: '#666', display: 'block', mb: 0.5 }}>
+              ORGANIZATION
+            </Typography>
+            <Typography sx={{ color: '#007AFF', fontWeight: 600, fontSize: '0.9rem' }}>
+              {organization.name}
+            </Typography>
+          </Box>
+        )}
 
         <Divider sx={{ borderColor: '#1A1A1A' }} />
 
