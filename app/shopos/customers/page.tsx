@@ -25,6 +25,7 @@ import LocationOnIcon from '@mui/icons-material/LocationOn';
 import BusinessIcon from '@mui/icons-material/Business';
 import { Id } from '@/convex/_generated/dataModel';
 import CustomerFormModal from '@/components/CustomerFormModal';
+import { useSnackbar } from '@/app/contexts/SnackbarContext';
 
 export default function CustomersPage() {
   const router = useRouter();
@@ -32,6 +33,7 @@ export default function CustomersPage() {
   const createCustomer = useMutation(api.customers.createCustomer);
   const updateCustomer = useMutation(api.customers.updateCustomer);
   const deleteCustomer = useMutation(api.customers.deleteCustomer);
+  const { showError, showConfirm } = useSnackbar();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -54,18 +56,22 @@ export default function CustomersPage() {
       setFormOpen(false);
       setEditingItem(null);
     } catch (error: any) {
-      alert(error.message);
+      showError(error.message);
     }
   };
 
   const handleDelete = async (id: Id<'customers'>) => {
-    if (!confirm('Delete this customer? This cannot be undone.')) return;
-
-    try {
-      await deleteCustomer({ customerId: id });
-    } catch (error: any) {
-      alert(error.message);
-    }
+    showConfirm(
+      'Delete this customer? This cannot be undone.',
+      async () => {
+        try {
+          await deleteCustomer({ customerId: id });
+        } catch (error: any) {
+          showError(error.message);
+        }
+      },
+      'Delete Customer'
+    );
   };
 
   if (customers === undefined) {

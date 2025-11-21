@@ -44,6 +44,7 @@ import Select from '@mui/material/Select';
 import Menu from '@mui/material/Menu';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { useSnackbar } from '@/app/contexts/SnackbarContext';
 
 export default function WorkOrderDetailPage() {
   const params = useParams();
@@ -51,6 +52,7 @@ export default function WorkOrderDetailPage() {
 
   const job = useQuery(api.jobs.getJob, { jobId });
   const employees = useQuery(api.jobs.listEmployees);
+  const { showError, showSuccess, showConfirm } = useSnackbar();
 
   // Employee selection (until Clerk is integrated)
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<Id<'employees'> | undefined>(undefined);
@@ -103,7 +105,7 @@ export default function WorkOrderDetailPage() {
     lineItemId?: Id<'jobLineItems'>
   ) => {
     if (!selectedEmployeeId) {
-      alert('Please select an employee first');
+      showError('Please select an employee first');
       return;
     }
 
@@ -116,7 +118,7 @@ export default function WorkOrderDetailPage() {
         taskName,
       });
     } catch (error: any) {
-      alert(error.message);
+      showError(error.message);
     }
   };
 
@@ -132,7 +134,7 @@ export default function WorkOrderDetailPage() {
       setStopTimerDialogOpen(false);
       setStopTimerNotes('');
     } catch (error: any) {
-      alert(error.message);
+      showError(error.message);
     }
   };
 
@@ -141,16 +143,18 @@ export default function WorkOrderDetailPage() {
   };
 
   const handleCompleteJob = async () => {
-    if (!confirm('Mark this entire job as complete? All tasks will be marked done.')) {
-      return;
-    }
-
-    try {
-      await markJobComplete({ jobId });
-      alert('Job marked as complete!');
-    } catch (error: any) {
-      alert(error.message);
-    }
+    showConfirm(
+      'Mark this entire job as complete? All tasks will be marked done.',
+      async () => {
+        try {
+          await markJobComplete({ jobId });
+          showSuccess('Job marked as complete!');
+        } catch (error: any) {
+          showError(error.message);
+        }
+      },
+      'Complete Job'
+    );
   };
 
   const handleOpenTaskMenu = (event: React.MouseEvent<HTMLElement>, taskId: Id<'jobLineItems'>) => {
@@ -165,14 +169,19 @@ export default function WorkOrderDetailPage() {
 
   const handleDeleteTask = async () => {
     if (!selectedTaskId) return;
-    if (!confirm('Delete this task?')) return;
 
-    try {
-      await deleteLineItem({ lineItemId: selectedTaskId });
-      handleCloseTaskMenu();
-    } catch (error: any) {
-      alert(error.message);
-    }
+    showConfirm(
+      'Delete this task? This cannot be undone.',
+      async () => {
+        try {
+          await deleteLineItem({ lineItemId: selectedTaskId });
+          handleCloseTaskMenu();
+        } catch (error: any) {
+          showError(error.message);
+        }
+      },
+      'Delete Task'
+    );
   };
 
   const handleManualTimeEntry = async (data: {
@@ -183,7 +192,7 @@ export default function WorkOrderDetailPage() {
     notes: string;
   }) => {
     if (!selectedEmployeeId) {
-      alert('Please select an employee first');
+      showError('Please select an employee first');
       return;
     }
 
@@ -198,7 +207,7 @@ export default function WorkOrderDetailPage() {
         notes: data.notes || undefined,
       });
     } catch (error: any) {
-      alert(error.message);
+      showError(error.message);
     }
   };
 
@@ -210,7 +219,7 @@ export default function WorkOrderDetailPage() {
       });
       setAddLineItemModalOpen(false);
     } catch (error: any) {
-      alert(error.message);
+      showError(error.message);
     }
   };
 

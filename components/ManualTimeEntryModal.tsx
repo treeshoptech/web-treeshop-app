@@ -16,6 +16,7 @@ import {
   InputLabel,
 } from '@mui/material';
 import { Id } from '@/convex/_generated/dataModel';
+import { useSnackbar } from '@/app/contexts/SnackbarContext';
 
 interface ManualTimeEntryModalProps {
   open: boolean;
@@ -38,6 +39,7 @@ export default function ManualTimeEntryModal({
   employeeId,
   onSubmit,
 }: ManualTimeEntryModalProps) {
+  const { showError } = useSnackbar();
   const [taskType, setTaskType] = useState<'productive' | 'support'>('productive');
   const [selectedLineItemId, setSelectedLineItemId] = useState<string>('');
   const [supportTaskName, setSupportTaskName] = useState('');
@@ -56,12 +58,12 @@ export default function ManualTimeEntryModal({
 
   const handleSubmit = () => {
     if (!employeeId) {
-      alert('Please select an employee first');
+      showError('Please select an employee first');
       return;
     }
 
     if (!durationHours || parseFloat(durationHours) <= 0) {
-      alert('Please enter a valid duration');
+      showError('Please enter a valid duration');
       return;
     }
 
@@ -70,7 +72,7 @@ export default function ManualTimeEntryModal({
 
     if (taskType === 'productive') {
       if (!selectedLineItemId) {
-        alert('Please select a task');
+        showError('Please select a task');
         return;
       }
       const item = lineItems.find((i) => i._id === selectedLineItemId);
@@ -78,7 +80,7 @@ export default function ManualTimeEntryModal({
       lineItemId = selectedLineItemId as Id<'jobLineItems'>;
     } else {
       if (!supportTaskName) {
-        alert('Please select a support task');
+        showError('Please select a support task');
         return;
       }
       taskName = supportTaskName;

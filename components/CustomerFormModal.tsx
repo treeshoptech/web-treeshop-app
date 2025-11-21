@@ -16,6 +16,7 @@ import {
   Select,
   MenuItem,
 } from '@mui/material';
+import { useSnackbar } from '@/app/contexts/SnackbarContext';
 
 interface CustomerFormData {
   firstName: string;
@@ -48,6 +49,7 @@ export default function CustomerFormModal({
   initialData,
   isEditing,
 }: CustomerFormModalProps) {
+  const { showError } = useSnackbar();
   const [formData, setFormData] = useState<CustomerFormData>({
     firstName: '',
     lastName: '',
@@ -86,7 +88,7 @@ export default function CustomerFormModal({
 
   const handleSubmit = () => {
     if (!formData.firstName || !formData.lastName || !formData.streetAddress || !formData.city || !formData.state || !formData.zipCode) {
-      alert('Please fill in all required fields');
+      showError('Please fill in all required fields');
       return;
     }
 

@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { requireOrganizationId } from "./auth";
 
 export const getCompany = query({
   args: {},
@@ -58,6 +59,8 @@ export const upsertCompanyProductionRate = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
+    const orgId = await requireOrganizationId(ctx);
+
     const existing = await ctx.db
       .query("companyProductionRates")
       .withIndex("by_service_type", (q) => q.eq("serviceType", args.serviceType))
@@ -78,6 +81,7 @@ export const upsertCompanyProductionRate = mutation({
       return existing._id;
     } else {
       return await ctx.db.insert("companyProductionRates", {
+        companyId: orgId,
         serviceType: args.serviceType,
         unit: args.unit,
         averageRatePerDay: args.averageRatePerDay,

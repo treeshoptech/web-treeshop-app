@@ -1,6 +1,7 @@
 import { getOrganizationId, requireOrganizationId } from "./auth";
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { verifyDocumentOwnership } from "./authHelpers";
 
 // List all employees
 export const listEmployees = query({
@@ -25,7 +26,12 @@ export const listEmployees = query({
 export const getEmployee = query({
   args: { employeeId: v.id("employees") },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.employeeId);
+    const employee = await ctx.db.get(args.employeeId);
+
+    // Verify ownership - throws error if employee doesn't belong to user's org
+    await verifyDocumentOwnership(ctx, employee, "employee");
+
+    return employee;
   },
 });
 
@@ -129,6 +135,10 @@ export const updateEmployee = mutation({
   handler: async (ctx, args) => {
     const { employeeId, ...data } = args;
 
+    // Fetch and verify ownership before updating
+    const employee = await ctx.db.get(employeeId);
+    await verifyDocumentOwnership(ctx, employee, "employee");
+
     await ctx.db.patch(employeeId, {
       ...data,
       hourlyCost: data.totalAnnualCost ? data.totalAnnualCost / (data.annualWorkingHours || 2000) : undefined,
@@ -142,6 +152,10 @@ export const updateEmployee = mutation({
 export const deleteEmployee = mutation({
   args: { employeeId: v.id("employees") },
   handler: async (ctx, args) => {
+    // Fetch and verify ownership before deleting
+    const employee = await ctx.db.get(args.employeeId);
+    await verifyDocumentOwnership(ctx, employee, "employee");
+
     await ctx.db.delete(args.employeeId);
     return { success: true };
   },

@@ -1,6 +1,7 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { getOrganizationId, requireOrganizationId } from "./auth";
+import { verifyDocumentOwnership } from "./authHelpers";
 
 // Get all jobs for user's organization
 export const listJobs = query({
@@ -19,24 +20,32 @@ export const listJobs = query({
       .order("desc")
       .collect();
 
-    // Enrich with customer data
-    const enrichedJobs = await Promise.all(
-      jobs.map(async (job) => {
-        let customer = null;
-        if (job.customerId) {
-          customer = await ctx.db.get(job.customerId);
-        }
-        let crew = null;
-        if (job.assignedCrewId) {
-          crew = await ctx.db.get(job.assignedCrewId);
-        }
-        return {
-          ...job,
-          customer,
-          crew,
-        };
-      })
+    // Batch fetch all related records upfront
+    const customerIds = jobs
+      .map((j) => j.customerId)
+      .filter((id): id is NonNullable<typeof id> => id !== undefined);
+    const crewIds = jobs
+      .map((j) => j.assignedCrewId)
+      .filter((id): id is NonNullable<typeof id> => id !== undefined);
+
+    // Fetch all customers and crews in parallel
+    const [customers, crews] = await Promise.all([
+      Promise.all(customerIds.map((id) => ctx.db.get(id))),
+      Promise.all(crewIds.map((id) => ctx.db.get(id))),
+    ]);
+
+    // Create lookup maps for O(1) access
+    const customerMap = new Map(
+      customers.map((c, i) => [customerIds[i], c])
     );
+    const crewMap = new Map(crews.map((c, i) => [crewIds[i], c]));
+
+    // Single-pass enrichment
+    const enrichedJobs = jobs.map((job) => ({
+      ...job,
+      customer: job.customerId ? customerMap.get(job.customerId) ?? null : null,
+      crew: job.assignedCrewId ? crewMap.get(job.assignedCrewId) ?? null : null,
+    }));
 
     return enrichedJobs;
   },
@@ -47,6 +56,10 @@ export const getJob = query({
   args: { jobId: v.id("jobs") },
   handler: async (ctx, args) => {
     const job = await ctx.db.get(args.jobId);
+
+    // Verify ownership - throws error if job doesn't belong to user's org
+    await verifyDocumentOwnership(ctx, job, "job");
+
     if (!job) return null;
 
     // Get customer (if customerId exists)
@@ -68,29 +81,38 @@ export const getJob = query({
       .order("desc")
       .collect();
 
-    // Enrich time logs with employee names
-    const enrichedTimeLogs = await Promise.all(
-      timeLogs.map(async (log) => {
-        const employee = await ctx.db.get(log.employeeId);
-        return {
-          ...log,
-          employeeName: employee?.name || "Unknown",
-        };
-      })
+    // Batch fetch all employees for time logs upfront
+    const employeeIds = timeLogs.map((log) => log.employeeId);
+    const employees = await Promise.all(
+      employeeIds.map((id) => ctx.db.get(id))
     );
+
+    // Create employee lookup map
+    const employeeMap = new Map(
+      employees.map((e, i) => [employeeIds[i], e])
+    );
+
+    // Single-pass enrichment of time logs
+    const enrichedTimeLogs = timeLogs.map((log) => {
+      const employee = employeeMap.get(log.employeeId);
+      return {
+        ...log,
+        employeeName: employee?.name || "Unknown",
+      };
+    });
 
     // Get crew if assigned
     let crew = null;
     if (job.assignedCrewId) {
       crew = await ctx.db.get(job.assignedCrewId);
       if (crew) {
-        // Get crew member names
-        const members = await Promise.all(
+        // Batch fetch all crew members
+        const crewMembers = await Promise.all(
           crew.memberIds.map((id) => ctx.db.get(id))
         );
         crew = {
           ...crew,
-          members: members.filter((m) => m !== null),
+          members: crewMembers.filter((m) => m !== null),
         };
       }
     }
@@ -136,6 +158,10 @@ export const markJobComplete = mutation({
   args: { jobId: v.id("jobs") },
   handler: async (ctx, args) => {
     const job = await ctx.db.get(args.jobId);
+
+    // Verify ownership before marking complete
+    await verifyDocumentOwnership(ctx, job, "job");
+
     if (!job) {
       throw new Error("Job not found");
     }

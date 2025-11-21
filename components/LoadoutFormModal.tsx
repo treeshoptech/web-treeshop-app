@@ -21,6 +21,7 @@ import {
   Divider,
 } from '@mui/material';
 import { Id } from '@/convex/_generated/dataModel';
+import { useSnackbar } from '@/app/contexts/SnackbarContext';
 
 interface LoadoutFormModalProps {
   open: boolean;
@@ -37,6 +38,7 @@ export default function LoadoutFormModal({
   const equipment = useQuery(api.equipment.listEquipment);
   const createLoadout = useMutation(api.loadouts.createLoadout);
   const updateLoadout = useMutation(api.loadouts.updateLoadout);
+  const { showError } = useSnackbar();
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -99,12 +101,12 @@ export default function LoadoutFormModal({
 
   const handleSubmit = async () => {
     if (!name) {
-      alert('Please enter a loadout name');
+      showError('Please enter a loadout name');
       return;
     }
 
     if (selectedEmployeeIds.length === 0 && selectedEquipmentIds.length === 0) {
-      alert('Please select at least one employee or equipment');
+      showError('Please select at least one employee or equipment');
       return;
     }
 
@@ -116,7 +118,7 @@ export default function LoadoutFormModal({
       treeTrimmingRate;
 
     if (!hasAtLeastOneRate) {
-      alert('Please set at least one production rate');
+      showError('Please set at least one production rate');
       return;
     }
 
@@ -149,7 +151,7 @@ export default function LoadoutFormModal({
       }
       onClose();
     } catch (error: any) {
-      alert(error.message);
+      showError(error.message);
     }
   };
 

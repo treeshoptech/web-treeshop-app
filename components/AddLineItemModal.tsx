@@ -21,6 +21,7 @@ import {
   OutlinedInput,
 } from '@mui/material';
 import { Id } from '@/convex/_generated/dataModel';
+import { useSnackbar } from '@/app/contexts/SnackbarContext';
 
 interface AddLineItemModalProps {
   open: boolean;
@@ -41,6 +42,7 @@ export default function AddLineItemModal({ open, onClose, onSubmit }: AddLineIte
   const equipment = useQuery(api.equipment.listEquipment);
   const loadouts = useQuery(api.loadouts.listLoadouts);
   const company = useQuery(api.companies.getCompany);
+  const { showError } = useSnackbar();
 
   const [serviceType, setServiceType] = useState('forestry_mulching');
   const [displayName, setDisplayName] = useState('');
@@ -151,24 +153,24 @@ export default function AddLineItemModal({ open, onClose, onSubmit }: AddLineIte
 
   const handleSubmit = () => {
     if (!displayName) {
-      alert('Please describe the scope of work');
+      showError('Please describe the scope of work');
       return;
     }
 
     if (useLoadout) {
       if (!selectedLoadoutId) {
-        alert('Please select a loadout');
+        showError('Please select a loadout');
         return;
       }
     } else {
       if (selectedEmployeeIds.length === 0 && selectedEquipmentIds.length === 0) {
-        alert('Please select at least one employee or equipment');
+        showError('Please select at least one employee or equipment');
         return;
       }
     }
 
     if (serviceType === 'forestry_mulching' && (!acres || !dbhPackage)) {
-      alert('Please enter acres and DBH package');
+      showError('Please enter acres and DBH package');
       return;
     }
 

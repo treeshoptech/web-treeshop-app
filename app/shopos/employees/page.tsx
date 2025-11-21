@@ -20,12 +20,14 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import PersonIcon from '@mui/icons-material/Person';
 import { Id } from '@/convex/_generated/dataModel';
 import EmployeeFormModal from '@/components/EmployeeFormModal';
+import { useSnackbar } from '@/app/contexts/SnackbarContext';
 
 export default function EmployeesPage() {
   const employees = useQuery(api.employees.listEmployees);
   const createEmployee = useMutation(api.employees.createEmployee);
   const updateEmployee = useMutation(api.employees.updateEmployee);
   const deleteEmployee = useMutation(api.employees.deleteEmployee);
+  const { showError, showConfirm } = useSnackbar();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -49,18 +51,22 @@ export default function EmployeesPage() {
       setFormOpen(false);
       setEditingItem(null);
     } catch (error: any) {
-      alert(error.message);
+      showError(error.message);
     }
   };
 
   const handleDelete = async (id: Id<'employees'>) => {
-    if (!confirm('Delete this employee? This cannot be undone.')) return;
-
-    try {
-      await deleteEmployee({ employeeId: id });
-    } catch (error: any) {
-      alert(error.message);
-    }
+    showConfirm(
+      'Delete this employee? This cannot be undone.',
+      async () => {
+        try {
+          await deleteEmployee({ employeeId: id });
+        } catch (error: any) {
+          showError(error.message);
+        }
+      },
+      'Delete Employee'
+    );
   };
 
 

@@ -12,6 +12,7 @@ import {
   Typography,
   Divider,
 } from '@mui/material';
+import { useSnackbar } from '@/app/contexts/SnackbarContext';
 
 interface EquipmentFormData {
   name: string;
@@ -42,6 +43,7 @@ export default function EquipmentFormModal({
   initialData,
   isEditing,
 }: EquipmentFormModalProps) {
+  const { showError } = useSnackbar();
   const [formData, setFormData] = useState<EquipmentFormData>({
     name: '',
     type: '',
@@ -115,7 +117,7 @@ export default function EquipmentFormModal({
 
   const handleSubmit = () => {
     if (!formData.name || !formData.type || !formData.purchasePrice) {
-      alert('Please fill in required fields (Name, Type, Purchase Price)');
+      showError('Please fill in required fields (Name, Type, Purchase Price)');
       return;
     }
 

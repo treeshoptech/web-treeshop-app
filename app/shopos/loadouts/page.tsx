@@ -20,10 +20,12 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import GroupsIcon from '@mui/icons-material/Groups';
 import { Id } from '@/convex/_generated/dataModel';
 import LoadoutFormModal from '@/components/LoadoutFormModal';
+import { useSnackbar } from '@/app/contexts/SnackbarContext';
 
 export default function LoadoutsPage() {
   const loadouts = useQuery(api.loadouts.listLoadouts);
   const deleteLoadout = useMutation(api.loadouts.deleteLoadout);
+  const { showError, showConfirm } = useSnackbar();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -34,13 +36,17 @@ export default function LoadoutsPage() {
   };
 
   const handleDelete = async (id: Id<'loadouts'>) => {
-    if (!confirm('Delete this loadout?')) return;
-
-    try {
-      await deleteLoadout({ loadoutId: id });
-    } catch (error: any) {
-      alert(error.message);
-    }
+    showConfirm(
+      'Delete this loadout? This cannot be undone.',
+      async () => {
+        try {
+          await deleteLoadout({ loadoutId: id });
+        } catch (error: any) {
+          showError(error.message);
+        }
+      },
+      'Delete Loadout'
+    );
   };
 
   if (loadouts === undefined) {

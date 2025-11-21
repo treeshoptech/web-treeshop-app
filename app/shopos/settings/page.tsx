@@ -16,6 +16,7 @@ import {
   CircularProgress,
   Divider,
 } from '@mui/material';
+import { useSnackbar } from '@/app/contexts/SnackbarContext';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -43,6 +44,7 @@ export default function SettingsPage() {
   const companyRates = useQuery(api.companies.getCompanyProductionRates);
   const saveCompany = useMutation(api.companies.createOrUpdateCompany);
   const saveRate = useMutation(api.companies.upsertCompanyProductionRate);
+  const { showError, showSuccess } = useSnackbar();
 
   const [tabValue, setTabValue] = useState(0);
 
@@ -80,7 +82,7 @@ export default function SettingsPage() {
 
   const handleSaveCompany = async () => {
     if (!companyForm.name) {
-      alert('Company name is required');
+      showError('Company name is required');
       return;
     }
 
@@ -97,9 +99,9 @@ export default function SettingsPage() {
         defaultProfitMargin: parseFloat(companyForm.defaultProfitMargin) || 30,
         sops: companyForm.sops || undefined,
       });
-      alert('Company settings saved');
+      showSuccess('Company settings saved');
     } catch (error: any) {
-      alert(error.message);
+      showError(error.message);
     }
   };
 

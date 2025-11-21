@@ -19,6 +19,7 @@ import {
   FormControlLabel,
   Chip,
 } from '@mui/material';
+import { useSnackbar } from '@/app/contexts/SnackbarContext';
 
 interface EmployeeFormData {
   name: string;
@@ -48,6 +49,7 @@ export default function EmployeeFormModal({
   initialData,
   isEditing,
 }: EmployeeFormModalProps) {
+  const { showError } = useSnackbar();
   const [formData, setFormData] = useState<EmployeeFormData>({
     name: '',
     positionCode: 'GC',
@@ -133,7 +135,7 @@ export default function EmployeeFormModal({
 
   const handleSubmit = () => {
     if (!formData.name || !formData.baseRate) {
-      alert('Please fill in required fields (Name, Base Rate)');
+      showError('Please fill in required fields (Name, Base Rate)');
       return;
     }
 

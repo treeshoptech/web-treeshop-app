@@ -20,12 +20,14 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import BuildIcon from '@mui/icons-material/Build';
 import { Id } from '@/convex/_generated/dataModel';
 import EquipmentFormModal from '@/components/EquipmentFormModal';
+import { useSnackbar } from '@/app/contexts/SnackbarContext';
 
 export default function EquipmentPage() {
   const equipment = useQuery(api.equipment.listEquipment);
   const createEquipment = useMutation(api.equipment.createEquipment);
   const updateEquipment = useMutation(api.equipment.updateEquipment);
   const deleteEquipment = useMutation(api.equipment.deleteEquipment);
+  const { showError, showConfirm } = useSnackbar();
 
   const [formOpen, setFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
@@ -49,18 +51,22 @@ export default function EquipmentPage() {
       setFormOpen(false);
       setEditingItem(null);
     } catch (error: any) {
-      alert(error.message);
+      showError(error.message);
     }
   };
 
   const handleDelete = async (id: Id<'equipment'>) => {
-    if (!confirm('Delete this equipment? This cannot be undone.')) return;
-
-    try {
-      await deleteEquipment({ equipmentId: id });
-    } catch (error: any) {
-      alert(error.message);
-    }
+    showConfirm(
+      'Delete this equipment? This cannot be undone.',
+      async () => {
+        try {
+          await deleteEquipment({ equipmentId: id });
+        } catch (error: any) {
+          showError(error.message);
+        }
+      },
+      'Delete Equipment'
+    );
   };
 
 

@@ -7,6 +7,7 @@ import { ConvexReactClient } from 'convex/react';
 import { useAuth } from '@clerk/nextjs';
 import { theme } from './theme';
 import EmotionRegistry from './emotion-registry';
+import { SnackbarProvider } from './contexts/SnackbarContext';
 
 const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
@@ -16,7 +17,9 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <EmotionRegistry>
         <ThemeProvider theme={theme}>
           <CssBaseline />
-          {children}
+          <SnackbarProvider>
+            {children}
+          </SnackbarProvider>
         </ThemeProvider>
       </EmotionRegistry>
     </ConvexProviderWithClerk>

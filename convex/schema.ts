@@ -4,7 +4,7 @@ import { v } from "convex/values";
 export default defineSchema({
   // Jobs (Work Orders)
   jobs: defineTable({
-    companyId: v.optional(v.string()), // Clerk organization ID
+    companyId: v.string(), // Clerk organization ID (required)
     jobNumber: v.string(), // Auto-generated like "WO-1234"
     customerId: v.optional(v.id("customers")), // Links to customer record (optional for backward compat)
 
@@ -49,7 +49,9 @@ export default defineSchema({
     .index("by_status", ["status"])
     .index("by_start_date", ["startDate"])
     .index("by_customer", ["customerId"])
-    .index("by_company", ["companyId"]),
+    .index("by_company", ["companyId"])
+    .index("by_company_status", ["companyId", "status"])
+    .index("by_company_date", ["companyId", "startDate"]),
 
   // Job Line Items (Service Items in Work Order)
   jobLineItems: defineTable({
@@ -118,7 +120,7 @@ export default defineSchema({
 
   // Employees (Crew Members)
   employees: defineTable({
-    companyId: v.optional(v.string()),
+    companyId: v.string(), // Required
     name: v.string(),
 
     // TreeShop Qualification Code System
@@ -155,20 +157,25 @@ export default defineSchema({
 
     isActive: v.boolean(),
     createdAt: v.number(),
-  }).index("by_active", ["isActive"]),
+  })
+    .index("by_active", ["isActive"])
+    .index("by_company", ["companyId"])
+    .index("by_company_active", ["companyId", "isActive"]),
 
   // Crews (Team Assignments)
   crews: defineTable({
-    companyId: v.optional(v.string()),
+    companyId: v.string(), // Required
     name: v.string(), // "Mulching Crew A"
     memberIds: v.array(v.id("employees")),
     isActive: v.boolean(),
     createdAt: v.number(),
-  }).index("by_active", ["isActive"]),
+  })
+    .index("by_active", ["isActive"])
+    .index("by_company", ["companyId"]),
 
   // Equipment (For cost tracking)
   equipment: defineTable({
-    companyId: v.optional(v.string()),
+    companyId: v.string(), // Required
     name: v.string(), // "Forestry Mulcher #2"
     type: v.string(), // "mulcher", "chipper", "stump_grinder"
 
@@ -199,7 +206,9 @@ export default defineSchema({
 
     isActive: v.boolean(),
     createdAt: v.number(),
-  }).index("by_active", ["isActive"]),
+  })
+    .index("by_active", ["isActive"])
+    .index("by_company", ["companyId"]),
 
   // Company Settings
   companies: defineTable({
@@ -226,7 +235,7 @@ export default defineSchema({
 
   // Company Production Rate Defaults (for pricing)
   companyProductionRates: defineTable({
-    companyId: v.optional(v.string()),
+    companyId: v.string(), // Required
     serviceType: v.string(), // "forestry_mulching", "stump_grinding", etc.
 
     unit: v.string(), // "acres", "stumps", "trees"
@@ -242,7 +251,7 @@ export default defineSchema({
     .index("by_company", ["companyId"]),
 
   customers: defineTable({
-    companyId: v.optional(v.string()),
+    companyId: v.string(), // Required
 
     // Personal Info
     firstName: v.string(),
@@ -273,7 +282,9 @@ export default defineSchema({
     createdAt: v.number(),
   })
     .index("by_last_name", ["lastName"])
-    .index("by_email", ["email"]),
+    .index("by_email", ["email"])
+    .index("by_company", ["companyId"])
+    .index("by_company_active", ["companyId", "isActive"]),
 
   // Production Rates (Employee productivity tracking)
   productionRates: defineTable({
@@ -297,7 +308,7 @@ export default defineSchema({
 
   // Proposals (Pre-sale estimates)
   proposals: defineTable({
-    companyId: v.optional(v.string()),
+    companyId: v.string(), // Required
     proposalNumber: v.string(), // Auto-generated like "PROP-1234"
     customerId: v.id("customers"),
 
@@ -329,7 +340,8 @@ export default defineSchema({
   })
     .index("by_status", ["status"])
     .index("by_customer", ["customerId"])
-    .index("by_created", ["createdAt"]),
+    .index("by_created", ["createdAt"])
+    .index("by_company", ["companyId"]),
 
   // Proposal Line Items
   proposalLineItems: defineTable({
@@ -366,7 +378,7 @@ export default defineSchema({
 
   // Loadouts (Pre-configured resource groups)
   loadouts: defineTable({
-    companyId: v.optional(v.string()),
+    companyId: v.string(), // Required
     name: v.string(), // "Mulching Crew A", "Heavy Clearing Setup", etc.
     description: v.optional(v.string()),
 
@@ -379,7 +391,9 @@ export default defineSchema({
 
     isActive: v.boolean(),
     createdAt: v.number(),
-  }).index("by_active", ["isActive"]),
+  })
+    .index("by_active", ["isActive"])
+    .index("by_company", ["companyId"]),
 
   // Loadout Production Rates (actual performance tracking)
   loadoutProductionRates: defineTable({

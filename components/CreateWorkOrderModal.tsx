@@ -23,6 +23,7 @@ import {
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import SearchIcon from '@mui/icons-material/Search';
 import { Id } from '@/convex/_generated/dataModel';
+import { useSnackbar } from '@/app/contexts/SnackbarContext';
 
 interface CreateWorkOrderModalProps {
   open: boolean;
@@ -46,6 +47,7 @@ export default function CreateWorkOrderModal({
   crews,
 }: CreateWorkOrderModalProps) {
   const createCustomer = useMutation(api.customers.createCustomer);
+  const { showError } = useSnackbar();
 
   const [mode, setMode] = useState<'select' | 'create'>('select');
   const [customerId, setCustomerId] = useState<string>('');
@@ -74,7 +76,7 @@ export default function CreateWorkOrderModal({
     // If creating new customer, create it first
     if (mode === 'create') {
       if (!newCustomer.firstName || !newCustomer.lastName || !newCustomer.streetAddress || !newCustomer.city || !newCustomer.state || !newCustomer.zipCode) {
-        alert('Please fill in all required customer fields (Name, Address, City, State, Zip)');
+        showError('Please fill in all required customer fields (Name, Address, City, State, Zip)');
         return;
       }
 
@@ -95,11 +97,11 @@ export default function CreateWorkOrderModal({
         });
       } catch (error: any) {
         console.error('Error creating customer:', error);
-        alert('Error creating customer: ' + (error.message || 'Unknown error'));
+        showError('Error creating customer: ' + (error.message || 'Unknown error'));
         return;
       }
     } else if (!customerId) {
-      alert('Please select a customer');
+      showError('Please select a customer');
       return;
     }
 

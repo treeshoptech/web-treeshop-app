@@ -1,6 +1,7 @@
 import { getOrganizationId, requireOrganizationId } from "./auth";
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { verifyDocumentOwnership } from "./authHelpers";
 
 export const listLoadouts = query({
   args: {},
@@ -16,30 +17,47 @@ export const listLoadouts = query({
       .withIndex("by_active", (q) => q.eq("isActive", true))
       .collect();
 
-    // Enrich with employee and equipment details
-    const enriched = await Promise.all(
-      loadouts.map(async (loadout) => {
-        const employees = await Promise.all(
-          loadout.employeeIds.map((id) => ctx.db.get(id))
-        );
-        const equipment = await Promise.all(
-          loadout.equipmentIds.map((id) => ctx.db.get(id))
-        );
-
-        // Get production rates
-        const productionRates = await ctx.db
-          .query("loadoutProductionRates")
-          .withIndex("by_loadout", (q) => q.eq("loadoutId", loadout._id))
-          .collect();
-
-        return {
-          ...loadout,
-          employees: employees.filter((e) => e !== null),
-          equipment: equipment.filter((e) => e !== null),
-          productionRates,
-        };
-      })
+    // Batch fetch all unique employee and equipment IDs upfront
+    const allEmployeeIds = Array.from(
+      new Set(loadouts.flatMap((l) => l.employeeIds))
     );
+    const allEquipmentIds = Array.from(
+      new Set(loadouts.flatMap((l) => l.equipmentIds))
+    );
+
+    // Fetch all employees, equipment, and production rates in parallel
+    const [employees, equipment, allProductionRates] = await Promise.all([
+      Promise.all(allEmployeeIds.map((id) => ctx.db.get(id))),
+      Promise.all(allEquipmentIds.map((id) => ctx.db.get(id))),
+      Promise.all(
+        loadouts.map((loadout) =>
+          ctx.db
+            .query("loadoutProductionRates")
+            .withIndex("by_loadout", (q) => q.eq("loadoutId", loadout._id))
+            .collect()
+        )
+      ),
+    ]);
+
+    // Create lookup maps for O(1) access
+    const employeeMap = new Map(
+      employees.map((e, i) => [allEmployeeIds[i], e])
+    );
+    const equipmentMap = new Map(
+      equipment.map((e, i) => [allEquipmentIds[i], e])
+    );
+
+    // Single-pass enrichment
+    const enriched = loadouts.map((loadout, idx) => ({
+      ...loadout,
+      employees: loadout.employeeIds
+        .map((id) => employeeMap.get(id))
+        .filter((e) => e !== null && e !== undefined),
+      equipment: loadout.equipmentIds
+        .map((id) => equipmentMap.get(id))
+        .filter((e) => e !== null && e !== undefined),
+      productionRates: allProductionRates[idx],
+    }));
 
     return enriched;
   },
@@ -49,20 +67,21 @@ export const getLoadout = query({
   args: { loadoutId: v.id("loadouts") },
   handler: async (ctx, args) => {
     const loadout = await ctx.db.get(args.loadoutId);
+
+    // Verify ownership - throws error if loadout doesn't belong to user's org
+    await verifyDocumentOwnership(ctx, loadout, "loadout");
+
     if (!loadout) return null;
 
-    const employees = await Promise.all(
-      loadout.employeeIds.map((id) => ctx.db.get(id))
-    );
-    const equipment = await Promise.all(
-      loadout.equipmentIds.map((id) => ctx.db.get(id))
-    );
-
-    // Get production rates
-    const productionRates = await ctx.db
-      .query("loadoutProductionRates")
-      .withIndex("by_loadout", (q) => q.eq("loadoutId", args.loadoutId))
-      .collect();
+    // Batch fetch employees, equipment, and production rates in parallel
+    const [employees, equipment, productionRates] = await Promise.all([
+      Promise.all(loadout.employeeIds.map((id) => ctx.db.get(id))),
+      Promise.all(loadout.equipmentIds.map((id) => ctx.db.get(id))),
+      ctx.db
+        .query("loadoutProductionRates")
+        .withIndex("by_loadout", (q) => q.eq("loadoutId", args.loadoutId))
+        .collect(),
+    ]);
 
     return {
       ...loadout,
@@ -159,6 +178,10 @@ export const updateLoadout = mutation({
   handler: async (ctx, args) => {
     const { loadoutId, mulchingRate, stumpRate, treeRemovalRate, landClearingRate, treeTrimmingRate, ...data } = args;
 
+    // Fetch and verify ownership before updating
+    const loadout = await ctx.db.get(loadoutId);
+    await verifyDocumentOwnership(ctx, loadout, "loadout");
+
     // Recalculate total hourly cost
     const employees = await Promise.all(
       data.employeeIds.map((id) => ctx.db.get(id))
@@ -228,6 +251,10 @@ export const updateLoadout = mutation({
 export const deleteLoadout = mutation({
   args: { loadoutId: v.id("loadouts") },
   handler: async (ctx, args) => {
+    // Fetch and verify ownership before deleting
+    const loadout = await ctx.db.get(args.loadoutId);
+    await verifyDocumentOwnership(ctx, loadout, "loadout");
+
     await ctx.db.delete(args.loadoutId);
     return { success: true };
   },

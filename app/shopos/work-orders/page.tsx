@@ -17,6 +17,7 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import Link from 'next/link';
 import CreateWorkOrderModal from '@/components/CreateWorkOrderModal';
+import { useSnackbar } from '@/app/contexts/SnackbarContext';
 
 export default function WorkOrdersPage() {
   const router = useRouter();
@@ -24,6 +25,7 @@ export default function WorkOrdersPage() {
   const customers = useQuery(api.customers.listCustomers);
   const crews = useQuery(api.crews.listCrews);
   const createJob = useMutation(api.jobs.createJob);
+  const { showError } = useSnackbar();
 
   const [createModalOpen, setCreateModalOpen] = useState(false);
 
@@ -54,7 +56,7 @@ export default function WorkOrdersPage() {
       setCreateModalOpen(false);
       router.push(`/shopos/work-orders/${jobId}`);
     } catch (error: any) {
-      alert(error.message);
+      showError(error.message);
     }
   };
 
