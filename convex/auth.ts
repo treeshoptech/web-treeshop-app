@@ -36,5 +36,5 @@ export async function requireOrganizationId(ctx: QueryCtx | MutationCtx): Promis
 
 export async function getUserRole(ctx: QueryCtx | MutationCtx) {
   const identity = await getUserIdentity(ctx);
-  return identity.orgRole || "basic_member";
+  return identity?.orgRole || "basic_member";
 }
