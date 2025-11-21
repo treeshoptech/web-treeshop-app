@@ -118,23 +118,24 @@ export default function CustomersPage() {
       {customers.length === 0 ? (
         <Card
           sx={{
-            background: '#1A1A1A',
+            background: '#1C1C1E',
+            border: '1px solid #2A2A2A',
             textAlign: 'center',
             py: 6,
           }}
         >
           <CardContent>
-            <PersonIcon sx={{ fontSize: 60, color: '#666', mb: 2 }} />
-            <Typography variant="h6" sx={{ color: '#B3B3B3', mb: 2 }}>
+            <PersonIcon sx={{ fontSize: 60, color: '#8E8E93', mb: 2 }} />
+            <Typography variant="h6" sx={{ color: '#B3B3B3', fontWeight: 600, mb: 2 }}>
               No customers yet
             </Typography>
-            <Typography variant="body2" sx={{ color: '#666' }}>
+            <Typography variant="body2" sx={{ color: '#8E8E93' }}>
               Click "Add Customer" to create your first customer record
             </Typography>
           </CardContent>
         </Card>
       ) : (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
           {customers.map((customer) => {
             const fullName = customer.businessName
               ? `${customer.firstName} ${customer.lastName} (${customer.businessName})`
@@ -144,11 +145,11 @@ export default function CustomersPage() {
             return (
               <Card
                 key={customer._id}
-                onClick={() => router.push(`/customers/${customer._id}`)}
+                onClick={() => router.push(`/shopos/customers/${customer._id}`)}
                 sx={{
-                  background: '#1A1A1A',
+                  background: '#1C1C1E',
                   border: '1px solid #2A2A2A',
-                  transition: 'all 0.2s',
+                  transition: 'all 0.2s ease',
                   cursor: 'pointer',
                   '&:hover': {
                     background: '#222',
@@ -187,7 +188,7 @@ export default function CustomersPage() {
 
                       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <LocationOnIcon sx={{ color: '#666', fontSize: 18 }} />
+                          <LocationOnIcon sx={{ color: '#8E8E93', fontSize: 18 }} />
                           <Typography variant="body2" sx={{ color: '#B3B3B3' }}>
                             {fullAddress}
                           </Typography>
@@ -195,7 +196,7 @@ export default function CustomersPage() {
 
                         {customer.phone && (
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <PhoneIcon sx={{ color: '#666', fontSize: 18 }} />
+                            <PhoneIcon sx={{ color: '#8E8E93', fontSize: 18 }} />
                             <Typography variant="body2" sx={{ color: '#007AFF' }}>
                               {customer.phone}
                             </Typography>
@@ -204,7 +205,7 @@ export default function CustomersPage() {
 
                         {customer.email && (
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <EmailIcon sx={{ color: '#666', fontSize: 18 }} />
+                            <EmailIcon sx={{ color: '#8E8E93', fontSize: 18 }} />
                             <Typography variant="body2" sx={{ color: '#007AFF' }}>
                               {customer.email}
                             </Typography>

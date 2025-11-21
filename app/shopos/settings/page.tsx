@@ -18,7 +18,7 @@ import {
   Alert,
 } from '@mui/material';
 import { useSnackbar } from '@/app/contexts/SnackbarContext';
-import { useOrganization, OrganizationSwitcher } from '@clerk/nextjs';
+import { useOrganization, OrganizationSwitcher, UserProfile } from '@clerk/nextjs';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -132,12 +132,12 @@ export default function SettingsPage() {
         Settings
       </Typography>
 
-      <Card sx={{ background: 'rgba(28, 28, 30, 0.6)', border: '1px solid rgba(255, 255, 255, 0.06)' }}>
+      <Card sx={{ background: '#1C1C1E', border: '1px solid #2A2A2A' }}>
         <Tabs
           value={tabValue}
           onChange={(e, newValue) => setTabValue(newValue)}
           sx={{
-            borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+            borderBottom: '1px solid #2A2A2A',
             '& .MuiTab-root': {
               color: '#8E8E93',
               fontWeight: 600,
@@ -381,7 +381,7 @@ export default function SettingsPage() {
               </Box>
 
               {companyRates.length === 0 ? (
-                <Typography variant="body2" sx={{ color: '#666' }}>
+                <Typography variant="body2" sx={{ color: '#8E8E93' }}>
                   No production rates set. Add rates for services you offer.
                 </Typography>
               ) : (
@@ -391,8 +391,8 @@ export default function SettingsPage() {
                       key={rate._id}
                       sx={{
                         p: 2,
-                        background: 'rgba(0, 0, 0, 0.3)',
-                        border: '1px solid rgba(255, 255, 255, 0.06)',
+                        background: '#0A0A0A',
+                        border: '1px solid #2A2A2A',
                         borderRadius: 2,
                       }}
                     >
@@ -401,7 +401,7 @@ export default function SettingsPage() {
                           <Typography variant="body1" sx={{ color: '#FFFFFF', fontWeight: 600 }}>
                             {rate.serviceType.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())}
                           </Typography>
-                          <Typography variant="caption" sx={{ color: '#666' }}>
+                          <Typography variant="caption" sx={{ color: '#8E8E93' }}>
                             {rate.averageRatePerDay} {rate.unit}/day
                             {rate.conditions && ` (${rate.conditions})`}
                           </Typography>
@@ -412,7 +412,7 @@ export default function SettingsPage() {
                 </Box>
               )}
 
-              <Typography variant="caption" sx={{ color: '#666', fontStyle: 'italic' }}>
+              <Typography variant="caption" sx={{ color: '#8E8E93', fontStyle: 'italic' }}>
                 Production rate management UI coming soon
               </Typography>
             </Box>
@@ -453,8 +453,8 @@ export default function SettingsPage() {
                     </Typography>
                     <Box sx={{
                       p: 3,
-                      background: 'rgba(0, 0, 0, 0.3)',
-                      border: '1px solid rgba(255, 255, 255, 0.06)',
+                      background: '#0A0A0A',
+                      border: '1px solid #2A2A2A',
                       borderRadius: 2,
                     }}>
                       <Typography variant="body2" sx={{ color: '#B3B3B3', mb: 2 }}>
@@ -493,8 +493,8 @@ export default function SettingsPage() {
                     </Typography>
                     <Box sx={{
                       p: 3,
-                      background: 'rgba(0, 0, 0, 0.3)',
-                      border: '1px solid rgba(255, 255, 255, 0.06)',
+                      background: '#0A0A0A',
+                      border: '1px solid #2A2A2A',
                       borderRadius: 2,
                     }}>
                       <Typography variant="body2" sx={{ color: '#B3B3B3', mb: 2 }}>
@@ -517,9 +517,95 @@ export default function SettingsPage() {
         {/* ACCOUNT TAB */}
         <TabPanel value={tabValue} index={3}>
           <CardContent>
-            <Typography variant="body2" sx={{ color: '#666' }}>
-              User account settings coming soon
-            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <Box>
+                <Typography variant="h6" sx={{ color: '#FFFFFF', fontWeight: 600, mb: 1 }}>
+                  User Profile
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#666', mb: 3 }}>
+                  Manage your personal account settings, security preferences, and profile information.
+                </Typography>
+              </Box>
+
+              <Divider sx={{ borderColor: '#2A2A2A' }} />
+
+              <Box
+                sx={{
+                  '& .cl-rootBox': {
+                    width: '100%',
+                  },
+                  '& .cl-card': {
+                    background: 'transparent',
+                    boxShadow: 'none',
+                    border: 'none',
+                  },
+                  '& .cl-navbar': {
+                    background: 'rgba(0, 0, 0, 0.3)',
+                    borderRadius: '12px',
+                    border: '1px solid rgba(255, 255, 255, 0.06)',
+                  },
+                  '& .cl-navbarButton': {
+                    color: '#8E8E93',
+                    '&:hover': {
+                      background: 'rgba(0, 122, 255, 0.1)',
+                      color: '#007AFF',
+                    },
+                  },
+                  '& .cl-navbarButtonActive': {
+                    background: 'rgba(0, 122, 255, 0.15)',
+                    color: '#007AFF',
+                    fontWeight: 600,
+                  },
+                  '& .cl-pageScrollBox': {
+                    background: 'transparent',
+                  },
+                  '& .cl-formButtonPrimary': {
+                    background: '#007AFF',
+                    '&:hover': {
+                      background: '#0066DD',
+                    },
+                  },
+                  '& .cl-formFieldInput': {
+                    background: 'rgba(0, 0, 0, 0.3)',
+                    border: '1px solid #2A2A2A',
+                    color: '#FFFFFF',
+                    '&:hover': {
+                      borderColor: '#007AFF',
+                    },
+                    '&:focus': {
+                      borderColor: '#007AFF',
+                    },
+                  },
+                  '& .cl-headerTitle': {
+                    color: '#FFFFFF',
+                  },
+                  '& .cl-headerSubtitle': {
+                    color: '#8E8E93',
+                  },
+                  '& .cl-profileSectionTitle': {
+                    color: '#FFFFFF',
+                  },
+                  '& .cl-profileSectionContent': {
+                    color: '#B3B3B3',
+                  },
+                }}
+              >
+                <UserProfile
+                  appearance={{
+                    elements: {
+                      rootBox: {
+                        width: '100%',
+                      },
+                      card: {
+                        background: 'transparent',
+                        boxShadow: 'none',
+                        border: 'none',
+                      },
+                    },
+                  }}
+                />
+              </Box>
+            </Box>
           </CardContent>
         </TabPanel>
       </Card>

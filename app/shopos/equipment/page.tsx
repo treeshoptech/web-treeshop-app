@@ -116,30 +116,31 @@ export default function EquipmentPage() {
       {equipment.length === 0 ? (
         <Card
           sx={{
-            background: '#1A1A1A',
+            background: '#1C1C1E',
+            border: '1px solid #2A2A2A',
             textAlign: 'center',
             py: 6,
           }}
         >
           <CardContent>
-            <BuildIcon sx={{ fontSize: 60, color: '#666', mb: 2 }} />
-            <Typography variant="h6" sx={{ color: '#B3B3B3', mb: 2 }}>
+            <BuildIcon sx={{ fontSize: 60, color: '#8E8E93', mb: 2 }} />
+            <Typography variant="h6" sx={{ color: '#B3B3B3', fontWeight: 600, mb: 2 }}>
               No equipment yet
             </Typography>
-            <Typography variant="body2" sx={{ color: '#666' }}>
+            <Typography variant="body2" sx={{ color: '#8E8E93' }}>
               Click "Add Equipment" to create your first equipment record
             </Typography>
           </CardContent>
         </Card>
       ) : (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
           {equipment.map((item) => (
             <Card
               key={item._id}
               sx={{
-                background: '#1A1A1A',
+                background: '#1C1C1E',
                 border: '1px solid #2A2A2A',
-                transition: 'all 0.2s',
+                transition: 'all 0.2s ease',
                 '&:hover': {
                   background: '#222',
                   borderColor: '#007AFF',
@@ -185,7 +186,7 @@ export default function EquipmentPage() {
 
                     <Box sx={{ display: 'flex', gap: 4, mt: 2, flexWrap: 'wrap', alignItems: 'center' }}>
                       <Box>
-                        <Typography variant="caption" sx={{ color: '#666', display: 'block', mb: 0.5 }}>
+                        <Typography variant="caption" sx={{ color: '#8E8E93', display: 'block', mb: 0.5 }}>
                           Cost/Hour
                         </Typography>
                         <Typography
@@ -198,7 +199,7 @@ export default function EquipmentPage() {
                       {item.hourlyDepreciation !== undefined && (
                         <>
                           <Box>
-                            <Typography variant="caption" sx={{ color: '#666', display: 'block', mb: 0.5 }}>
+                            <Typography variant="caption" sx={{ color: '#8E8E93', display: 'block', mb: 0.5 }}>
                               Depreciation
                             </Typography>
                             <Typography variant="body2" sx={{ color: '#B3B3B3' }}>
@@ -206,7 +207,7 @@ export default function EquipmentPage() {
                             </Typography>
                           </Box>
                           <Box>
-                            <Typography variant="caption" sx={{ color: '#666', display: 'block', mb: 0.5 }}>
+                            <Typography variant="caption" sx={{ color: '#8E8E93', display: 'block', mb: 0.5 }}>
                               Fuel
                             </Typography>
                             <Typography variant="body2" sx={{ color: '#B3B3B3' }}>
@@ -214,7 +215,7 @@ export default function EquipmentPage() {
                             </Typography>
                           </Box>
                           <Box>
-                            <Typography variant="caption" sx={{ color: '#666', display: 'block', mb: 0.5 }}>
+                            <Typography variant="caption" sx={{ color: '#8E8E93', display: 'block', mb: 0.5 }}>
                               Maintenance
                             </Typography>
                             <Typography variant="body2" sx={{ color: '#B3B3B3' }}>

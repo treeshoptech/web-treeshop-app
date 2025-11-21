@@ -104,16 +104,17 @@ export default function WorkOrdersPage() {
       {jobs.length === 0 ? (
         <Card
           sx={{
-            background: '#1A1A1A',
+            background: '#1C1C1E',
+            border: '1px solid #2A2A2A',
             textAlign: 'center',
             py: 6,
           }}
         >
           <CardContent>
-            <Typography variant="h6" sx={{ color: '#B3B3B3', mb: 2 }}>
+            <Typography variant="h6" sx={{ color: '#B3B3B3', fontWeight: 600, mb: 2 }}>
               No projects yet
             </Typography>
-            <Typography variant="body2" sx={{ color: '#666' }}>
+            <Typography variant="body2" sx={{ color: '#8E8E93' }}>
               Click "New Project" to get started
             </Typography>
           </CardContent>
@@ -128,16 +129,16 @@ export default function WorkOrdersPage() {
             >
               <Card
                 sx={{
-                  background: 'rgba(28, 28, 30, 0.6)',
-                  border: '1px solid rgba(255, 255, 255, 0.06)',
+                  background: '#1C1C1E',
+                  border: '1px solid #2A2A2A',
                   borderRadius: 3,
-                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  transition: 'all 0.2s ease',
                   cursor: 'pointer',
                   '&:hover': {
-                    background: 'rgba(28, 28, 30, 0.9)',
-                    borderColor: 'rgba(0, 122, 255, 0.4)',
+                    background: '#222',
+                    borderColor: '#007AFF',
                     transform: 'translateY(-2px)',
-                    boxShadow: '0 8px 24px rgba(0, 122, 255, 0.1)',
+                    boxShadow: '0 8px 24px rgba(0, 122, 255, 0.15)',
                   },
                 }}
               >
@@ -160,7 +161,7 @@ export default function WorkOrdersPage() {
                       <Typography variant="body1" sx={{ color: '#B3B3B3' }}>
                         {job.customer ? `${job.customer.firstName} ${job.customer.lastName}` : 'Unknown Customer'}
                       </Typography>
-                      <Typography variant="body2" sx={{ color: '#666', mt: 0.5 }}>
+                      <Typography variant="body2" sx={{ color: '#8E8E93', mt: 0.5 }}>
                         {job.customer ? `${job.customer.city}, ${job.customer.state}` : ''}
                       </Typography>
                     </Box>
@@ -182,7 +183,7 @@ export default function WorkOrdersPage() {
                     }}
                   >
                     <Box>
-                      <Typography variant="caption" sx={{ color: '#666' }}>
+                      <Typography variant="caption" sx={{ color: '#8E8E93' }}>
                         Estimated Hours
                       </Typography>
                       <Typography
@@ -193,7 +194,7 @@ export default function WorkOrdersPage() {
                       </Typography>
                     </Box>
                     <Box>
-                      <Typography variant="caption" sx={{ color: '#666' }}>
+                      <Typography variant="caption" sx={{ color: '#8E8E93' }}>
                         Actual Hours
                       </Typography>
                       <Typography
@@ -204,7 +205,7 @@ export default function WorkOrdersPage() {
                       </Typography>
                     </Box>
                     <Box>
-                      <Typography variant="caption" sx={{ color: '#666' }}>
+                      <Typography variant="caption" sx={{ color: '#8E8E93' }}>
                         Total Investment
                       </Typography>
                       <Typography

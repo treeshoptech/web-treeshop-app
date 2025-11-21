@@ -116,30 +116,31 @@ export default function EmployeesPage() {
       {employees.length === 0 ? (
         <Card
           sx={{
-            background: '#1A1A1A',
+            background: '#1C1C1E',
+            border: '1px solid #2A2A2A',
             textAlign: 'center',
             py: 6,
           }}
         >
           <CardContent>
-            <PersonIcon sx={{ fontSize: 60, color: '#666', mb: 2 }} />
-            <Typography variant="h6" sx={{ color: '#B3B3B3', mb: 2 }}>
+            <PersonIcon sx={{ fontSize: 60, color: '#8E8E93', mb: 2 }} />
+            <Typography variant="h6" sx={{ color: '#B3B3B3', fontWeight: 600, mb: 2 }}>
               No employees yet
             </Typography>
-            <Typography variant="body2" sx={{ color: '#666' }}>
+            <Typography variant="body2" sx={{ color: '#8E8E93' }}>
               Click "Add Employee" to create your first employee record
             </Typography>
           </CardContent>
         </Card>
       ) : (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
           {employees.map((emp) => (
             <Card
               key={emp._id}
               sx={{
-                background: '#1A1A1A',
+                background: '#1C1C1E',
                 border: '1px solid #2A2A2A',
-                transition: 'all 0.2s',
+                transition: 'all 0.2s ease',
                 '&:hover': {
                   background: '#222',
                   borderColor: '#007AFF',
@@ -188,14 +189,14 @@ export default function EmployeesPage() {
                     </Box>
 
                     {emp.position && (
-                      <Typography variant="body2" sx={{ color: '#666', mb: 1 }}>
+                      <Typography variant="body2" sx={{ color: '#8E8E93', mb: 1 }}>
                         {emp.position}
                       </Typography>
                     )}
 
                     <Box sx={{ display: 'flex', gap: 4, mt: 2, flexWrap: 'wrap', alignItems: 'center' }}>
                       <Box>
-                        <Typography variant="caption" sx={{ color: '#666', display: 'block', mb: 0.5 }}>
+                        <Typography variant="caption" sx={{ color: '#8E8E93', display: 'block', mb: 0.5 }}>
                           Cost/Hour
                         </Typography>
                         <Typography
@@ -207,7 +208,7 @@ export default function EmployeesPage() {
                       </Box>
                       {emp.tierLevel && (
                         <Box>
-                          <Typography variant="caption" sx={{ color: '#666', display: 'block', mb: 0.5 }}>
+                          <Typography variant="caption" sx={{ color: '#8E8E93', display: 'block', mb: 0.5 }}>
                             Tier
                           </Typography>
                           <Typography variant="body2" sx={{ color: '#B3B3B3' }}>
@@ -217,7 +218,7 @@ export default function EmployeesPage() {
                       )}
                       {emp.burdenMultiplier && (
                         <Box>
-                          <Typography variant="caption" sx={{ color: '#666', display: 'block', mb: 0.5 }}>
+                          <Typography variant="caption" sx={{ color: '#8E8E93', display: 'block', mb: 0.5 }}>
                             Burden
                           </Typography>
                           <Typography variant="body2" sx={{ color: '#B3B3B3' }}>

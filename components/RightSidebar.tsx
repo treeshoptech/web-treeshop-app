@@ -26,6 +26,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import LogoutIcon from '@mui/icons-material/Logout';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import BusinessIcon from '@mui/icons-material/Business';
+import AssessmentIcon from '@mui/icons-material/Assessment';
 import Link from 'next/link';
 import { useUser, useOrganization, SignOutButton, OrganizationSwitcher } from '@clerk/nextjs';
 
@@ -42,6 +43,7 @@ export default function RightSidebar({ open, onClose }: RightSidebarProps) {
       title: 'OPERATIONS',
       items: [
         { text: 'Projects', icon: <AssignmentIcon />, href: '/shopos/work-orders' },
+        { text: 'Reports', icon: <AssessmentIcon />, href: '/shopos/reports' },
       ],
     },
     {

@@ -74,21 +74,21 @@ export default function LoadoutsPage() {
       </Box>
 
       {loadouts.length === 0 ? (
-        <Card sx={{ background: '#1A1A1A', textAlign: 'center', py: 6 }}>
+        <Card sx={{ background: '#1C1C1E', border: '1px solid #2A2A2A', textAlign: 'center', py: 6 }}>
           <CardContent>
-            <GroupsIcon sx={{ fontSize: 60, color: '#666', mb: 2 }} />
-            <Typography variant="h6" sx={{ color: '#B3B3B3', mb: 2 }}>
+            <GroupsIcon sx={{ fontSize: 60, color: '#8E8E93', mb: 2 }} />
+            <Typography variant="h6" sx={{ color: '#B3B3B3', fontWeight: 600, mb: 2 }}>
               No loadouts yet
             </Typography>
-            <Typography variant="body2" sx={{ color: '#666' }}>
+            <Typography variant="body2" sx={{ color: '#8E8E93' }}>
               Create pre-configured resource groups for quick project setup
             </Typography>
           </CardContent>
         </Card>
       ) : (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
           {loadouts.map((loadout) => (
-            <Card key={loadout._id} sx={{ background: '#1A1A1A', border: '1px solid #2A2A2A' }}>
+            <Card key={loadout._id} sx={{ background: '#1C1C1E', border: '1px solid #2A2A2A' }}>
               <CardContent>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <Box sx={{ flex: 1 }}>
@@ -96,14 +96,14 @@ export default function LoadoutsPage() {
                       {loadout.name}
                     </Typography>
                     {loadout.description && (
-                      <Typography variant="body2" sx={{ color: '#666', mb: 2 }}>
+                      <Typography variant="body2" sx={{ color: '#8E8E93', mb: 2 }}>
                         {loadout.description}
                       </Typography>
                     )}
 
                     <Box sx={{ display: 'flex', gap: 4, mt: 2 }}>
                       <Box>
-                        <Typography variant="caption" sx={{ color: '#666' }}>
+                        <Typography variant="caption" sx={{ color: '#8E8E93' }}>
                           Total Hourly Cost
                         </Typography>
                         <Typography variant="h6" sx={{ color: '#007AFF', fontWeight: 600 }}>
@@ -111,7 +111,7 @@ export default function LoadoutsPage() {
                         </Typography>
                       </Box>
                       <Box>
-                        <Typography variant="caption" sx={{ color: '#666', display: 'block' }}>
+                        <Typography variant="caption" sx={{ color: '#8E8E93', display: 'block' }}>
                           Employees ({loadout.employees.length})
                         </Typography>
                         <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
@@ -126,7 +126,7 @@ export default function LoadoutsPage() {
                         </Box>
                       </Box>
                       <Box>
-                        <Typography variant="caption" sx={{ color: '#666', display: 'block' }}>
+                        <Typography variant="caption" sx={{ color: '#8E8E93', display: 'block' }}>
                           Equipment ({loadout.equipment.length})
                         </Typography>
                         <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>

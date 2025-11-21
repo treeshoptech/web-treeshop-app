@@ -416,4 +416,54 @@ export default defineSchema({
   })
     .index("by_loadout", ["loadoutId"])
     .index("by_service_type", ["serviceType"]),
+
+  // Project Reports (Generated when job is completed)
+  projectReports: defineTable({
+    companyId: v.string(), // Organization ID
+    jobId: v.id("jobs"),
+    jobNumber: v.string(),
+
+    // Customer Info (snapshot at completion)
+    customerName: v.string(),
+    customerAddress: v.optional(v.string()),
+    customerPhone: v.optional(v.string()),
+    customerEmail: v.optional(v.string()),
+
+    // Job Details
+    status: v.string(),
+    startDate: v.optional(v.string()),
+    endDate: v.optional(v.string()),
+    completedAt: v.number(),
+
+    // Financial Summary
+    estimatedTotalHours: v.number(),
+    actualProductiveHours: v.number(),
+    actualSupportHours: v.number(),
+    totalHours: v.number(), // productive + support
+
+    totalInvestment: v.number(), // What customer paid
+    actualTotalCost: v.number(), // What it cost us
+    profit: v.number(), // Investment - Cost
+    profitMargin: v.number(), // Percentage
+
+    // Line Items Data (JSON string)
+    lineItemsData: v.string(), // Array of line items with details
+
+    // Time Logs Data (JSON string)
+    timeLogsData: v.string(), // Array of time logs grouped by employee
+
+    // Crew Members (JSON string)
+    crewMembersData: v.optional(v.string()), // Array of crew member names and roles
+
+    // Equipment Used (JSON string)
+    equipmentData: v.optional(v.string()), // Equipment usage summary
+
+    // Notes
+    jobNotes: v.optional(v.string()),
+
+    createdAt: v.number(),
+  })
+    .index("by_job", ["jobId"])
+    .index("by_company", ["companyId"])
+    .index("by_company_completed", ["companyId", "completedAt"]),
 });

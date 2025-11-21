@@ -74,7 +74,7 @@ export default function ShopOSDashboard() {
 
 
   return (
-    <Box sx={{ minHeight: '100vh', background: '#000000', py: { xs: 3, md: 4 } }}>
+    <Box sx={{ minHeight: '100vh', background: '#000000', py: 4 }}>
       <Container maxWidth="lg">
         {/* Header with Create Button */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
@@ -89,7 +89,7 @@ export default function ShopOSDashboard() {
             >
               Projects
             </Typography>
-            <Typography sx={{ color: '#666', fontSize: { xs: '0.875rem', md: '1rem' } }}>
+            <Typography variant="body2" sx={{ color: '#8E8E93', mt: 0.5 }}>
               {quotes.length} quotes • {active.length} active • {completedToday.length} completed today
             </Typography>
           </Box>
@@ -138,8 +138,8 @@ export default function ShopOSDashboard() {
           >
             <List sx={{ p: 0 }}>
               {quotes.length === 0 ? (
-                <ListItem sx={{ p: 3 }}>
-                  <Typography sx={{ color: '#666', fontSize: '0.875rem' }}>
+                <ListItem sx={{ py: 6 }}>
+                  <Typography variant="body2" sx={{ color: '#8E8E93' }}>
                     No quotes pending
                   </Typography>
                 </ListItem>
@@ -237,8 +237,8 @@ export default function ShopOSDashboard() {
           >
             <List sx={{ p: 0 }}>
               {active.length === 0 ? (
-                <ListItem sx={{ p: 3 }}>
-                  <Typography sx={{ color: '#666', fontSize: '0.875rem' }}>
+                <ListItem sx={{ py: 6 }}>
+                  <Typography variant="body2" sx={{ color: '#8E8E93' }}>
                     No active jobs
                   </Typography>
                 </ListItem>
@@ -339,8 +339,8 @@ export default function ShopOSDashboard() {
           >
             <List sx={{ p: 0 }}>
               {completedToday.length === 0 ? (
-                <ListItem sx={{ p: 3 }}>
-                  <Typography sx={{ color: '#666', fontSize: '0.875rem' }}>
+                <ListItem sx={{ py: 6 }}>
+                  <Typography variant="body2" sx={{ color: '#8E8E93' }}>
                     No projects completed today
                   </Typography>
                 </ListItem>

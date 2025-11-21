@@ -82,9 +82,9 @@ export default function CustomerDetailPage() {
       {/* Back Button */}
       <Button
         startIcon={<ArrowBackIcon />}
-        onClick={() => router.push('/customers')}
+        onClick={() => router.push('/shopos/customers')}
         sx={{
-          color: '#666',
+          color: '#8E8E93',
           mb: 3,
           '&:hover': { color: '#007AFF', background: 'rgba(0, 122, 255, 0.05)' },
         }}
@@ -93,7 +93,7 @@ export default function CustomerDetailPage() {
       </Button>
 
       {/* Customer Profile */}
-      <Card sx={{ background: '#1A1A1A', border: '1px solid #2A2A2A', mb: 4 }}>
+      <Card sx={{ background: '#1C1C1E', border: '1px solid #2A2A2A', mb: 4 }}>
         <CardContent>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
             <PersonIcon sx={{ color: '#007AFF', fontSize: 40 }} />
@@ -126,8 +126,8 @@ export default function CustomerDetailPage() {
             {customer.phone && (
               <Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                  <PhoneIcon sx={{ color: '#666', fontSize: 18 }} />
-                  <Typography variant="caption" sx={{ color: '#666' }}>
+                  <PhoneIcon sx={{ color: '#8E8E93', fontSize: 18 }} />
+                  <Typography variant="caption" sx={{ color: '#8E8E93' }}>
                     Primary Phone
                   </Typography>
                 </Box>
@@ -140,8 +140,8 @@ export default function CustomerDetailPage() {
             {customer.alternatePhone && (
               <Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                  <PhoneIcon sx={{ color: '#666', fontSize: 18 }} />
-                  <Typography variant="caption" sx={{ color: '#666' }}>
+                  <PhoneIcon sx={{ color: '#8E8E93', fontSize: 18 }} />
+                  <Typography variant="caption" sx={{ color: '#8E8E93' }}>
                     Alternate Phone
                   </Typography>
                 </Box>
@@ -154,8 +154,8 @@ export default function CustomerDetailPage() {
             {customer.email && (
               <Box>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                  <EmailIcon sx={{ color: '#666', fontSize: 18 }} />
-                  <Typography variant="caption" sx={{ color: '#666' }}>
+                  <EmailIcon sx={{ color: '#8E8E93', fontSize: 18 }} />
+                  <Typography variant="caption" sx={{ color: '#8E8E93' }}>
                     Email
                   </Typography>
                 </Box>
@@ -174,7 +174,7 @@ export default function CustomerDetailPage() {
           </Typography>
 
           <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, mb: 3 }}>
-            <LocationOnIcon sx={{ color: '#666', fontSize: 20, mt: 0.5 }} />
+            <LocationOnIcon sx={{ color: '#8E8E93', fontSize: 20, mt: 0.5 }} />
             <Box>
               <Typography variant="body1" sx={{ color: '#FFFFFF' }}>
                 {customer.streetAddress}
@@ -189,7 +189,7 @@ export default function CustomerDetailPage() {
             <>
               <Divider sx={{ borderColor: '#2A2A2A', my: 3 }} />
               <Box>
-                <Typography variant="caption" sx={{ color: '#666', display: 'block', mb: 0.5 }}>
+                <Typography variant="caption" sx={{ color: '#8E8E93', display: 'block', mb: 0.5, fontWeight: 600, letterSpacing: '0.05em' }}>
                   HOW THEY FOUND US
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#B3B3B3' }}>
@@ -203,7 +203,7 @@ export default function CustomerDetailPage() {
             <>
               <Divider sx={{ borderColor: '#2A2A2A', my: 3 }} />
               <Box>
-                <Typography variant="caption" sx={{ color: '#666', display: 'block', mb: 0.5 }}>
+                <Typography variant="caption" sx={{ color: '#8E8E93', display: 'block', mb: 0.5, fontWeight: 600, letterSpacing: '0.05em' }}>
                   NOTES
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#B3B3B3' }}>
@@ -223,30 +223,30 @@ export default function CustomerDetailPage() {
       </Box>
 
       {jobs.length === 0 ? (
-        <Card sx={{ background: '#1A1A1A', border: '1px solid #2A2A2A', textAlign: 'center', py: 6 }}>
+        <Card sx={{ background: '#1C1C1E', border: '1px solid #2A2A2A', textAlign: 'center', py: 6 }}>
           <CardContent>
-            <AssignmentIcon sx={{ fontSize: 60, color: '#666', mb: 2 }} />
-            <Typography variant="h6" sx={{ color: '#B3B3B3', mb: 2 }}>
+            <AssignmentIcon sx={{ fontSize: 60, color: '#8E8E93', mb: 2 }} />
+            <Typography variant="h6" sx={{ color: '#B3B3B3', fontWeight: 600, mb: 2 }}>
               No projects yet
             </Typography>
-            <Typography variant="body2" sx={{ color: '#666' }}>
+            <Typography variant="body2" sx={{ color: '#8E8E93' }}>
               Create a project for this customer to get started
             </Typography>
           </CardContent>
         </Card>
       ) : (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
           {jobs.map((job) => (
             <Link
               key={job._id}
-              href={`/work-orders/${job._id}`}
+              href={`/shopos/work-orders/${job._id}`}
               style={{ textDecoration: 'none' }}
             >
               <Card
                 sx={{
-                  background: '#1A1A1A',
+                  background: '#1C1C1E',
                   border: '1px solid #2A2A2A',
-                  transition: 'all 0.2s',
+                  transition: 'all 0.2s ease',
                   cursor: 'pointer',
                   '&:hover': {
                     background: '#222',
@@ -269,7 +269,7 @@ export default function CustomerDetailPage() {
                       >
                         {job.jobNumber}
                       </Typography>
-                      <Typography variant="body2" sx={{ color: '#666' }}>
+                      <Typography variant="body2" sx={{ color: '#8E8E93' }}>
                         {job.startDate ? new Date(job.startDate).toLocaleDateString('en-US', {
                           month: 'short',
                           day: 'numeric',
@@ -295,7 +295,7 @@ export default function CustomerDetailPage() {
                     }}
                   >
                     <Box>
-                      <Typography variant="caption" sx={{ color: '#666' }}>
+                      <Typography variant="caption" sx={{ color: '#8E8E93' }}>
                         Estimated Hours
                       </Typography>
                       <Typography
@@ -306,7 +306,7 @@ export default function CustomerDetailPage() {
                       </Typography>
                     </Box>
                     <Box>
-                      <Typography variant="caption" sx={{ color: '#666' }}>
+                      <Typography variant="caption" sx={{ color: '#8E8E93' }}>
                         Total Investment
                       </Typography>
                       <Typography

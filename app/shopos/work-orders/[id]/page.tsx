@@ -293,10 +293,10 @@ export default function WorkOrderDetailPage() {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ py: 2 }}>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
       {/* Header */}
-      <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography variant="h5" sx={{ fontWeight: 600, color: '#FFFFFF' }}>
+      <Box sx={{ mb: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography variant="h4" sx={{ fontWeight: 600, color: '#FFFFFF' }}>
           {job.jobNumber}
         </Typography>
         <Chip
@@ -345,8 +345,8 @@ export default function WorkOrderDetailPage() {
 
       {/* Employee Selector */}
       {employees && employees.length > 0 && (
-        <Box sx={{ mb: 3, p: 2.5, background: 'rgba(28, 28, 30, 0.6)', border: '1px solid rgba(255, 255, 255, 0.06)', borderRadius: 4 }}>
-          <Typography variant="caption" sx={{ color: '#666', mb: 1, display: 'block' }}>
+        <Box sx={{ mb: 3, p: 3, background: '#1C1C1E', border: '1px solid #2A2A2A', borderRadius: 3 }}>
+          <Typography variant="caption" sx={{ color: '#8E8E93', mb: 1, display: 'block', fontWeight: 600, letterSpacing: '0.05em' }}>
             WHO'S LOGGING TIME?
           </Typography>
           <Select
@@ -384,7 +384,7 @@ export default function WorkOrderDetailPage() {
             ))}
           </Select>
           {activeTimer && (
-            <Typography variant="caption" sx={{ color: '#666', mt: 1, display: 'block' }}>
+            <Typography variant="caption" sx={{ color: '#8E8E93', mt: 1, display: 'block' }}>
               Timer running - cannot change employee
             </Typography>
           )}
@@ -394,10 +394,10 @@ export default function WorkOrderDetailPage() {
       {/* 1. CUSTOMER INFO */}
       <Accordion
         sx={{
-          background: 'rgba(28, 28, 30, 0.6)',
-          border: '1px solid rgba(255, 255, 255, 0.06)',
+          background: '#1C1C1E',
+          border: '1px solid #2A2A2A',
           borderRadius: '16px !important',
-          mb: 2.5,
+          mb: 3,
           overflow: 'hidden',
           '&:before': { display: 'none' },
         }}
@@ -413,7 +413,7 @@ export default function WorkOrderDetailPage() {
             Customer
           </Typography>
           {job.customer && (
-            <Typography variant="body2" sx={{ color: '#666', ml: 2 }}>
+            <Typography variant="body2" sx={{ color: '#8E8E93', ml: 2 }}>
               {job.customer.firstName} {job.customer.lastName}
             </Typography>
           )}
@@ -439,7 +439,7 @@ export default function WorkOrderDetailPage() {
               )}
 
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                <LocationOnIcon sx={{ color: '#666', fontSize: 18 }} />
+                <LocationOnIcon sx={{ color: '#8E8E93', fontSize: 18 }} />
                 <Box>
                   <Typography variant="body2" sx={{ color: '#B3B3B3' }}>
                     {job.customer.streetAddress}
@@ -452,7 +452,7 @@ export default function WorkOrderDetailPage() {
 
               {job.customer.phone && (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                  <PhoneIcon sx={{ color: '#666', fontSize: 18 }} />
+                  <PhoneIcon sx={{ color: '#8E8E93', fontSize: 18 }} />
                   <Typography variant="body2" sx={{ color: '#007AFF' }}>
                     {job.customer.phone}
                   </Typography>
@@ -461,7 +461,7 @@ export default function WorkOrderDetailPage() {
 
               {job.customer.email && (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                  <EmailIcon sx={{ color: '#666', fontSize: 18 }} />
+                  <EmailIcon sx={{ color: '#8E8E93', fontSize: 18 }} />
                   <Typography variant="body2" sx={{ color: '#007AFF' }}>
                     {job.customer.email}
                   </Typography>
@@ -485,7 +485,7 @@ export default function WorkOrderDetailPage() {
           )}
 
           {job.notes && (
-            <Typography variant="body2" sx={{ color: '#666', mt: 2, fontStyle: 'italic', pt: 2, borderTop: '1px solid #2A2A2A' }}>
+            <Typography variant="body2" sx={{ color: '#8E8E93', mt: 2, fontStyle: 'italic', pt: 2, borderTop: '1px solid #2A2A2A' }}>
               Job Note: {job.notes}
             </Typography>
           )}
@@ -496,10 +496,10 @@ export default function WorkOrderDetailPage() {
       <Accordion
         defaultExpanded
         sx={{
-          background: 'rgba(28, 28, 30, 0.6)',
-          border: '1px solid rgba(255, 255, 255, 0.06)',
+          background: '#1C1C1E',
+          border: '1px solid #2A2A2A',
           borderRadius: '16px !important',
-          mb: 2.5,
+          mb: 3,
           overflow: 'hidden',
           '&:before': { display: 'none' },
         }}
@@ -560,7 +560,7 @@ export default function WorkOrderDetailPage() {
                       Completed
                     </Typography>
                   ) : (
-                    <Typography variant="caption" sx={{ color: '#666' }}>
+                    <Typography variant="caption" sx={{ color: '#8E8E93' }}>
                       {formatDuration(item.actualProductiveHours || 0)} / {formatDuration(item.estimatedHours)} logged
                     </Typography>
                   )}
@@ -670,7 +670,7 @@ export default function WorkOrderDetailPage() {
             sx={{
               mt: 1.5,
               borderColor: '#2A2A2A',
-              color: '#666',
+              color: '#8E8E93',
               borderStyle: 'dashed',
               '&:hover': {
                 borderColor: '#007AFF',
@@ -690,7 +690,7 @@ export default function WorkOrderDetailPage() {
           {job.timeLogs.length > 0 && (
             <>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, mt: 4 }}>
-                <Typography variant="subtitle2" sx={{ color: '#666', fontWeight: 600 }}>
+                <Typography variant="subtitle2" sx={{ color: '#8E8E93', fontWeight: 600, letterSpacing: '0.05em' }}>
                   RECENT ACTIVITY
                 </Typography>
                 <Button
@@ -713,7 +713,7 @@ export default function WorkOrderDetailPage() {
                   onClick={() => setActivityFilter('all')}
                   sx={{
                     background: activityFilter === 'all' ? '#007AFF' : '#2A2A2A',
-                    color: activityFilter === 'all' ? '#FFFFFF' : '#666',
+                    color: activityFilter === 'all' ? '#FFFFFF' : '#8E8E93',
                     cursor: 'pointer',
                     '&:hover': { background: activityFilter === 'all' ? '#0066DD' : '#333' },
                   }}
@@ -723,7 +723,7 @@ export default function WorkOrderDetailPage() {
                   onClick={() => setActivityFilter('productive')}
                   sx={{
                     background: activityFilter === 'productive' ? '#007AFF' : '#2A2A2A',
-                    color: activityFilter === 'productive' ? '#FFFFFF' : '#666',
+                    color: activityFilter === 'productive' ? '#FFFFFF' : '#8E8E93',
                     cursor: 'pointer',
                     '&:hover': { background: activityFilter === 'productive' ? '#0066DD' : '#333' },
                   }}
@@ -733,7 +733,7 @@ export default function WorkOrderDetailPage() {
                   onClick={() => setActivityFilter('support')}
                   sx={{
                     background: activityFilter === 'support' ? '#007AFF' : '#2A2A2A',
-                    color: activityFilter === 'support' ? '#FFFFFF' : '#666',
+                    color: activityFilter === 'support' ? '#FFFFFF' : '#8E8E93',
                     cursor: 'pointer',
                     '&:hover': { background: activityFilter === 'support' ? '#0066DD' : '#333' },
                   }}
@@ -764,7 +764,7 @@ export default function WorkOrderDetailPage() {
                       <Typography variant="body2" sx={{ color: '#FFFFFF', fontWeight: 600, mb: 0.25 }}>
                         {log.taskName}
                       </Typography>
-                      <Typography variant="caption" sx={{ color: '#666' }}>
+                      <Typography variant="caption" sx={{ color: '#8E8E93' }}>
                         {log.employeeName} • {formatDateTime(log.startTime)}
                       </Typography>
                       {log.notes && (
@@ -784,7 +784,7 @@ export default function WorkOrderDetailPage() {
                         }}
                       />
                       {log.totalCost && (
-                        <Typography variant="caption" sx={{ color: '#666' }}>
+                        <Typography variant="caption" sx={{ color: '#8E8E93' }}>
                           ${log.totalCost.toFixed(0)}
                         </Typography>
                       )}
@@ -805,7 +805,7 @@ export default function WorkOrderDetailPage() {
                   }}
                 >
                   <Box>
-                    <Typography variant="caption" sx={{ color: '#666', display: 'block' }}>
+                    <Typography variant="caption" sx={{ color: '#8E8E93', display: 'block' }}>
                       Productive Hours
                     </Typography>
                     <Typography variant="body1" sx={{ color: '#007AFF', fontWeight: 600 }}>
@@ -813,7 +813,7 @@ export default function WorkOrderDetailPage() {
                     </Typography>
                   </Box>
                   <Box>
-                    <Typography variant="caption" sx={{ color: '#666', display: 'block' }}>
+                    <Typography variant="caption" sx={{ color: '#8E8E93', display: 'block' }}>
                       Support Hours
                     </Typography>
                     <Typography variant="body1" sx={{ color: '#B3B3B3', fontWeight: 600 }}>
@@ -821,7 +821,7 @@ export default function WorkOrderDetailPage() {
                     </Typography>
                   </Box>
                   <Box>
-                    <Typography variant="caption" sx={{ color: '#666', display: 'block', textAlign: 'right' }}>
+                    <Typography variant="caption" sx={{ color: '#8E8E93', display: 'block', textAlign: 'right' }}>
                       Total Cost
                     </Typography>
                     <Typography variant="body1" sx={{ color: '#FFFFFF', fontWeight: 600 }}>
@@ -838,10 +838,10 @@ export default function WorkOrderDetailPage() {
       {/* 3. JOB SUMMARY */}
       <Accordion
         sx={{
-          background: 'rgba(28, 28, 30, 0.6)',
-          border: '1px solid rgba(255, 255, 255, 0.06)',
+          background: '#1C1C1E',
+          border: '1px solid #2A2A2A',
           borderRadius: '16px !important',
-          mb: 2.5,
+          mb: 3,
           overflow: 'hidden',
           '&:before': { display: 'none' },
         }}
@@ -854,7 +854,7 @@ export default function WorkOrderDetailPage() {
         >
           <DescriptionIcon sx={{ color: '#007AFF' }} />
           <Typography sx={{ color: '#FFFFFF', fontWeight: 600 }}>Job Summary</Typography>
-          <Typography variant="body2" sx={{ color: '#666', ml: 2 }}>
+          <Typography variant="body2" sx={{ color: '#8E8E93', ml: 2 }}>
             {job.actualProductiveHours?.toFixed(1) || '0'} / {job.estimatedTotalHours.toFixed(1)} hrs
           </Typography>
         </AccordionSummary>
@@ -894,7 +894,7 @@ export default function WorkOrderDetailPage() {
                       {Math.round(progress)}%
                     </Typography>
                   </Box>
-                  <Typography variant="caption" sx={{ color: '#666', mt: 0.5 }}>
+                  <Typography variant="caption" sx={{ color: '#8E8E93', mt: 0.5 }}>
                     {formatDuration(item.actualProductiveHours || 0)} / {formatDuration(item.estimatedHours)} hrs
                   </Typography>
                 </Box>
@@ -904,7 +904,7 @@ export default function WorkOrderDetailPage() {
             {/* Crew Info */}
             {job.crew && (
               <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid #2A2A2A' }}>
-                <Typography variant="caption" sx={{ color: '#666', mb: 1, display: 'block' }}>
+                <Typography variant="caption" sx={{ color: '#8E8E93', mb: 1, display: 'block', fontWeight: 600, letterSpacing: '0.05em' }}>
                   CREW
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
