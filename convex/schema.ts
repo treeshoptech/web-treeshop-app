@@ -18,8 +18,8 @@ export default defineSchema({
       v.literal("cancelled")      // Cancelled/rejected
     ),
 
-    // Schedule
-    startDate: v.string(), // ISO date string
+    // Schedule (optional for draft/sent status)
+    startDate: v.optional(v.string()), // ISO date string
     endDate: v.optional(v.string()),
 
     // Legacy Customer Info (denormalized - for backward compatibility)

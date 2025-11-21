@@ -165,11 +165,20 @@ export const markJobComplete = mutation({
   },
 });
 
-// Create new work order
+// Create new work order/project
 export const createJob = mutation({
   args: {
     customerId: v.id("customers"),
-    startDate: v.string(),
+    startDate: v.optional(v.string()),
+    status: v.optional(v.union(
+      v.literal("draft"),
+      v.literal("sent"),
+      v.literal("accepted"),
+      v.literal("scheduled"),
+      v.literal("in_progress"),
+      v.literal("completed"),
+      v.literal("cancelled")
+    )),
     notes: v.optional(v.string()),
     assignedCrewId: v.optional(v.id("crews")),
   },
@@ -184,7 +193,7 @@ export const createJob = mutation({
       companyId: orgId,
       jobNumber,
       customerId: args.customerId,
-      status: "scheduled",
+      status: args.status || "draft", // Default to draft if not specified
       startDate: args.startDate,
       estimatedTotalHours: 0, // Will update when line items added
       totalInvestment: 0, // Will update when line items added

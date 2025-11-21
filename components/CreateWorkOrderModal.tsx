@@ -29,7 +29,8 @@ interface CreateWorkOrderModalProps {
   onClose: () => void;
   onSubmit: (data: {
     customerId: Id<'customers'>;
-    startDate: string;
+    startDate?: string;
+    status?: 'draft' | 'sent' | 'accepted' | 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
     notes?: string;
     assignedCrewId?: Id<'crews'>;
   }) => void;
@@ -69,11 +70,6 @@ export default function CreateWorkOrderModal({
   const selectedCustomer = customers.find((c) => c._id === customerId);
 
   const handleSubmit = async () => {
-    if (!startDate) {
-      alert('Please enter a start date');
-      return;
-    }
-
     let finalCustomerId = customerId;
 
     // If creating new customer, create it first
@@ -470,11 +466,12 @@ export default function CreateWorkOrderModal({
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <TextField
             fullWidth
-            label="Start Date *"
+            label="Start Date (Optional - for scheduling)"
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
             InputLabelProps={{ shrink: true }}
+            helperText="Leave blank if creating a quote/draft"
             sx={{
               '& .MuiInputLabel-root': { color: '#B3B3B3' },
               '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
