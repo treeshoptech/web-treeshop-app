@@ -15,8 +15,10 @@ import {
   Button,
   CircularProgress,
   Divider,
+  Alert,
 } from '@mui/material';
 import { useSnackbar } from '@/app/contexts/SnackbarContext';
+import { useOrganization, OrganizationSwitcher } from '@clerk/nextjs';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -40,6 +42,7 @@ function TabPanel(props: TabPanelProps) {
 }
 
 export default function SettingsPage() {
+  const { organization } = useOrganization();
   const company = useQuery(api.companies.getCompany);
   const companyRates = useQuery(api.companies.getCompanyProductionRates);
   const saveCompany = useMutation(api.companies.createOrUpdateCompany);
@@ -47,6 +50,16 @@ export default function SettingsPage() {
   const { showError, showSuccess } = useSnackbar();
 
   const [tabValue, setTabValue] = useState(0);
+
+  // Listen for organization changes
+  useEffect(() => {
+    if (organization) {
+      console.log('Settings page - Organization changed:', {
+        id: organization.id,
+        name: organization.name,
+      });
+    }
+  }, [organization?.id]);
 
   // Company form state
   const [companyForm, setCompanyForm] = useState({
@@ -138,6 +151,7 @@ export default function SettingsPage() {
         >
           <Tab label="Company" />
           <Tab label="Production Rates" />
+          <Tab label="Organization" />
           <Tab label="Account" />
         </Tabs>
 
@@ -405,8 +419,103 @@ export default function SettingsPage() {
           </CardContent>
         </TabPanel>
 
-        {/* ACCOUNT TAB */}
+        {/* ORGANIZATION TAB */}
         <TabPanel value={tabValue} index={2}>
+          <CardContent>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <Box>
+                <Typography variant="h6" sx={{ color: '#FFFFFF', fontWeight: 600, mb: 1 }}>
+                  Organization Settings
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#666', mb: 3 }}>
+                  Manage your organization membership and switch between organizations.
+                </Typography>
+              </Box>
+
+              {organization && (
+                <>
+                  <Alert severity="info" sx={{
+                    background: 'rgba(0, 122, 255, 0.1)',
+                    color: '#FFFFFF',
+                    border: '1px solid rgba(0, 122, 255, 0.3)',
+                    '& .MuiAlert-icon': {
+                      color: '#007AFF',
+                    }
+                  }}>
+                    Currently active organization: <strong>{organization.name}</strong>
+                  </Alert>
+
+                  <Divider sx={{ borderColor: '#2A2A2A' }} />
+
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ color: '#666', fontWeight: 600, fontSize: '0.75rem', letterSpacing: '0.05em', mb: 2 }}>
+                      ORGANIZATION SWITCHER
+                    </Typography>
+                    <Box sx={{
+                      p: 3,
+                      background: 'rgba(0, 0, 0, 0.3)',
+                      border: '1px solid rgba(255, 255, 255, 0.06)',
+                      borderRadius: 2,
+                    }}>
+                      <Typography variant="body2" sx={{ color: '#B3B3B3', mb: 2 }}>
+                        Switch between organizations or create a new one:
+                      </Typography>
+                      <OrganizationSwitcher
+                        appearance={{
+                          elements: {
+                            rootBox: {
+                              width: '100%',
+                            },
+                            organizationSwitcherTrigger: {
+                              width: '100%',
+                              padding: '12px 16px',
+                              background: 'rgba(0, 122, 255, 0.1)',
+                              border: '1px solid rgba(0, 122, 255, 0.3)',
+                              borderRadius: '8px',
+                              color: '#FFFFFF',
+                              fontSize: '0.95rem',
+                              fontWeight: 600,
+                              '&:hover': {
+                                background: 'rgba(0, 122, 255, 0.15)',
+                              },
+                            },
+                          },
+                        }}
+                      />
+                    </Box>
+                  </Box>
+
+                  <Divider sx={{ borderColor: '#2A2A2A' }} />
+
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ color: '#666', fontWeight: 600, fontSize: '0.75rem', letterSpacing: '0.05em', mb: 2 }}>
+                      HOW ORGANIZATION SWITCHING WORKS
+                    </Typography>
+                    <Box sx={{
+                      p: 3,
+                      background: 'rgba(0, 0, 0, 0.3)',
+                      border: '1px solid rgba(255, 255, 255, 0.06)',
+                      borderRadius: 2,
+                    }}>
+                      <Typography variant="body2" sx={{ color: '#B3B3B3', mb: 2 }}>
+                        When you switch organizations:
+                      </Typography>
+                      <Box component="ul" sx={{ color: '#B3B3B3', pl: 2, mb: 0 }}>
+                        <li>All data automatically refreshes to show the new organization's data</li>
+                        <li>Projects, customers, employees, and equipment are filtered by organization</li>
+                        <li>Your settings and preferences remain intact</li>
+                        <li>No stale data from the previous organization is retained</li>
+                      </Box>
+                    </Box>
+                  </Box>
+                </>
+              )}
+            </Box>
+          </CardContent>
+        </TabPanel>
+
+        {/* ACCOUNT TAB */}
+        <TabPanel value={tabValue} index={3}>
           <CardContent>
             <Typography variant="body2" sx={{ color: '#666' }}>
               User account settings coming soon

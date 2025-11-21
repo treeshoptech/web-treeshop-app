@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import {
   Box,
   Container,
@@ -29,6 +30,17 @@ import OrganizationRequired from '@/components/OrganizationRequired';
 export default function ShopOSDashboard() {
   const { organization } = useOrganization();
   const jobs = useQuery(api.jobs.listJobs);
+
+  // Listen for organization changes and log for debugging
+  useEffect(() => {
+    if (organization) {
+      console.log('Organization changed:', {
+        id: organization.id,
+        name: organization.name,
+        slug: organization.slug,
+      });
+    }
+  }, [organization?.id]); // Re-run when organization ID changes
 
   if (!organization) {
     return <OrganizationRequired />;

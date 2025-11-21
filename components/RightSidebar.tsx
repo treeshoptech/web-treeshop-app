@@ -12,6 +12,7 @@ import {
   Avatar,
   Typography,
   IconButton,
+  Button,
 } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import AssignmentIcon from '@mui/icons-material/Assignment';
@@ -22,8 +23,11 @@ import CloseIcon from '@mui/icons-material/Close';
 import BuildIcon from '@mui/icons-material/Build';
 import PeopleIcon from '@mui/icons-material/People';
 import PersonIcon from '@mui/icons-material/Person';
+import LogoutIcon from '@mui/icons-material/Logout';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import BusinessIcon from '@mui/icons-material/Business';
 import Link from 'next/link';
-import { useUser, useOrganization } from '@clerk/nextjs';
+import { useUser, useOrganization, SignOutButton, OrganizationSwitcher } from '@clerk/nextjs';
 
 interface RightSidebarProps {
   open: boolean;
@@ -262,6 +266,109 @@ export default function RightSidebar({ open, onClose }: RightSidebarProps) {
             </Box>
           </Box>
 
+          {/* User Action Buttons */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+            {/* Profile Link */}
+            <Link href="/shopos/profile" style={{ textDecoration: 'none' }}>
+              <Button
+                fullWidth
+                onClick={onClose}
+                startIcon={<AccountCircleIcon />}
+                sx={{
+                  color: '#FFFFFF',
+                  background: 'rgba(255, 255, 255, 0.05)',
+                  justifyContent: 'flex-start',
+                  px: 2,
+                  py: 1.2,
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  fontSize: '0.9rem',
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    background: 'rgba(0, 122, 255, 0.15)',
+                    transform: 'translateY(-1px)',
+                  },
+                }}
+              >
+                User Profile
+              </Button>
+            </Link>
+
+            {/* Organization Switcher */}
+            <Box
+              sx={{
+                background: 'rgba(255, 255, 255, 0.05)',
+                borderRadius: 2,
+                p: 1.5,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 1.5,
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  background: 'rgba(255, 255, 255, 0.08)',
+                },
+              }}
+            >
+              <BusinessIcon sx={{ color: '#007AFF', fontSize: 20 }} />
+              <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                <OrganizationSwitcher
+                  appearance={{
+                    elements: {
+                      rootBox: {
+                        width: '100%',
+                      },
+                      organizationSwitcherTrigger: {
+                        width: '100%',
+                        padding: '0',
+                        background: 'transparent',
+                        border: 'none',
+                        color: '#FFFFFF',
+                        fontSize: '0.9rem',
+                        fontWeight: 600,
+                        justifyContent: 'flex-start',
+                        '&:hover': {
+                          background: 'transparent',
+                        },
+                      },
+                      organizationPreview: {
+                        gap: '8px',
+                      },
+                      organizationSwitcherTriggerIcon: {
+                        color: '#8E8E93',
+                      },
+                    },
+                  }}
+                />
+              </Box>
+            </Box>
+
+            {/* Sign Out Button */}
+            <SignOutButton>
+              <Button
+                fullWidth
+                startIcon={<LogoutIcon />}
+                sx={{
+                  color: '#FF453A',
+                  background: 'rgba(255, 69, 58, 0.1)',
+                  justifyContent: 'flex-start',
+                  px: 2,
+                  py: 1.2,
+                  borderRadius: 2,
+                  textTransform: 'none',
+                  fontWeight: 600,
+                  fontSize: '0.9rem',
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    background: 'rgba(255, 69, 58, 0.2)',
+                    transform: 'translateY(-1px)',
+                  },
+                }}
+              >
+                Sign Out
+              </Button>
+            </SignOutButton>
+          </Box>
         </Box>
       </Box>
     </Drawer>

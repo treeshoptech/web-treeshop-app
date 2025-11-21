@@ -5,7 +5,13 @@ import { requireOrganizationId } from "./auth";
 export const getCompany = query({
   args: {},
   handler: async (ctx) => {
-    const company = await ctx.db.query("companies").first();
+    const orgId = await requireOrganizationId(ctx);
+
+    const company = await ctx.db
+      .query("companies")
+      .withIndex("by_company", (q) => q.eq("companyId", orgId))
+      .first();
+
     return company;
   },
 });
@@ -24,7 +30,13 @@ export const createOrUpdateCompany = mutation({
     sops: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const existing = await ctx.db.query("companies").first();
+    const orgId = await requireOrganizationId(ctx);
+
+    // Find existing company for this organization
+    const existing = await ctx.db
+      .query("companies")
+      .withIndex("by_company", (q) => q.eq("companyId", orgId))
+      .first();
 
     if (existing) {
       await ctx.db.patch(existing._id, {
@@ -34,6 +46,7 @@ export const createOrUpdateCompany = mutation({
       return existing._id;
     } else {
       const id = await ctx.db.insert("companies", {
+        companyId: orgId,
         ...args,
         createdAt: Date.now(),
         updatedAt: Date.now(),
@@ -46,7 +59,12 @@ export const createOrUpdateCompany = mutation({
 export const getCompanyProductionRates = query({
   args: {},
   handler: async (ctx) => {
-    return await ctx.db.query("companyProductionRates").collect();
+    const orgId = await requireOrganizationId(ctx);
+
+    return await ctx.db
+      .query("companyProductionRates")
+      .withIndex("by_company", (q) => q.eq("companyId", orgId))
+      .collect();
   },
 });
 
@@ -65,9 +83,12 @@ export const upsertCompanyProductionRate = mutation({
       .query("companyProductionRates")
       .withIndex("by_service_type", (q) => q.eq("serviceType", args.serviceType))
       .filter((q) =>
-        args.conditions
-          ? q.eq(q.field("conditions"), args.conditions)
-          : q.eq(q.field("conditions"), undefined)
+        q.and(
+          q.eq(q.field("companyId"), orgId),
+          args.conditions
+            ? q.eq(q.field("conditions"), args.conditions)
+            : q.eq(q.field("conditions"), undefined)
+        )
       )
       .first();
 
@@ -97,6 +118,18 @@ export const upsertCompanyProductionRate = mutation({
 export const deleteCompanyProductionRate = mutation({
   args: { rateId: v.id("companyProductionRates") },
   handler: async (ctx, args) => {
+    const orgId = await requireOrganizationId(ctx);
+
+    // Verify the rate belongs to this organization before deleting
+    const rate = await ctx.db.get(args.rateId);
+    if (!rate) {
+      throw new Error("Production rate not found");
+    }
+
+    if (rate.companyId !== orgId) {
+      throw new Error("Unauthorized: This production rate belongs to a different organization");
+    }
+
     await ctx.db.delete(args.rateId);
     return { success: true };
   },

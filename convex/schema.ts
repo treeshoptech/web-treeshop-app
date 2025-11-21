@@ -212,6 +212,7 @@ export default defineSchema({
 
   // Company Settings
   companies: defineTable({
+    companyId: v.string(), // Clerk organization ID (required)
     name: v.string(),
 
     // Contact Info
@@ -231,7 +232,8 @@ export default defineSchema({
 
     createdAt: v.number(),
     updatedAt: v.number(),
-  }),
+  })
+    .index("by_company", ["companyId"]),
 
   // Company Production Rate Defaults (for pricing)
   companyProductionRates: defineTable({
