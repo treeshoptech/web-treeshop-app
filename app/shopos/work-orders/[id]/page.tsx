@@ -892,7 +892,7 @@ export default function WorkOrderDetailPage() {
             })}
 
             {/* Crew Info */}
-            {job.crew?.members?.length > 0 && (
+            {(job.crew?.members?.length ?? 0) > 0 && (
               <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid #2A2A2A' }}>
                 <Typography variant="caption" sx={{ color: '#8E8E93', mb: 1, display: 'block', fontWeight: 600, letterSpacing: '0.05em' }}>
                   CREW
