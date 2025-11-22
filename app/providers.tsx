@@ -11,9 +11,18 @@ import { SnackbarProvider } from './contexts/SnackbarContext';
 
 const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
+// Custom useAuth wrapper that uses the "convex" JWT template
+function useAuthWithConvexTemplate() {
+  const auth = useAuth();
+  return {
+    ...auth,
+    getToken: () => auth.getToken({ template: 'convex' }),
+  };
+}
+
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
+    <ConvexProviderWithClerk client={convex} useAuth={useAuthWithConvexTemplate}>
       <EmotionRegistry>
         <ThemeProvider theme={theme}>
           <CssBaseline />
