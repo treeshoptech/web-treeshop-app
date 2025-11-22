@@ -7,14 +7,16 @@ import { verifyDocumentOwnershipOptional } from "./authHelpers";
 export const listJobs = query({
   args: {},
   handler: async (ctx) => {
-    const orgId = await requireOrganizationId(ctx);
+    const orgId = await getOrganizationId(ctx);
 
-    // Get all jobs for the organization
-    const jobs = await ctx.db
-      .query("jobs")
-      .filter((q) => q.eq(q.field("companyId"), orgId))
-      .order("desc")
-      .collect();
+    // Get all jobs - filter by org if orgId exists
+    const jobs = orgId
+      ? await ctx.db
+          .query("jobs")
+          .filter((q) => q.eq(q.field("companyId"), orgId))
+          .order("desc")
+          .collect()
+      : await ctx.db.query("jobs").order("desc").collect();
 
     // Batch fetch all related records upfront
     const customerIds = jobs

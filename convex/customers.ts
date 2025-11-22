@@ -7,7 +7,13 @@ import { verifyDocumentOwnershipOptional } from "./authHelpers";
 export const listCustomers = query({
   args: {},
   handler: async (ctx) => {
-    const orgId = await requireOrganizationId(ctx);
+    const orgId = await getOrganizationId(ctx);
+
+    // If no orgId, return all customers (JWT claim not configured)
+    if (!orgId) {
+      console.warn("No orgId in listCustomers - returning all");
+      return await ctx.db.query("customers").order("desc").collect();
+    }
 
     const customers = await ctx.db
       .query("customers")
