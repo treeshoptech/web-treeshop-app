@@ -58,11 +58,11 @@ export const createCustomer = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const orgId = await requireOrganizationId(ctx);
+    const orgId = await getOrganizationId(ctx);
 
     try {
       const customerId = await ctx.db.insert("customers", {
-        companyId: orgId,
+        companyId: orgId ?? undefined,
         firstName: args.firstName,
         lastName: args.lastName,
         businessName: args.businessName,
