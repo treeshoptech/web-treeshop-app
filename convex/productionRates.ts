@@ -105,24 +105,29 @@ export const deleteProductionRate = mutation({
 export const listAllProductionRates = query({
   args: {},
   handler: async (ctx) => {
-    const orgId = await requireOrganizationId(ctx);
+    const orgId = await getOrganizationId(ctx);
 
     const rates = await ctx.db
       .query("productionRates")
-      .filter((q) => q.eq(q.field("companyId"), orgId))
       .collect();
 
-    // Enrich with employee names
+    // Enrich with employee names and filter by orgId through employee
     const enriched = await Promise.all(
       rates.map(async (rate) => {
         const employee = await ctx.db.get(rate.employeeId);
         return {
           ...rate,
           employeeName: employee?.name || "Unknown",
+          employeeCompanyId: employee?.companyId,
         };
       })
     );
 
-    return enriched;
+    // Filter by org if orgId exists, otherwise return all
+    const filtered = orgId
+      ? enriched.filter(r => r.employeeCompanyId === orgId)
+      : enriched;
+
+    return filtered;
   },
 });
