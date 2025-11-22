@@ -11,18 +11,23 @@ export const listCategories = query({
     console.log("listCategories - orgId:", orgId);
 
     // If no orgId, return all categories (JWT not configured)
-    const categories = orgId
-      ? await ctx.db
-          .query("equipmentCategories")
-          .filter((q) => q.eq(q.field("companyId"), orgId))
-          .filter((q) => q.eq(q.field("isActive"), true))
-          .order("desc")
-          .collect()
-      : await ctx.db
-          .query("equipmentCategories")
-          .filter((q) => q.eq(q.field("isActive"), true))
-          .order("desc")
-          .collect();
+    let categories;
+    if (orgId) {
+      console.log("listCategories - filtering by orgId:", orgId);
+      categories = await ctx.db
+        .query("equipmentCategories")
+        .filter((q) => q.eq(q.field("companyId"), orgId))
+        .filter((q) => q.eq(q.field("isActive"), true))
+        .collect();
+    } else {
+      console.log("listCategories - NO orgId, querying all");
+      categories = await ctx.db
+        .query("equipmentCategories")
+        .collect();
+      console.log("listCategories - raw query returned:", categories.length);
+      categories = categories.filter(c => c.isActive === true);
+      console.log("listCategories - after isActive filter:", categories.length);
+    }
 
     console.log("listCategories - found categories:", categories.length);
 
