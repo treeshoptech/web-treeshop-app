@@ -14,14 +14,25 @@ export async function getUserIdentity(ctx: QueryCtx | MutationCtx) {
 export async function getOrganizationId(ctx: QueryCtx | MutationCtx): Promise<string | null> {
   try {
     const identity = await getUserIdentity(ctx);
-    const orgId = identity.orgId;
+
+    // Try multiple naming patterns for organization ID claim
+    // Clerk v1: org_id, Clerk v2: o.id, Convex normalized: orgId
+    const orgId = (identity as any).orgId ||
+                  (identity as any).org_id ||
+                  (identity as any).o?.id ||
+                  null;
+
+    console.log("getOrganizationId - orgId found:", orgId);
+    console.log("getOrganizationId - all identity keys:", Object.keys(identity));
 
     if (!orgId || typeof orgId !== 'string') {
+      console.warn("getOrganizationId - No valid org ID found in identity");
       return null;
     }
 
     return orgId as string;
-  } catch {
+  } catch (error) {
+    console.error("getOrganizationId - Error:", error);
     return null;
   }
 }
