@@ -303,12 +303,12 @@ export default function EquipmentFormModal({
             />
 
             <TextField
-              label="Auction Price %"
+              label="Auction Price ($)"
               type="number"
-              value={formData.salvageValuePercent}
-              onChange={(e) => setFormData({ ...formData, salvageValuePercent: e.target.value })}
-              placeholder="20"
-              helperText={`$${costs.salvageValue.toFixed(0)} auction value`}
+              value={formData.auctionPrice}
+              onChange={(e) => setFormData({ ...formData, auctionPrice: e.target.value })}
+              placeholder="33000"
+              helperText="Expected resale/auction value"
               sx={{
                 '& .MuiInputLabel-root': { color: '#B3B3B3' },
                 '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },

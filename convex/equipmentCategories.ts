@@ -9,16 +9,19 @@ export const listCategories = query({
   handler: async (ctx) => {
     const orgId = await getOrganizationId(ctx);
 
-    if (!orgId) {
-      return [];
-    }
-
-    const categories = await ctx.db
-      .query("equipmentCategories")
-      .filter((q) => q.eq(q.field("companyId"), orgId))
-      .filter((q) => q.eq(q.field("isActive"), true))
-      .order("desc")
-      .collect();
+    // If no orgId, return all categories (JWT not configured)
+    const categories = orgId
+      ? await ctx.db
+          .query("equipmentCategories")
+          .filter((q) => q.eq(q.field("companyId"), orgId))
+          .filter((q) => q.eq(q.field("isActive"), true))
+          .order("desc")
+          .collect()
+      : await ctx.db
+          .query("equipmentCategories")
+          .filter((q) => q.eq(q.field("isActive"), true))
+          .order("desc")
+          .collect();
 
     // Sort by sortOrder if available
     return categories.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));

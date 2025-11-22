@@ -36,16 +36,19 @@ export const listAllTypes = query({
   handler: async (ctx) => {
     const orgId = await getOrganizationId(ctx);
 
-    if (!orgId) {
-      return [];
-    }
-
-    const types = await ctx.db
-      .query("equipmentTypes")
-      .filter((q) => q.eq(q.field("companyId"), orgId))
-      .filter((q) => q.eq(q.field("isActive"), true))
-      .order("desc")
-      .collect();
+    // If no orgId, return all types (JWT not configured)
+    const types = orgId
+      ? await ctx.db
+          .query("equipmentTypes")
+          .filter((q) => q.eq(q.field("companyId"), orgId))
+          .filter((q) => q.eq(q.field("isActive"), true))
+          .order("desc")
+          .collect()
+      : await ctx.db
+          .query("equipmentTypes")
+          .filter((q) => q.eq(q.field("isActive"), true))
+          .order("desc")
+          .collect();
 
     // Sort by sortOrder if available
     return types.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
