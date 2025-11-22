@@ -1,7 +1,7 @@
 import { getOrganizationId, requireOrganizationId } from "./auth";
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { verifyDocumentOwnership } from "./authHelpers";
+import { verifyDocumentOwnershipOptional } from "./authHelpers";
 
 // List all equipment
 export const listEquipment = query({
@@ -29,7 +29,7 @@ export const getEquipment = query({
     const equipment = await ctx.db.get(args.equipmentId);
 
     // Verify ownership - throws error if equipment doesn't belong to user's org
-    await verifyDocumentOwnership(ctx, equipment, "equipment");
+    await verifyDocumentOwnershipOptional(ctx, equipment, "equipment");
 
     return equipment;
   },
@@ -117,7 +117,7 @@ export const updateEquipment = mutation({
 
     // Fetch and verify ownership before updating
     const equipment = await ctx.db.get(equipmentId);
-    await verifyDocumentOwnership(ctx, equipment, "equipment");
+    await verifyDocumentOwnershipOptional(ctx, equipment, "equipment");
 
     // Recalculate hourly costs
     const annualDepreciation = (data.purchasePrice - data.salvageValue) / data.usefulLifeYears;
@@ -152,7 +152,7 @@ export const deleteEquipment = mutation({
   handler: async (ctx, args) => {
     // Fetch and verify ownership before deleting
     const equipment = await ctx.db.get(args.equipmentId);
-    await verifyDocumentOwnership(ctx, equipment, "equipment");
+    await verifyDocumentOwnershipOptional(ctx, equipment, "equipment");
 
     await ctx.db.delete(args.equipmentId);
     return { success: true };

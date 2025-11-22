@@ -1,7 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { getOrganizationId, requireOrganizationId } from "./auth";
-import { verifyDocumentOwnership } from "./authHelpers";
+import { verifyDocumentOwnershipOptional } from "./authHelpers";
 
 // Generate comprehensive project report when job is completed
 export const generateProjectReport = mutation({
@@ -16,7 +16,7 @@ export const generateProjectReport = mutation({
     }
 
     // Verify ownership
-    await verifyDocumentOwnership(ctx, job, "job");
+    await verifyDocumentOwnershipOptional(ctx, job, "job");
 
     // Get customer info
     let customerName = job.customerName || "Unknown Customer";
@@ -191,7 +191,7 @@ export const getProjectReport = query({
     const report = await ctx.db.get(args.reportId);
 
     // Verify ownership
-    await verifyDocumentOwnership(ctx, report, "report");
+    await verifyDocumentOwnershipOptional(ctx, report, "report");
 
     if (!report) return null;
 
@@ -218,7 +218,7 @@ export const deleteProjectReport = mutation({
     const report = await ctx.db.get(args.reportId);
 
     // Verify ownership
-    await verifyDocumentOwnership(ctx, report, "report");
+    await verifyDocumentOwnershipOptional(ctx, report, "report");
 
     if (!report) {
       throw new Error("Report not found");

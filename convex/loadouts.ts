@@ -1,7 +1,7 @@
 import { getOrganizationId, requireOrganizationId } from "./auth";
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { verifyDocumentOwnership } from "./authHelpers";
+import { verifyDocumentOwnershipOptional } from "./authHelpers";
 
 export const listLoadouts = query({
   args: {},
@@ -69,7 +69,7 @@ export const getLoadout = query({
     const loadout = await ctx.db.get(args.loadoutId);
 
     // Verify ownership - throws error if loadout doesn't belong to user's org
-    await verifyDocumentOwnership(ctx, loadout, "loadout");
+    await verifyDocumentOwnershipOptional(ctx, loadout, "loadout");
 
     if (!loadout) return null;
 
@@ -180,7 +180,7 @@ export const updateLoadout = mutation({
 
     // Fetch and verify ownership before updating
     const loadout = await ctx.db.get(loadoutId);
-    await verifyDocumentOwnership(ctx, loadout, "loadout");
+    await verifyDocumentOwnershipOptional(ctx, loadout, "loadout");
 
     // Recalculate total hourly cost
     const employees = await Promise.all(
@@ -253,7 +253,7 @@ export const deleteLoadout = mutation({
   handler: async (ctx, args) => {
     // Fetch and verify ownership before deleting
     const loadout = await ctx.db.get(args.loadoutId);
-    await verifyDocumentOwnership(ctx, loadout, "loadout");
+    await verifyDocumentOwnershipOptional(ctx, loadout, "loadout");
 
     await ctx.db.delete(args.loadoutId);
     return { success: true };

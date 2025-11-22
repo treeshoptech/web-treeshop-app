@@ -3,25 +3,27 @@ import { QueryCtx, MutationCtx } from "./_generated/server";
 
 export async function getUserIdentity(ctx: QueryCtx | MutationCtx) {
   const identity = await ctx.auth.getUserIdentity();
-  // Allow null identity for now during auth debugging
+
+  if (!identity) {
+    throw new Error("Not authenticated");
+  }
+
   return identity;
 }
 
 export async function getOrganizationId(ctx: QueryCtx | MutationCtx): Promise<string | null> {
-  const identity = await getUserIdentity(ctx);
+  try {
+    const identity = await getUserIdentity(ctx);
+    const orgId = identity.orgId;
 
-  if (!identity) {
+    if (!orgId || typeof orgId !== 'string') {
+      return null;
+    }
+
+    return orgId as string;
+  } catch {
     return null;
   }
-
-  // Clerk stores the active organization in the token
-  const orgId = identity.orgId;
-
-  if (!orgId || typeof orgId !== 'string') {
-    return null;
-  }
-
-  return orgId as string;
 }
 
 export async function requireOrganizationId(ctx: QueryCtx | MutationCtx): Promise<string> {

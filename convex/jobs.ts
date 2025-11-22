@@ -1,7 +1,7 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { getOrganizationId, requireOrganizationId } from "./auth";
-import { verifyDocumentOwnership } from "./authHelpers";
+import { verifyDocumentOwnershipOptional } from "./authHelpers";
 
 // Get all jobs for user's organization
 export const listJobs = query({
@@ -58,7 +58,7 @@ export const getJob = query({
     const job = await ctx.db.get(args.jobId);
 
     // Verify ownership - throws error if job doesn't belong to user's org
-    await verifyDocumentOwnership(ctx, job, "job");
+    await verifyDocumentOwnershipOptional(ctx, job, "job");
 
     if (!job) return null;
 
@@ -160,7 +160,7 @@ export const markJobComplete = mutation({
     const job = await ctx.db.get(args.jobId);
 
     // Verify ownership before marking complete
-    await verifyDocumentOwnership(ctx, job, "job");
+    await verifyDocumentOwnershipOptional(ctx, job, "job");
 
     if (!job) {
       throw new Error("Job not found");

@@ -1,7 +1,7 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { getOrganizationId, requireOrganizationId } from "./auth";
-import { verifyDocumentOwnership } from "./authHelpers";
+import { verifyDocumentOwnershipOptional } from "./authHelpers";
 
 // List all customers for user's organization
 export const listCustomers = query({
@@ -31,7 +31,7 @@ export const getCustomer = query({
     const customer = await ctx.db.get(args.customerId);
 
     // Verify ownership - throws error if customer doesn't belong to user's org
-    await verifyDocumentOwnership(ctx, customer, "customer");
+    await verifyDocumentOwnershipOptional(ctx, customer, "customer");
 
     return customer;
   },
@@ -116,7 +116,7 @@ export const updateCustomer = mutation({
 
     // Fetch and verify ownership before updating
     const customer = await ctx.db.get(customerId);
-    await verifyDocumentOwnership(ctx, customer, "customer");
+    await verifyDocumentOwnershipOptional(ctx, customer, "customer");
 
     await ctx.db.patch(customerId, data);
 
@@ -130,7 +130,7 @@ export const deleteCustomer = mutation({
   handler: async (ctx, args) => {
     // Fetch and verify ownership before deleting
     const customer = await ctx.db.get(args.customerId);
-    await verifyDocumentOwnership(ctx, customer, "customer");
+    await verifyDocumentOwnershipOptional(ctx, customer, "customer");
 
     await ctx.db.delete(args.customerId);
     return { success: true };
@@ -144,7 +144,7 @@ export const getCustomerWithJobs = query({
     const customer = await ctx.db.get(args.customerId);
 
     // Verify ownership
-    await verifyDocumentOwnership(ctx, customer, "customer");
+    await verifyDocumentOwnershipOptional(ctx, customer, "customer");
 
     if (!customer) return null;
 

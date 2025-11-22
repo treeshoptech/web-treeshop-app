@@ -4,7 +4,7 @@ import { v } from "convex/values";
 export default defineSchema({
   // Jobs (Work Orders)
   jobs: defineTable({
-    companyId: v.string(), // Clerk organization ID (required)
+    companyId: v.optional(v.string()), // Clerk organization ID (optional for backward compatibility)
     jobNumber: v.string(), // Auto-generated like "WO-1234"
     customerId: v.optional(v.id("customers")), // Links to customer record (optional for backward compat)
 
@@ -120,7 +120,7 @@ export default defineSchema({
 
   // Employees (Crew Members)
   employees: defineTable({
-    companyId: v.string(), // Required
+    companyId: v.optional(v.string()), // Optional for backward compatibility
     name: v.string(),
 
     // TreeShop Qualification Code System
@@ -164,7 +164,7 @@ export default defineSchema({
 
   // Crews (Team Assignments)
   crews: defineTable({
-    companyId: v.string(), // Required
+    companyId: v.optional(v.string()), // Optional for backward compatibility
     name: v.string(), // "Mulching Crew A"
     memberIds: v.array(v.id("employees")),
     isActive: v.boolean(),
@@ -175,7 +175,7 @@ export default defineSchema({
 
   // Equipment (For cost tracking)
   equipment: defineTable({
-    companyId: v.string(), // Required
+    companyId: v.optional(v.string()), // Optional for backward compatibility
     name: v.string(), // "Forestry Mulcher #2"
     type: v.string(), // "mulcher", "chipper", "stump_grinder"
 
@@ -212,7 +212,7 @@ export default defineSchema({
 
   // Company Settings
   companies: defineTable({
-    companyId: v.string(), // Clerk organization ID (required)
+    companyId: v.optional(v.string()), // Clerk organization ID (optional for backward compatibility)
     name: v.string(),
 
     // Contact Info
@@ -237,7 +237,7 @@ export default defineSchema({
 
   // Company Production Rate Defaults (for pricing)
   companyProductionRates: defineTable({
-    companyId: v.string(), // Required
+    companyId: v.optional(v.string()), // Optional for backward compatibility
     serviceType: v.string(), // "forestry_mulching", "stump_grinding", etc.
 
     unit: v.string(), // "acres", "stumps", "trees"
@@ -253,7 +253,7 @@ export default defineSchema({
     .index("by_company", ["companyId"]),
 
   customers: defineTable({
-    companyId: v.string(), // Required
+    companyId: v.optional(v.string()), // Optional for backward compatibility
 
     // Personal Info
     firstName: v.string(),
@@ -310,7 +310,7 @@ export default defineSchema({
 
   // Proposals (Pre-sale estimates)
   proposals: defineTable({
-    companyId: v.string(), // Required
+    companyId: v.optional(v.string()), // Optional for backward compatibility
     proposalNumber: v.string(), // Auto-generated like "PROP-1234"
     customerId: v.id("customers"),
 
@@ -380,7 +380,7 @@ export default defineSchema({
 
   // Loadouts (Pre-configured resource groups)
   loadouts: defineTable({
-    companyId: v.string(), // Required
+    companyId: v.optional(v.string()), // Optional for backward compatibility
     name: v.string(), // "Mulching Crew A", "Heavy Clearing Setup", etc.
     description: v.optional(v.string()),
 
@@ -419,7 +419,7 @@ export default defineSchema({
 
   // Project Reports (Generated when job is completed)
   projectReports: defineTable({
-    companyId: v.string(), // Organization ID
+    companyId: v.optional(v.string()), // Organization ID (optional for backward compatibility)
     jobId: v.id("jobs"),
     jobNumber: v.string(),
 
