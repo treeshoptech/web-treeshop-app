@@ -55,18 +55,17 @@ export const createCustomer = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    let orgId;
-    try {
-      orgId = await requireOrganizationId(ctx);
+    // TEMPORARY: Make orgId optional until Clerk JWT template is configured with org_id claim
+    const orgId = await getOrganizationId(ctx);
+    if (orgId) {
       console.log("Creating customer for organization:", orgId);
-    } catch (error: any) {
-      console.error("Organization ID error:", error.message);
-      throw new Error(`Failed to get organization: ${error.message}. Make sure you have created or joined an organization in Clerk.`);
+    } else {
+      console.warn("WARNING: No organization ID - Clerk JWT template needs org_id claim configured!");
     }
 
     try {
       const customerId = await ctx.db.insert("customers", {
-        companyId: orgId,
+        companyId: orgId || undefined,
         firstName: args.firstName,
         lastName: args.lastName,
         businessName: args.businessName,
