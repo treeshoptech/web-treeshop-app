@@ -157,7 +157,7 @@ export default function EquipmentPage() {
               collapsedMetrics={[
                 {
                   label: 'Cost/Hour',
-                  value: `$${item.hourlyCost.toFixed(2)}`,
+                  value: `$${(item.hourlyCost ?? 0).toFixed(2)}`,
                   color: '#007AFF',
                 },
               ]}
@@ -179,7 +179,7 @@ export default function EquipmentPage() {
                 },
                 {
                   label: 'Total Cost/Hour',
-                  value: `$${item.hourlyCost.toFixed(2)}`,
+                  value: `$${(item.hourlyCost ?? 0).toFixed(2)}`,
                   color: '#007AFF',
                 },
               ]}

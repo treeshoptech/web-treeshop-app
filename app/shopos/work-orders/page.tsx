@@ -127,10 +127,10 @@ export default function WorkOrdersPage() {
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
           {jobs.map((job) => {
             const customerName = job.customer
-              ? `${job.customer.firstName} ${job.customer.lastName}`
+              ? `${job.customer?.firstName ?? ''} ${job.customer?.lastName ?? ''}`.trim() || 'Unknown Customer'
               : 'Unknown Customer';
             const location = job.customer
-              ? `${job.customer.city}, ${job.customer.state}`
+              ? `${job.customer?.city ?? ''}, ${job.customer?.state ?? ''}`.replace(/^,\s*|,\s*$/g, '').trim()
               : '';
             const subtitle = location ? `${customerName} • ${location}` : customerName;
 

@@ -892,14 +892,14 @@ export default function WorkOrderDetailPage() {
             })}
 
             {/* Crew Info */}
-            {job.crew && (
+            {job.crew?.members?.length > 0 && (
               <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid #2A2A2A' }}>
                 <Typography variant="caption" sx={{ color: '#8E8E93', mb: 1, display: 'block', fontWeight: 600, letterSpacing: '0.05em' }}>
                   CREW
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                   <AvatarGroup max={3}>
-                    {job.crew.members.map((member: any) => (
+                    {job.crew.members?.map((member: any) => (
                       <Avatar
                         key={member._id}
                         sx={{
@@ -915,7 +915,7 @@ export default function WorkOrderDetailPage() {
                     ))}
                   </AvatarGroup>
                   <Typography variant="caption" sx={{ color: '#B3B3B3' }}>
-                    {job.crew.members.map((m: any) => m.name).join(', ')}
+                    {job.crew.members?.map((m: any) => m.name).join(', ')}
                   </Typography>
                 </Box>
               </Box>

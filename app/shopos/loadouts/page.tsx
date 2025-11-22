@@ -97,29 +97,29 @@ export default function LoadoutsPage() {
               collapsedMetrics={[
                 {
                   label: 'Total Hourly Cost',
-                  value: `$${loadout.totalHourlyCost.toFixed(2)}/hr`,
+                  value: `$${(loadout.totalHourlyCost ?? 0).toFixed(2)}/hr`,
                   color: '#007AFF',
                 },
                 {
                   label: 'Members',
-                  value: `${loadout.employees.length + loadout.equipment.length} total`,
+                  value: `${(loadout.employees?.length ?? 0) + (loadout.equipment?.length ?? 0)} total`,
                   color: '#8E8E93',
                 },
               ]}
               expandedMetrics={[
                 {
                   label: 'Total Hourly Cost',
-                  value: `$${loadout.totalHourlyCost.toFixed(2)}/hr`,
+                  value: `$${(loadout.totalHourlyCost ?? 0).toFixed(2)}/hr`,
                   color: '#007AFF',
                 },
               ]}
               expandedDetails={[
                 {
-                  label: `Employees (${loadout.employees.length})`,
+                  label: `Employees (${loadout.employees?.length ?? 0})`,
                   value: (
                     <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
-                      {loadout.employees.length > 0 ? (
-                        loadout.employees.map((emp: any) => (
+                      {(loadout.employees?.length ?? 0) > 0 ? (
+                        (loadout.employees ?? []).map((emp: any) => (
                           <Chip
                             key={emp._id}
                             label={emp.name}
@@ -137,11 +137,11 @@ export default function LoadoutsPage() {
                   fullWidth: true,
                 },
                 {
-                  label: `Equipment (${loadout.equipment.length})`,
+                  label: `Equipment (${loadout.equipment?.length ?? 0})`,
                   value: (
                     <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
-                      {loadout.equipment.length > 0 ? (
-                        loadout.equipment.map((equip: any) => (
+                      {(loadout.equipment?.length ?? 0) > 0 ? (
+                        (loadout.equipment ?? []).map((equip: any) => (
                           <Chip
                             key={equip._id}
                             label={equip.name}

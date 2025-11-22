@@ -180,7 +180,7 @@ export default function EmployeesPage() {
             const collapsedMetrics: MetricItem[] = [
               {
                 label: 'Cost/Hour',
-                value: `$${emp.effectiveRate.toFixed(2)}`,
+                value: `$${(emp.effectiveRate ?? 0).toFixed(2)}`,
                 color: '#007AFF',
               },
             ];
@@ -199,14 +199,14 @@ export default function EmployeesPage() {
             if (emp.burdenMultiplier) {
               expandedMetrics.push({
                 label: 'Burden',
-                value: `${emp.burdenMultiplier.toFixed(1)}x`,
+                value: `${(emp.burdenMultiplier ?? 0).toFixed(1)}x`,
                 color: '#B3B3B3',
               });
             }
 
             expandedMetrics.push({
               label: 'Effective Rate',
-              value: `$${emp.effectiveRate.toFixed(2)}`,
+              value: `$${(emp.effectiveRate ?? 0).toFixed(2)}`,
               color: '#007AFF',
             });
 

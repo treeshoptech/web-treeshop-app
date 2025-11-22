@@ -173,7 +173,7 @@ export default function ShopOSDashboard() {
                                 mb: 0.5,
                               }}
                             >
-                              {job.customer ? `${job.customer.firstName} ${job.customer.lastName}` : 'Unknown'}
+                              {`${job.customer?.firstName ?? ''} ${job.customer?.lastName ?? ''}`.trim() || 'Unknown'}
                             </Typography>
                             <Typography
                               sx={{
@@ -181,7 +181,7 @@ export default function ShopOSDashboard() {
                                 fontSize: { xs: '0.813rem', sm: '0.875rem' },
                               }}
                             >
-                              {job.customer ? `${job.customer.city}, ${job.customer.state}` : ''}
+                              {job.customer?.city && job.customer?.state ? `${job.customer.city}, ${job.customer.state}` : ''}
                             </Typography>
                           </Box>
                           <Chip
@@ -204,7 +204,7 @@ export default function ShopOSDashboard() {
                             {job.jobNumber}
                           </Typography>
                           <Typography sx={{ color: '#B3B3B3', fontSize: { xs: '0.75rem', sm: '0.813rem' } }}>
-                            • ${job.totalInvestment.toLocaleString()}
+                            • ${(job.totalInvestment ?? 0).toLocaleString()}
                           </Typography>
                         </Box>
                       </Box>
@@ -272,7 +272,7 @@ export default function ShopOSDashboard() {
                                 mb: 0.5,
                               }}
                             >
-                              {job.customer ? `${job.customer.firstName} ${job.customer.lastName}` : 'Unknown'}
+                              {`${job.customer?.firstName ?? ''} ${job.customer?.lastName ?? ''}`.trim() || 'Unknown'}
                             </Typography>
                             <Typography
                               sx={{
@@ -280,7 +280,7 @@ export default function ShopOSDashboard() {
                                 fontSize: { xs: '0.813rem', sm: '0.875rem' },
                               }}
                             >
-                              {job.customer ? `${job.customer.city}, ${job.customer.state}` : ''}
+                              {job.customer?.city && job.customer?.state ? `${job.customer.city}, ${job.customer.state}` : ''}
                             </Typography>
                           </Box>
                           <Chip
@@ -306,7 +306,7 @@ export default function ShopOSDashboard() {
                             • {job.startDate ? new Date(job.startDate).toLocaleDateString() : 'Not scheduled'}
                           </Typography>
                           <Typography sx={{ color: '#B3B3B3', fontSize: { xs: '0.75rem', sm: '0.813rem' } }}>
-                            • ${job.totalInvestment.toLocaleString()}
+                            • ${(job.totalInvestment ?? 0).toLocaleString()}
                           </Typography>
                         </Box>
                       </Box>
@@ -374,7 +374,7 @@ export default function ShopOSDashboard() {
                                 mb: 0.5,
                               }}
                             >
-                              {job.customer ? `${job.customer.firstName} ${job.customer.lastName}` : 'Unknown'}
+                              {`${job.customer?.firstName ?? ''} ${job.customer?.lastName ?? ''}`.trim() || 'Unknown'}
                             </Typography>
                             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                               <Typography sx={{ color: '#666', fontSize: { xs: '0.75rem', sm: '0.813rem' } }}>
