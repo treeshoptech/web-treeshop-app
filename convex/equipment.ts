@@ -56,7 +56,7 @@ export const createEquipment = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const orgId = await requireOrganizationId(ctx);
+    const orgId = await getOrganizationId(ctx);
 
     // Calculate hourly costs using Army Corps method
     const annualDepreciation = (args.purchasePrice - args.salvageValue) / args.usefulLifeYears;
@@ -71,7 +71,7 @@ export const createEquipment = mutation({
     const hourlyCost = hourlyCostBeforeOverhead * overheadMultiplier;
 
     const equipmentId = await ctx.db.insert("equipment", {
-      companyId: orgId,
+      companyId: orgId ?? undefined,
       name: args.name,
       type: args.type,
       purchasePrice: args.purchasePrice,

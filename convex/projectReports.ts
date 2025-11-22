@@ -7,7 +7,7 @@ import { verifyDocumentOwnershipOptional } from "./authHelpers";
 export const generateProjectReport = mutation({
   args: { jobId: v.id("jobs") },
   handler: async (ctx, args) => {
-    const orgId = await requireOrganizationId(ctx);
+    const orgId = await getOrganizationId(ctx);
 
     // Get job details
     const job = await ctx.db.get(args.jobId);
@@ -123,7 +123,7 @@ export const generateProjectReport = mutation({
 
     // Create the report
     const reportId = await ctx.db.insert("projectReports", {
-      companyId: orgId,
+      companyId: orgId ?? undefined,
       jobId: args.jobId,
       jobNumber: job.jobNumber,
 

@@ -34,13 +34,15 @@ export const createOrUpdateCompany = mutation({
     sops: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const orgId = await requireOrganizationId(ctx);
+    const orgId = await getOrganizationId(ctx);
 
     // Find existing company for this organization
-    const existing = await ctx.db
-      .query("companies")
-      .withIndex("by_company", (q) => q.eq("companyId", orgId))
-      .first();
+    const existing = orgId
+      ? await ctx.db
+          .query("companies")
+          .withIndex("by_company", (q) => q.eq("companyId", orgId))
+          .first()
+      : null;
 
     if (existing) {
       await ctx.db.patch(existing._id, {
@@ -50,7 +52,7 @@ export const createOrUpdateCompany = mutation({
       return existing._id;
     } else {
       const id = await ctx.db.insert("companies", {
-        companyId: orgId,
+        companyId: orgId ?? undefined,
         ...args,
         createdAt: Date.now(),
         updatedAt: Date.now(),
@@ -85,14 +87,14 @@ export const upsertCompanyProductionRate = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const orgId = await requireOrganizationId(ctx);
+    const orgId = await getOrganizationId(ctx);
 
     const existing = await ctx.db
       .query("companyProductionRates")
       .withIndex("by_service_type", (q) => q.eq("serviceType", args.serviceType))
       .filter((q) =>
         q.and(
-          q.eq(q.field("companyId"), orgId),
+          q.eq(q.field("companyId"), orgId ?? undefined),
           args.conditions
             ? q.eq(q.field("conditions"), args.conditions)
             : q.eq(q.field("conditions"), undefined)
@@ -110,7 +112,7 @@ export const upsertCompanyProductionRate = mutation({
       return existing._id;
     } else {
       return await ctx.db.insert("companyProductionRates", {
-        companyId: orgId,
+        companyId: orgId ?? undefined,
         serviceType: args.serviceType,
         unit: args.unit,
         averageRatePerDay: args.averageRatePerDay,
@@ -126,7 +128,7 @@ export const upsertCompanyProductionRate = mutation({
 export const deleteCompanyProductionRate = mutation({
   args: { rateId: v.id("companyProductionRates") },
   handler: async (ctx, args) => {
-    const orgId = await requireOrganizationId(ctx);
+    const orgId = await getOrganizationId(ctx);
 
     // Verify the rate belongs to this organization before deleting
     const rate = await ctx.db.get(args.rateId);
@@ -134,7 +136,7 @@ export const deleteCompanyProductionRate = mutation({
       throw new Error("Production rate not found");
     }
 
-    if (rate.companyId !== orgId) {
+    if (orgId && rate.companyId !== orgId) {
       throw new Error("Unauthorized: This production rate belongs to a different organization");
     }
 

@@ -106,7 +106,7 @@ export const createLoadout = mutation({
     treeTrimmingRate: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const orgId = await requireOrganizationId(ctx);
+    const orgId = await getOrganizationId(ctx);
 
     // Calculate total hourly cost
     const employees = await Promise.all(
@@ -127,7 +127,7 @@ export const createLoadout = mutation({
     const totalHourlyCost = employeeCost + equipmentCost;
 
     const loadoutId = await ctx.db.insert("loadouts", {
-      companyId: orgId,
+      companyId: orgId ?? undefined,
       name: args.name,
       description: args.description,
       employeeIds: args.employeeIds,

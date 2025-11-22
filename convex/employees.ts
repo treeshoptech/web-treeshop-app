@@ -65,12 +65,12 @@ export const createEmployee = mutation({
     annualWorkingHours: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    const orgId = await requireOrganizationId(ctx);
+    const orgId = await getOrganizationId(ctx);
     const effectiveRate = args.effectiveRate || args.qualificationRate || 40;
 
 
     const employeeId = await ctx.db.insert("employees", {
-      companyId: orgId,
+      companyId: orgId ?? undefined,
       name: args.name,
       positionCode: args.positionCode,
       tierLevel: args.tierLevel,
