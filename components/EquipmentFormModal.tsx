@@ -86,7 +86,7 @@ export default function EquipmentFormModal({
         typeId: initialData.typeId || '',
         purchasePrice: initialData.purchasePrice.toString(),
         usefulLifeYears: initialData.usefulLifeYears.toString(),
-        auctionPrice: equipment.auctionPrice?.toString() || '0',
+        auctionPrice: initialData.auctionPrice?.toString() || '0',
         annualOperatingHours: initialData.annualOperatingHours.toString(),
         fuelConsumptionPerHour: initialData.fuelConsumptionPerHour.toString(),
         annualMaintenanceCost: initialData.annualMaintenanceCost.toString(),
