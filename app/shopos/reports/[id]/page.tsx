@@ -947,7 +947,7 @@ export default function ProjectReportDetailPage() {
 
               <Grid container spacing={2}>
                 {report.crewMembers.map((member: any, index: number) => (
-                  <Grid size={{ xs: 12} sm={6} md: 4} key={index}>
+                  <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
                     <Box
                       sx={{
                         p: 2,

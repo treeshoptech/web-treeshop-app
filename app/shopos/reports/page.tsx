@@ -84,7 +84,7 @@ export default function ProjectReportsPage() {
       {/* Stats Summary */}
       {reports.length > 0 && (
         <Grid container spacing={2} sx={{ mb: 4 }}>
-          <Grid item xs={12} sm={4}>
+          <Grid size={{ xs: 12, sm: 4 }}>
             <Card
               sx={{
                 background: 'rgba(28, 28, 30, 0.6)',
@@ -102,7 +102,7 @@ export default function ProjectReportsPage() {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} sm={4}>
+          <Grid size={{ xs: 12, sm: 4 }}>
             <Card
               sx={{
                 background: 'rgba(28, 28, 30, 0.6)',
@@ -120,7 +120,7 @@ export default function ProjectReportsPage() {
               </CardContent>
             </Card>
           </Grid>
-          <Grid item xs={12} sm={4}>
+          <Grid size={{ xs: 12, sm: 4 }}>
             <Card
               sx={{
                 background: 'rgba(28, 28, 30, 0.6)',
@@ -190,7 +190,7 @@ export default function ProjectReportsPage() {
                   <CardContent sx={{ p: 3 }}>
                     <Grid container spacing={3} alignItems="center">
                       {/* Left Section - Job Info */}
-                      <Grid item xs={12} md={4}>
+                      <Grid size={{ xs: 12, md: 4 }}>
                         <Typography variant="h6" sx={{ color: '#007AFF', fontWeight: 700, mb: 1 }}>
                           {report.jobNumber}
                         </Typography>
@@ -209,7 +209,7 @@ export default function ProjectReportsPage() {
                       </Grid>
 
                       {/* Middle Section - Hours */}
-                      <Grid item xs={12} md={3}>
+                      <Grid size={{ xs: 12, md: 3 }}>
                         <Typography variant="caption" sx={{ color: '#666', display: 'block', mb: 0.5 }}>
                           HOURS
                         </Typography>
@@ -222,9 +222,9 @@ export default function ProjectReportsPage() {
                       </Grid>
 
                       {/* Right Section - Financials */}
-                      <Grid item xs={12} md={5}>
+                      <Grid size={{ xs: 12, md: 5 }}>
                         <Grid container spacing={2}>
-                          <Grid item xs={4}>
+                          <Grid size={{ xs: 4 }}>
                             <Typography variant="caption" sx={{ color: '#666', display: 'block', mb: 0.5 }}>
                               REVENUE
                             </Typography>
@@ -232,7 +232,7 @@ export default function ProjectReportsPage() {
                               {formatCurrency(report.totalInvestment)}
                             </Typography>
                           </Grid>
-                          <Grid item xs={4}>
+                          <Grid size={{ xs: 4 }}>
                             <Typography variant="caption" sx={{ color: '#666', display: 'block', mb: 0.5 }}>
                               PROFIT
                             </Typography>
@@ -253,7 +253,7 @@ export default function ProjectReportsPage() {
                               </Typography>
                             </Box>
                           </Grid>
-                          <Grid item xs={4}>
+                          <Grid size={{ xs: 4 }}>
                             <Typography variant="caption" sx={{ color: '#666', display: 'block', mb: 0.5 }}>
                               MARGIN
                             </Typography>
