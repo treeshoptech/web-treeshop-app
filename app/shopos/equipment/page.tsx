@@ -11,8 +11,6 @@ import {
   CardContent,
   Button,
   CircularProgress,
-  Chip,
-  IconButton,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -21,6 +19,7 @@ import BuildIcon from '@mui/icons-material/Build';
 import { Id } from '@/convex/_generated/dataModel';
 import EquipmentFormModal from '@/components/EquipmentFormModal';
 import { useSnackbar } from '@/app/contexts/SnackbarContext';
+import DirectoryCard from '@/components/DirectoryCard';
 
 export default function EquipmentPage() {
   const equipment = useQuery(api.equipment.listEquipment);
@@ -135,121 +134,90 @@ export default function EquipmentPage() {
       ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
           {equipment.map((item) => (
-            <Card
+            <DirectoryCard
               key={item._id}
-              sx={{
-                background: '#1C1C1E',
-                border: '1px solid #2A2A2A',
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                  background: '#222',
-                  borderColor: '#007AFF',
+              id={item._id}
+              icon={<BuildIcon />}
+              title={item.name}
+              subtitle={item.type}
+              badges={[
+                {
+                  label: item.type,
+                  color: '#007AFF',
                 },
-              }}
-            >
-              <CardContent>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'flex-start',
-                  }}
-                >
-                  <Box sx={{ flex: 1 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-                      <Typography
-                        variant="h6"
-                        sx={{ color: '#FFFFFF', fontWeight: 600 }}
-                      >
-                        {item.name}
-                      </Typography>
-                      <Chip
-                        label={item.type}
-                        size="small"
-                        sx={{
-                          background: '#007AFF',
-                          color: '#FFFFFF',
-                          fontWeight: 600,
-                        }}
-                      />
-                      {!item.isActive && (
-                        <Chip
-                          label="Inactive"
-                          size="small"
-                          sx={{
-                            background: '#666',
-                            color: '#FFFFFF',
-                          }}
-                        />
-                      )}
-                    </Box>
-
-                    <Box sx={{ display: 'flex', gap: 4, mt: 2, flexWrap: 'wrap', alignItems: 'center' }}>
-                      <Box>
-                        <Typography variant="caption" sx={{ color: '#8E8E93', display: 'block', mb: 0.5 }}>
-                          Cost/Hour
-                        </Typography>
-                        <Typography
-                          variant="h6"
-                          sx={{ color: '#007AFF', fontWeight: 600 }}
-                        >
-                          ${item.hourlyCost.toFixed(2)}
-                        </Typography>
-                      </Box>
-                      {item.hourlyDepreciation !== undefined && (
-                        <>
-                          <Box>
-                            <Typography variant="caption" sx={{ color: '#8E8E93', display: 'block', mb: 0.5 }}>
-                              Depreciation
-                            </Typography>
-                            <Typography variant="body2" sx={{ color: '#B3B3B3' }}>
-                              ${item.hourlyDepreciation.toFixed(2)}
-                            </Typography>
-                          </Box>
-                          <Box>
-                            <Typography variant="caption" sx={{ color: '#8E8E93', display: 'block', mb: 0.5 }}>
-                              Fuel
-                            </Typography>
-                            <Typography variant="body2" sx={{ color: '#B3B3B3' }}>
-                              ${item.hourlyFuel?.toFixed(2) || '0.00'}
-                            </Typography>
-                          </Box>
-                          <Box>
-                            <Typography variant="caption" sx={{ color: '#8E8E93', display: 'block', mb: 0.5 }}>
-                              Maintenance
-                            </Typography>
-                            <Typography variant="body2" sx={{ color: '#B3B3B3' }}>
-                              ${item.hourlyMaintenance?.toFixed(2) || '0.00'}
-                            </Typography>
-                          </Box>
-                        </>
-                      )}
-                    </Box>
-                  </Box>
-
-                  <Box sx={{ display: 'flex', gap: 1 }}>
-                    <IconButton
-                      onClick={() => handleOpenForm(item)}
-                      sx={{
-                        color: '#007AFF',
-                        '&:hover': { background: 'rgba(0, 122, 255, 0.1)' },
-                      }}
-                    >
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton
-                      onClick={() => handleDelete(item._id)}
-                      sx={{
-                        color: '#FF3B30',
-                        '&:hover': { background: 'rgba(255, 59, 48, 0.1)' },
-                      }}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
+                ...(!item.isActive
+                  ? [
+                      {
+                        label: 'Inactive',
+                        color: '#666',
+                      },
+                    ]
+                  : []),
+              ]}
+              collapsedMetrics={[
+                {
+                  label: 'Cost/Hour',
+                  value: `$${item.hourlyCost.toFixed(2)}`,
+                  color: '#007AFF',
+                },
+              ]}
+              expandedMetrics={[
+                {
+                  label: 'Depreciation',
+                  value: `$${(item.hourlyDepreciation || 0).toFixed(2)}`,
+                  color: '#FFFFFF',
+                },
+                {
+                  label: 'Fuel',
+                  value: `$${(item.hourlyFuel || 0).toFixed(2)}`,
+                  color: '#FFFFFF',
+                },
+                {
+                  label: 'Maintenance',
+                  value: `$${(item.hourlyMaintenance || 0).toFixed(2)}`,
+                  color: '#FFFFFF',
+                },
+                {
+                  label: 'Total Cost/Hour',
+                  value: `$${item.hourlyCost.toFixed(2)}`,
+                  color: '#007AFF',
+                },
+              ]}
+              expandedDetails={[
+                {
+                  label: 'Purchase Price',
+                  value: `$${(item.purchasePrice || 0).toLocaleString()}`,
+                },
+                {
+                  label: 'Useful Life',
+                  value: `${item.usefulLifeHours || 0} hours`,
+                },
+                {
+                  label: 'Fuel Consumption',
+                  value: `${item.fuelConsumption || 0} gal/hr`,
+                },
+                {
+                  label: 'Operating Hours',
+                  value: `${item.operatingHours || 0} hours`,
+                },
+              ]}
+              notes={item.notes}
+              actions={[
+                {
+                  icon: <EditIcon />,
+                  label: 'Edit',
+                  onClick: () => handleOpenForm(item),
+                  color: 'primary',
+                },
+                {
+                  icon: <DeleteIcon />,
+                  label: 'Delete',
+                  onClick: () => handleDelete(item._id),
+                  color: 'error',
+                  divider: true,
+                },
+              ]}
+            />
           ))}
         </Box>
       )}

@@ -10,14 +10,18 @@ import {
   Typography,
   Card,
   CardContent,
-  Chip,
   Button,
   CircularProgress,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import Link from 'next/link';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import EditIcon from '@mui/icons-material/Edit';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import DeleteIcon from '@mui/icons-material/Delete';
 import CreateWorkOrderModal from '@/components/CreateWorkOrderModal';
+import DirectoryCard from '@/components/DirectoryCard';
 import { useSnackbar } from '@/app/contexts/SnackbarContext';
+import type { ActionItem, DetailField } from '@/components/DirectoryCard';
 
 export default function WorkOrdersPage() {
   const router = useRouter();
@@ -32,21 +36,21 @@ export default function WorkOrdersPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'draft':
-        return 'default';
+        return '#6C6C70'; // gray
       case 'sent':
-        return 'info';
+        return '#007AFF'; // blue
       case 'accepted':
-        return 'success';
+        return '#34C759'; // green
       case 'scheduled':
-        return 'info';
+        return '#007AFF'; // blue
       case 'in_progress':
-        return 'warning';
+        return '#FF9500'; // orange
       case 'completed':
-        return 'success';
+        return '#34C759'; // green
       case 'cancelled':
-        return 'error';
+        return '#FF3B30'; // red
       default:
-        return 'default';
+        return '#6C6C70'; // gray
     }
   };
 
@@ -121,105 +125,97 @@ export default function WorkOrdersPage() {
         </Card>
       ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-          {jobs.map((job) => (
-            <Link
-              key={job._id}
-              href={`/shopos/work-orders/${job._id}`}
-              style={{ textDecoration: 'none' }}
-            >
-              <Card
-                sx={{
-                  background: '#1C1C1E',
-                  border: '1px solid #2A2A2A',
-                  borderRadius: 3,
-                  transition: 'all 0.2s ease',
-                  cursor: 'pointer',
-                  '&:hover': {
-                    background: '#222',
-                    borderColor: '#007AFF',
-                    transform: 'translateY(-2px)',
-                    boxShadow: '0 8px 24px rgba(0, 122, 255, 0.15)',
-                  },
-                }}
-              >
-                <CardContent>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'flex-start',
-                      mb: 2,
-                    }}
-                  >
-                    <Box>
-                      <Typography
-                        variant="h6"
-                        sx={{ color: '#FFFFFF', fontWeight: 600, mb: 0.5 }}
-                      >
-                        {job.jobNumber}
-                      </Typography>
-                      <Typography variant="body1" sx={{ color: '#B3B3B3' }}>
-                        {job.customer ? `${job.customer.firstName} ${job.customer.lastName}` : 'Unknown Customer'}
-                      </Typography>
-                      <Typography variant="body2" sx={{ color: '#8E8E93', mt: 0.5 }}>
-                        {job.customer ? `${job.customer.city}, ${job.customer.state}` : ''}
-                      </Typography>
-                    </Box>
-                    <Chip
-                      label={job.status.replace('_', ' ').toUpperCase()}
-                      color={getStatusColor(job.status)}
-                      size="small"
-                      sx={{ fontWeight: 600 }}
-                    />
-                  </Box>
+          {jobs.map((job) => {
+            const customerName = job.customer
+              ? `${job.customer.firstName} ${job.customer.lastName}`
+              : 'Unknown Customer';
+            const location = job.customer
+              ? `${job.customer.city}, ${job.customer.state}`
+              : '';
+            const subtitle = location ? `${customerName} • ${location}` : customerName;
 
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      gap: 4,
-                      mt: 2,
-                      pt: 2,
-                      borderTop: '1px solid #2A2A2A',
-                    }}
-                  >
-                    <Box>
-                      <Typography variant="caption" sx={{ color: '#8E8E93' }}>
-                        Estimated Hours
-                      </Typography>
-                      <Typography
-                        variant="body1"
-                        sx={{ color: '#FFFFFF', fontWeight: 600 }}
-                      >
-                        {job.estimatedTotalHours.toFixed(1)}h
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" sx={{ color: '#8E8E93' }}>
-                        Actual Hours
-                      </Typography>
-                      <Typography
-                        variant="body1"
-                        sx={{ color: '#FFFFFF', fontWeight: 600 }}
-                      >
-                        {((job.actualProductiveHours || 0) + (job.actualSupportHours || 0)).toFixed(1)}h
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" sx={{ color: '#8E8E93' }}>
-                        Total Investment
-                      </Typography>
-                      <Typography
-                        variant="body1"
-                        sx={{ color: '#007AFF', fontWeight: 600 }}
-                      >
-                        ${job.totalInvestment.toLocaleString()}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
+            const actions: ActionItem[] = [
+              {
+                icon: <EditIcon />,
+                label: 'Edit',
+                onClick: () => router.push(`/shopos/work-orders/${job._id}`),
+                color: 'primary',
+              },
+              {
+                icon: <VisibilityIcon />,
+                label: 'View Details',
+                onClick: () => router.push(`/shopos/work-orders/${job._id}`),
+                color: 'default',
+              },
+              {
+                icon: <DeleteIcon />,
+                label: 'Delete',
+                onClick: () => {
+                  // TODO: Implement delete functionality
+                  showError('Delete functionality not yet implemented');
+                },
+                color: 'error',
+                divider: true,
+              },
+            ];
+
+            const expandedDetails: DetailField[] = [
+              { label: 'Job Number', value: job.jobNumber },
+              { label: 'Status', value: job.status.replace('_', ' ').toUpperCase() },
+              { label: 'Customer', value: customerName },
+              { label: 'Location', value: location || 'N/A' },
+              { label: 'Estimated Hours', value: `${job.estimatedTotalHours.toFixed(1)}h` },
+              {
+                label: 'Actual Hours',
+                value: `${((job.actualProductiveHours || 0) + (job.actualSupportHours || 0)).toFixed(1)}h`
+              },
+              { label: 'Total Investment', value: `$${job.totalInvestment.toLocaleString()}` },
+              {
+                label: 'Productive Hours',
+                value: `${(job.actualProductiveHours || 0).toFixed(1)}h`
+              },
+              {
+                label: 'Support Hours',
+                value: `${(job.actualSupportHours || 0).toFixed(1)}h`
+              },
+            ];
+
+            return (
+              <DirectoryCard
+                key={job._id}
+                id={job._id}
+                icon={<AssignmentIcon />}
+                title={job.jobNumber}
+                subtitle={subtitle}
+                badges={[
+                  {
+                    label: job.status.replace('_', ' ').toUpperCase(),
+                    color: getStatusColor(job.status),
+                  },
+                ]}
+                collapsedMetrics={[
+                  {
+                    label: 'Estimated Hours',
+                    value: `${job.estimatedTotalHours.toFixed(1)}h`,
+                    color: '#8E8E93',
+                  },
+                  {
+                    label: 'Actual Hours',
+                    value: `${((job.actualProductiveHours || 0) + (job.actualSupportHours || 0)).toFixed(1)}h`,
+                    color: '#FFFFFF',
+                  },
+                  {
+                    label: 'Total Investment',
+                    value: `$${job.totalInvestment.toLocaleString()}`,
+                    color: '#007AFF',
+                  },
+                ]}
+                expandedDetails={expandedDetails}
+                actions={actions}
+                onCardClick={() => router.push(`/shopos/work-orders/${job._id}`)}
+              />
+            );
+          })}
         </Box>
       )}
 

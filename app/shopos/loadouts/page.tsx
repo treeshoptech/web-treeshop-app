@@ -11,7 +11,6 @@ import {
   CardContent,
   Button,
   CircularProgress,
-  IconButton,
   Chip,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
@@ -21,6 +20,7 @@ import GroupsIcon from '@mui/icons-material/Groups';
 import { Id } from '@/convex/_generated/dataModel';
 import LoadoutFormModal from '@/components/LoadoutFormModal';
 import { useSnackbar } from '@/app/contexts/SnackbarContext';
+import DirectoryCard from '@/components/DirectoryCard';
 
 export default function LoadoutsPage() {
   const loadouts = useQuery(api.loadouts.listLoadouts);
@@ -88,78 +88,93 @@ export default function LoadoutsPage() {
       ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
           {loadouts.map((loadout) => (
-            <Card key={loadout._id} sx={{ background: '#1C1C1E', border: '1px solid #2A2A2A' }}>
-              <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <Box sx={{ flex: 1 }}>
-                    <Typography variant="h6" sx={{ color: '#FFFFFF', fontWeight: 600, mb: 0.5 }}>
-                      {loadout.name}
-                    </Typography>
-                    {loadout.description && (
-                      <Typography variant="body2" sx={{ color: '#8E8E93', mb: 2 }}>
-                        {loadout.description}
-                      </Typography>
-                    )}
-
-                    <Box sx={{ display: 'flex', gap: 4, mt: 2 }}>
-                      <Box>
-                        <Typography variant="caption" sx={{ color: '#8E8E93' }}>
-                          Total Hourly Cost
+            <DirectoryCard
+              key={loadout._id}
+              id={loadout._id}
+              icon={<GroupsIcon />}
+              title={loadout.name}
+              subtitle={loadout.description}
+              collapsedMetrics={[
+                {
+                  label: 'Total Hourly Cost',
+                  value: `$${loadout.totalHourlyCost.toFixed(2)}/hr`,
+                  color: '#007AFF',
+                },
+                {
+                  label: 'Members',
+                  value: `${loadout.employees.length + loadout.equipment.length} total`,
+                  color: '#8E8E93',
+                },
+              ]}
+              expandedMetrics={[
+                {
+                  label: 'Total Hourly Cost',
+                  value: `$${loadout.totalHourlyCost.toFixed(2)}/hr`,
+                  color: '#007AFF',
+                },
+              ]}
+              expandedDetails={[
+                {
+                  label: `Employees (${loadout.employees.length})`,
+                  value: (
+                    <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
+                      {loadout.employees.length > 0 ? (
+                        loadout.employees.map((emp: any) => (
+                          <Chip
+                            key={emp._id}
+                            label={emp.name}
+                            size="small"
+                            sx={{ background: '#2A2A2A', color: '#FFFFFF', fontSize: '0.7rem' }}
+                          />
+                        ))
+                      ) : (
+                        <Typography variant="body2" sx={{ color: '#8E8E93' }}>
+                          No employees
                         </Typography>
-                        <Typography variant="h6" sx={{ color: '#007AFF', fontWeight: 600 }}>
-                          ${loadout.totalHourlyCost.toFixed(2)}/hr
-                        </Typography>
-                      </Box>
-                      <Box>
-                        <Typography variant="caption" sx={{ color: '#8E8E93', display: 'block' }}>
-                          Employees ({loadout.employees.length})
-                        </Typography>
-                        <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
-                          {loadout.employees.map((emp: any) => (
-                            <Chip
-                              key={emp._id}
-                              label={emp.name}
-                              size="small"
-                              sx={{ background: '#2A2A2A', color: '#FFFFFF', fontSize: '0.7rem' }}
-                            />
-                          ))}
-                        </Box>
-                      </Box>
-                      <Box>
-                        <Typography variant="caption" sx={{ color: '#8E8E93', display: 'block' }}>
-                          Equipment ({loadout.equipment.length})
-                        </Typography>
-                        <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
-                          {loadout.equipment.map((equip: any) => (
-                            <Chip
-                              key={equip._id}
-                              label={equip.name}
-                              size="small"
-                              sx={{ background: '#2A2A2A', color: '#FFFFFF', fontSize: '0.7rem' }}
-                            />
-                          ))}
-                        </Box>
-                      </Box>
+                      )}
                     </Box>
-                  </Box>
-
-                  <Box sx={{ display: 'flex', gap: 1 }}>
-                    <IconButton
-                      onClick={() => handleOpenForm(loadout)}
-                      sx={{ color: '#007AFF', '&:hover': { background: 'rgba(0, 122, 255, 0.1)' } }}
-                    >
-                      <EditIcon />
-                    </IconButton>
-                    <IconButton
-                      onClick={() => handleDelete(loadout._id)}
-                      sx={{ color: '#FF3B30', '&:hover': { background: 'rgba(255, 59, 48, 0.1)' } }}
-                    >
-                      <DeleteIcon />
-                    </IconButton>
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
+                  ),
+                  fullWidth: true,
+                },
+                {
+                  label: `Equipment (${loadout.equipment.length})`,
+                  value: (
+                    <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
+                      {loadout.equipment.length > 0 ? (
+                        loadout.equipment.map((equip: any) => (
+                          <Chip
+                            key={equip._id}
+                            label={equip.name}
+                            size="small"
+                            sx={{ background: '#2A2A2A', color: '#FFFFFF', fontSize: '0.7rem' }}
+                          />
+                        ))
+                      ) : (
+                        <Typography variant="body2" sx={{ color: '#8E8E93' }}>
+                          No equipment
+                        </Typography>
+                      )}
+                    </Box>
+                  ),
+                  fullWidth: true,
+                },
+              ]}
+              actions={[
+                {
+                  icon: <EditIcon />,
+                  label: 'Edit',
+                  onClick: () => handleOpenForm(loadout),
+                  color: 'primary',
+                },
+                {
+                  icon: <DeleteIcon />,
+                  label: 'Delete',
+                  onClick: () => handleDelete(loadout._id),
+                  color: 'error',
+                  divider: true,
+                },
+              ]}
+            />
           ))}
         </Box>
       )}
