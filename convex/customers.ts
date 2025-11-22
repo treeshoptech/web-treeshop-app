@@ -131,10 +131,10 @@ export const getCustomerWithJobs = query({
   handler: async (ctx, args) => {
     const customer = await ctx.db.get(args.customerId);
 
+    if (!customer) return null;
+
     // Verify ownership
     await verifyDocumentOwnershipOptional(ctx, customer, "customer");
-
-    if (!customer) return null;
 
     // Get all jobs for this customer
     const jobs = await ctx.db
