@@ -332,9 +332,8 @@ export const getTopPerformingEmployees = query({
     // Get all employees for this organization
     const employees = await ctx.db
       .query("employees")
-      .withIndex("by_company_active", (q) =>
-        q.eq("companyId", orgId).eq("isActive", true)
-      )
+      .withIndex("by_company", (q) => q.eq("companyId", orgId))
+      .filter((q) => q.eq(q.field("isActive"), true))
       .collect();
 
     // Get all time logs for completed jobs
@@ -721,8 +720,7 @@ export const getTopCustomers = query({
         if (!customer) continue;
 
         const customerName = customer.businessName ||
-          `${customer.firstName} ${customer.lastName}` ||
-          customer.name ||
+          `${customer.firstName} ${customer.lastName}`.trim() ||
           "Unknown Customer";
 
         customerStats[custIdStr] = {
@@ -820,8 +818,7 @@ export const getCustomerProjectValues = query({
         if (!customer) continue;
 
         const customerName = customer.businessName ||
-          `${customer.firstName} ${customer.lastName}` ||
-          customer.name ||
+          `${customer.firstName} ${customer.lastName}`.trim() ||
           "Unknown Customer";
 
         customerValues[custIdStr] = {

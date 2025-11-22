@@ -66,7 +66,7 @@ export const stopTimer = mutation({
     const durationHours = durationMs / (1000 * 60 * 60);
 
     // Calculate total cost
-    const hourlyCost = timeLog.employeeRate + (timeLog.equipmentCost || 0);
+    const hourlyCost = (timeLog.employeeRate ?? 0) + (timeLog.equipmentCost || 0);
     const totalCost = hourlyCost * durationHours;
 
     // Update time log

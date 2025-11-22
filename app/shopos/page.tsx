@@ -173,7 +173,7 @@ export default function ShopOSDashboard() {
                                 mb: 0.5,
                               }}
                             >
-                              {job.customer ? `${job.customer.firstName} ${job.customer.lastName}` : job.customerName || 'Unknown'}
+                              {job.customer ? `${job.customer.firstName} ${job.customer.lastName}` : 'Unknown'}
                             </Typography>
                             <Typography
                               sx={{
@@ -181,7 +181,7 @@ export default function ShopOSDashboard() {
                                 fontSize: { xs: '0.813rem', sm: '0.875rem' },
                               }}
                             >
-                              {job.customer ? `${job.customer.city}, ${job.customer.state}` : job.customerAddress || ''}
+                              {job.customer ? `${job.customer.city}, ${job.customer.state}` : ''}
                             </Typography>
                           </Box>
                           <Chip
@@ -272,7 +272,7 @@ export default function ShopOSDashboard() {
                                 mb: 0.5,
                               }}
                             >
-                              {job.customer ? `${job.customer.firstName} ${job.customer.lastName}` : job.customerName || 'Unknown'}
+                              {job.customer ? `${job.customer.firstName} ${job.customer.lastName}` : 'Unknown'}
                             </Typography>
                             <Typography
                               sx={{
@@ -280,7 +280,7 @@ export default function ShopOSDashboard() {
                                 fontSize: { xs: '0.813rem', sm: '0.875rem' },
                               }}
                             >
-                              {job.customer ? `${job.customer.city}, ${job.customer.state}` : job.customerAddress || ''}
+                              {job.customer ? `${job.customer.city}, ${job.customer.state}` : ''}
                             </Typography>
                           </Box>
                           <Chip
@@ -374,7 +374,7 @@ export default function ShopOSDashboard() {
                                 mb: 0.5,
                               }}
                             >
-                              {job.customer ? `${job.customer.firstName} ${job.customer.lastName}` : job.customerName || 'Unknown'}
+                              {job.customer ? `${job.customer.firstName} ${job.customer.lastName}` : 'Unknown'}
                             </Typography>
                             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
                               <Typography sx={{ color: '#666', fontSize: { xs: '0.75rem', sm: '0.813rem' } }}>

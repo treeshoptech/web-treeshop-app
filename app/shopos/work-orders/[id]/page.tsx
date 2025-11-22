@@ -469,19 +469,9 @@ export default function WorkOrderDetailPage() {
               )}
             </>
           ) : (
-            <>
-              <Typography variant="h6" sx={{ color: '#FFFFFF', mb: 1 }}>
-                {job.customerName}
-              </Typography>
-              <Typography variant="body2" sx={{ color: '#B3B3B3', mb: 0.5 }}>
-                {job.customerAddress}
-              </Typography>
-              {job.customerPhone && (
-                <Typography variant="body2" sx={{ color: '#007AFF' }}>
-                  {job.customerPhone}
-                </Typography>
-              )}
-            </>
+            <Typography variant="body2" sx={{ color: '#8E8E93', fontStyle: 'italic' }}>
+              No customer information available
+            </Typography>
           )}
 
           {job.notes && (

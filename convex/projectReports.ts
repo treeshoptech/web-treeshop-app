@@ -19,9 +19,9 @@ export const generateProjectReport = mutation({
     await verifyDocumentOwnershipOptional(ctx, job, "job");
 
     // Get customer info
-    let customerName = job.customerName || "Unknown Customer";
-    let customerAddress = job.customerAddress;
-    let customerPhone = job.customerPhone;
+    let customerName = "Unknown Customer";
+    let customerAddress: string | undefined;
+    let customerPhone: string | undefined;
     let customerEmail: string | undefined;
 
     if (job.customerId) {
@@ -136,7 +136,7 @@ export const generateProjectReport = mutation({
       // Job details
       status: job.status,
       startDate: job.startDate,
-      endDate: job.endDate,
+      endDate: undefined,
       completedAt: job.completedAt || Date.now(),
 
       // Financial summary

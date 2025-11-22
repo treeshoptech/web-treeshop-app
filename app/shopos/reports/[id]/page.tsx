@@ -98,9 +98,9 @@ export default function ProjectReportDetailPage() {
   }
 
   const profitMarginColor =
-    report.profitMargin >= 30
+    (report.profitMargin ?? 0) >= 30
       ? '#4CAF50'
-      : report.profitMargin >= 15
+      : (report.profitMargin ?? 0) >= 15
       ? '#FF9800'
       : '#FF3B30';
 
@@ -168,7 +168,7 @@ export default function ProjectReportDetailPage() {
                     '@media print': { color: '#000000' },
                   }}
                 >
-                  {report.jobNumber}
+                  {report.jobNumber ?? ''}
                 </Typography>
                 <Typography
                   variant="h6"
@@ -218,9 +218,9 @@ export default function ProjectReportDetailPage() {
                       '@media print': { color: '#000000' },
                     }}
                   >
-                    {report.customerName}
+                    {report.customerName ?? ''}
                   </Typography>
-                  {report.customerAddress && (
+                  {(report.customerAddress ?? null) && (
                     <Typography
                       variant="body2"
                       sx={{
@@ -229,10 +229,10 @@ export default function ProjectReportDetailPage() {
                         '@media print': { color: '#666666' },
                       }}
                     >
-                      {report.customerAddress}
+                      {report.customerAddress ?? ''}
                     </Typography>
                   )}
-                  {report.customerPhone && (
+                  {(report.customerPhone ?? null) && (
                     <Typography
                       variant="body2"
                       sx={{
@@ -240,10 +240,10 @@ export default function ProjectReportDetailPage() {
                         '@media print': { color: '#666666' },
                       }}
                     >
-                      {report.customerPhone}
+                      {report.customerPhone ?? ''}
                     </Typography>
                   )}
-                  {report.customerEmail && (
+                  {(report.customerEmail ?? null) && (
                     <Typography
                       variant="body2"
                       sx={{
@@ -251,7 +251,7 @@ export default function ProjectReportDetailPage() {
                         '@media print': { color: '#1976D2' },
                       }}
                     >
-                      {report.customerEmail}
+                      {report.customerEmail ?? ''}
                     </Typography>
                   )}
                 </Box>
@@ -270,7 +270,7 @@ export default function ProjectReportDetailPage() {
                   >
                     PROJECT DATES
                   </Typography>
-                  {report.startDate && (
+                  {(report.startDate ?? null) && (
                     <Typography
                       variant="body1"
                       sx={{
@@ -279,7 +279,7 @@ export default function ProjectReportDetailPage() {
                         '@media print': { color: '#000000' },
                       }}
                     >
-                      Start: {new Date(report.startDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                      Start: {new Date(report.startDate ?? Date.now()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                     </Typography>
                   )}
                   <Typography
@@ -289,7 +289,7 @@ export default function ProjectReportDetailPage() {
                       '@media print': { color: '#000000' },
                     }}
                   >
-                    Completed: {formatDate(report.completedAt)}
+                    Completed: {formatDate(report.completedAt ?? Date.now())}
                   </Typography>
                 </Box>
               </Grid>
@@ -354,7 +354,7 @@ export default function ProjectReportDetailPage() {
                       '@media print': { color: '#000000' },
                     }}
                   >
-                    {report.totalHours.toFixed(1)}
+                    {(report.totalHours ?? 0).toFixed(1)}
                   </Typography>
                   <Typography
                     variant="caption"
@@ -363,7 +363,7 @@ export default function ProjectReportDetailPage() {
                       '@media print': { color: '#666666' },
                     }}
                   >
-                    Est: {report.estimatedTotalHours.toFixed(1)}h
+                    Est: {(report.estimatedTotalHours ?? 0).toFixed(1)}h
                   </Typography>
                 </Box>
               </Grid>
@@ -397,7 +397,7 @@ export default function ProjectReportDetailPage() {
                       '@media print': { color: '#F57C00' },
                     }}
                   >
-                    {formatCurrency(report.actualTotalCost)}
+                    {formatCurrency(report.actualTotalCost ?? 0)}
                   </Typography>
                 </Box>
               </Grid>
@@ -431,7 +431,7 @@ export default function ProjectReportDetailPage() {
                       '@media print': { color: '#2E7D32' },
                     }}
                   >
-                    {formatCurrency(report.totalInvestment)}
+                    {formatCurrency(report.totalInvestment ?? 0)}
                   </Typography>
                 </Box>
               </Grid>
@@ -460,15 +460,15 @@ export default function ProjectReportDetailPage() {
                   <Typography
                     variant="h4"
                     sx={{
-                      color: report.profit > 0 ? '#4CAF50' : '#FF3B30',
+                      color: (report.profit ?? 0) > 0 ? '#4CAF50' : '#FF3B30',
                       fontWeight: 700,
-                      '@media print': { color: report.profit > 0 ? '#2E7D32' : '#C62828' },
+                      '@media print': { color: (report.profit ?? 0) > 0 ? '#2E7D32' : '#C62828' },
                     }}
                   >
-                    {formatCurrency(report.profit)}
+                    {formatCurrency(report.profit ?? 0)}
                   </Typography>
                   <Chip
-                    label={`${report.profitMargin.toFixed(1)}% margin`}
+                    label={`${(report.profitMargin ?? 0).toFixed(1)}% margin`}
                     size="small"
                     sx={{
                       mt: 1,
@@ -476,8 +476,8 @@ export default function ProjectReportDetailPage() {
                       color: '#FFFFFF',
                       fontWeight: 600,
                       '@media print': {
-                        background: report.profitMargin >= 30 ? '#E8F5E9' : '#FFEBEE',
-                        color: report.profitMargin >= 30 ? '#2E7D32' : '#C62828',
+                        background: (report.profitMargin ?? 0) >= 30 ? '#E8F5E9' : '#FFEBEE',
+                        color: (report.profitMargin ?? 0) >= 30 ? '#2E7D32' : '#C62828',
                       },
                     }}
                   />
@@ -505,7 +505,7 @@ export default function ProjectReportDetailPage() {
                     '@media print': { color: '#1976D2' },
                   }}
                 >
-                  {report.actualProductiveHours.toFixed(1)}h
+                  {(report.actualProductiveHours ?? 0).toFixed(1)}h
                 </Typography>
               </Box>
               <Box>
@@ -527,7 +527,7 @@ export default function ProjectReportDetailPage() {
                     '@media print': { color: '#666666' },
                   }}
                 >
-                  {report.actualSupportHours.toFixed(1)}h
+                  {(report.actualSupportHours ?? 0).toFixed(1)}h
                 </Typography>
               </Box>
             </Box>
@@ -630,7 +630,7 @@ export default function ProjectReportDetailPage() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {report.lineItems.map((item: any, index: number) => (
+                  {(report.lineItems ?? []).map((item: any, index: number) => (
                     <TableRow key={index}>
                       <TableCell
                         sx={{
@@ -639,7 +639,7 @@ export default function ProjectReportDetailPage() {
                           '@media print': { color: '#000000', borderColor: '#E0E0E0' },
                         }}
                       >
-                        {item.displayName}
+                        {item.displayName ?? ''}
                       </TableCell>
                       <TableCell
                         align="right"
@@ -649,7 +649,7 @@ export default function ProjectReportDetailPage() {
                           '@media print': { color: '#666666', borderColor: '#E0E0E0' },
                         }}
                       >
-                        {item.estimatedHours.toFixed(1)}
+                        {(item.estimatedHours ?? 0).toFixed(1)}
                       </TableCell>
                       <TableCell
                         align="right"
@@ -660,21 +660,21 @@ export default function ProjectReportDetailPage() {
                           '@media print': { color: '#000000', borderColor: '#E0E0E0' },
                         }}
                       >
-                        {item.actualProductiveHours.toFixed(1)}
+                        {(item.actualProductiveHours ?? 0).toFixed(1)}
                       </TableCell>
                       <TableCell
                         align="right"
                         sx={{
-                          color: item.variance > 0 ? '#FF9800' : '#4CAF50',
+                          color: (item.variance ?? 0) > 0 ? '#FF9800' : '#4CAF50',
                           fontWeight: 600,
                           borderColor: 'rgba(255, 255, 255, 0.06)',
                           '@media print': {
-                            color: item.variance > 0 ? '#F57C00' : '#2E7D32',
+                            color: (item.variance ?? 0) > 0 ? '#F57C00' : '#2E7D32',
                             borderColor: '#E0E0E0',
                           },
                         }}
                       >
-                        {item.variance > 0 ? '+' : ''}{item.variance.toFixed(1)}
+                        {(item.variance ?? 0) > 0 ? '+' : ''}{(item.variance ?? 0).toFixed(1)}
                       </TableCell>
                       <TableCell
                         align="right"
@@ -685,7 +685,7 @@ export default function ProjectReportDetailPage() {
                           '@media print': { color: '#000000', borderColor: '#E0E0E0' },
                         }}
                       >
-                        {formatCurrency(item.lineItemTotal)}
+                        {formatCurrency(item.lineItemTotal ?? 0)}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -723,7 +723,7 @@ export default function ProjectReportDetailPage() {
               Crew Time Breakdown
             </Typography>
 
-            {Object.values(report.timeLogs).map((employeeData: any, index: number) => (
+            {Object.values(report.timeLogs ?? {}).map((employeeData: any, index: number) => (
               <Box key={index} sx={{ mb: 3 }}>
                 <Box
                   sx={{
@@ -746,7 +746,7 @@ export default function ProjectReportDetailPage() {
                         '@media print': { color: '#000000' },
                       }}
                     >
-                      {employeeData.employeeName}
+                      {employeeData.employeeName ?? ''}
                     </Typography>
                     <Typography
                       variant="caption"
@@ -755,7 +755,7 @@ export default function ProjectReportDetailPage() {
                         '@media print': { color: '#666666' },
                       }}
                     >
-                      {employeeData.employeePosition}
+                      {employeeData.employeePosition ?? ''}
                     </Typography>
                   </Box>
                   <Box sx={{ textAlign: 'right' }}>
@@ -767,7 +767,7 @@ export default function ProjectReportDetailPage() {
                         '@media print': { color: '#1976D2' },
                       }}
                     >
-                      {employeeData.totalHours.toFixed(1)}h
+                      {(employeeData.totalHours ?? 0).toFixed(1)}h
                     </Typography>
                     <Typography
                       variant="caption"
@@ -776,7 +776,7 @@ export default function ProjectReportDetailPage() {
                         '@media print': { color: '#666666' },
                       }}
                     >
-                      {formatCurrency(employeeData.totalCost)} cost
+                      {formatCurrency(employeeData.totalCost ?? 0)} cost
                     </Typography>
                   </Box>
                 </Box>
@@ -838,7 +838,7 @@ export default function ProjectReportDetailPage() {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {employeeData.logs.map((log: any, logIndex: number) => (
+                      {(employeeData.logs ?? []).map((log: any, logIndex: number) => (
                         <TableRow key={logIndex}>
                           <TableCell
                             sx={{
@@ -847,7 +847,7 @@ export default function ProjectReportDetailPage() {
                               '@media print': { color: '#000000', borderColor: '#E0E0E0' },
                             }}
                           >
-                            {log.taskName}
+                            {log.taskName ?? ''}
                             {log.notes && (
                               <Typography
                                 variant="caption"
@@ -870,18 +870,18 @@ export default function ProjectReportDetailPage() {
                             }}
                           >
                             <Chip
-                              label={log.taskType === 'productive' ? 'Billable' : 'Support'}
+                              label={(log.taskType ?? 'support') === 'productive' ? 'Billable' : 'Support'}
                               size="small"
                               sx={{
                                 background:
-                                  log.taskType === 'productive'
+                                  (log.taskType ?? 'support') === 'productive'
                                     ? 'rgba(0, 122, 255, 0.2)'
                                     : 'rgba(255, 255, 255, 0.1)',
-                                color: log.taskType === 'productive' ? '#007AFF' : '#666',
+                                color: (log.taskType ?? 'support') === 'productive' ? '#007AFF' : '#666',
                                 fontSize: '0.7rem',
                                 '@media print': {
-                                  background: log.taskType === 'productive' ? '#E3F2FD' : '#F5F5F5',
-                                  color: log.taskType === 'productive' ? '#1976D2' : '#666666',
+                                  background: (log.taskType ?? 'support') === 'productive' ? '#E3F2FD' : '#F5F5F5',
+                                  color: (log.taskType ?? 'support') === 'productive' ? '#1976D2' : '#666666',
                                 },
                               }}
                             />
@@ -895,7 +895,7 @@ export default function ProjectReportDetailPage() {
                               '@media print': { color: '#000000', borderColor: '#E0E0E0' },
                             }}
                           >
-                            {log.durationHours?.toFixed(2) || '0.00'}
+                            {(log.durationHours ?? 0).toFixed(2)}
                           </TableCell>
                           <TableCell
                             align="right"
@@ -905,7 +905,7 @@ export default function ProjectReportDetailPage() {
                               '@media print': { color: '#666666', borderColor: '#E0E0E0' },
                             }}
                           >
-                            {formatCurrency(log.totalCost || 0)}
+                            {formatCurrency(log.totalCost ?? 0)}
                           </TableCell>
                         </TableRow>
                       ))}
@@ -918,7 +918,7 @@ export default function ProjectReportDetailPage() {
         </Card>
 
         {/* Crew Members */}
-        {report.crewMembers && report.crewMembers.length > 0 && (
+        {(report.crewMembers ?? []).length > 0 && (
           <Card
             sx={{
               background: 'rgba(28, 28, 30, 0.6)',
@@ -946,7 +946,7 @@ export default function ProjectReportDetailPage() {
               </Typography>
 
               <Grid container spacing={2}>
-                {report.crewMembers.map((member: any, index: number) => (
+                {(report.crewMembers ?? []).map((member: any, index: number) => (
                   <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
                     <Box
                       sx={{
@@ -964,7 +964,7 @@ export default function ProjectReportDetailPage() {
                           '@media print': { color: '#000000' },
                         }}
                       >
-                        {member.name}
+                        {member.name ?? ''}
                       </Typography>
                       <Typography
                         variant="caption"
@@ -973,7 +973,7 @@ export default function ProjectReportDetailPage() {
                           '@media print': { color: '#666666' },
                         }}
                       >
-                        {member.position} • ${member.effectiveRate.toFixed(2)}/hr
+                        {member.position ?? ''} • ${(member.effectiveRate ?? 0).toFixed(2)}/hr
                       </Typography>
                     </Box>
                   </Grid>
@@ -984,7 +984,7 @@ export default function ProjectReportDetailPage() {
         )}
 
         {/* Notes */}
-        {report.jobNotes && (
+        {(report.jobNotes ?? null) && (
           <Card
             sx={{
               background: 'rgba(28, 28, 30, 0.6)',
@@ -1018,7 +1018,7 @@ export default function ProjectReportDetailPage() {
                   '@media print': { color: '#666666' },
                 }}
               >
-                {report.jobNotes}
+                {report.jobNotes ?? ''}
               </Typography>
             </CardContent>
           </Card>
@@ -1041,7 +1041,7 @@ export default function ProjectReportDetailPage() {
               '@media print': { color: '#666666' },
             }}
           >
-            Report generated on {formatDateTime(report.createdAt)}
+            Report generated on {formatDateTime(report.createdAt ?? Date.now())}
           </Typography>
         </Box>
       </Container>

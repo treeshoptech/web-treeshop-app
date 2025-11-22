@@ -115,7 +115,7 @@ export default function ProjectReportsPage() {
                   TOTAL REVENUE
                 </Typography>
                 <Typography variant="h4" sx={{ color: '#4CAF50', fontWeight: 700 }}>
-                  {formatCurrency(reports.reduce((sum, r) => sum + r.totalInvestment, 0))}
+                  {formatCurrency(reports.reduce((sum, r) => sum + (r.totalInvestment ?? 0), 0))}
                 </Typography>
               </CardContent>
             </Card>
@@ -133,7 +133,7 @@ export default function ProjectReportsPage() {
                   TOTAL PROFIT
                 </Typography>
                 <Typography variant="h4" sx={{ color: '#007AFF', fontWeight: 700 }}>
-                  {formatCurrency(reports.reduce((sum, r) => sum + r.profit, 0))}
+                  {formatCurrency(reports.reduce((sum, r) => sum + (r.profit ?? 0), 0))}
                 </Typography>
               </CardContent>
             </Card>
@@ -163,11 +163,11 @@ export default function ProjectReportsPage() {
       ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           {reports.map((report) => {
-            const isProfitable = report.profit > 0;
+            const isProfitable = (report.profit ?? 0) > 0;
             const profitMarginColor =
-              report.profitMargin >= 30
+              (report.profitMargin ?? 0) >= 30
                 ? '#4CAF50'
-                : report.profitMargin >= 15
+                : (report.profitMargin ?? 0) >= 15
                 ? '#FF9800'
                 : '#FF3B30';
 
@@ -203,7 +203,7 @@ export default function ProjectReportsPage() {
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <CalendarTodayIcon sx={{ color: '#666', fontSize: 16 }} />
                           <Typography variant="body2" sx={{ color: '#B3B3B3' }}>
-                            {formatDate(report.completedAt)}
+                            {formatDate(report.completedAt ?? Date.now())}
                           </Typography>
                         </Box>
                       </Grid>
@@ -214,10 +214,10 @@ export default function ProjectReportsPage() {
                           HOURS
                         </Typography>
                         <Typography variant="h6" sx={{ color: '#FFFFFF', fontWeight: 600, mb: 0.5 }}>
-                          {report.totalHours.toFixed(1)}h
+                          {(report.totalHours ?? 0).toFixed(1)}h
                         </Typography>
                         <Typography variant="caption" sx={{ color: '#666' }}>
-                          {report.actualProductiveHours.toFixed(1)}h billable + {report.actualSupportHours.toFixed(1)}h support
+                          {(report.actualProductiveHours ?? 0).toFixed(1)}h billable + {(report.actualSupportHours ?? 0).toFixed(1)}h support
                         </Typography>
                       </Grid>
 
@@ -229,7 +229,7 @@ export default function ProjectReportsPage() {
                               REVENUE
                             </Typography>
                             <Typography variant="h6" sx={{ color: '#FFFFFF', fontWeight: 600 }}>
-                              {formatCurrency(report.totalInvestment)}
+                              {formatCurrency(report.totalInvestment ?? 0)}
                             </Typography>
                           </Grid>
                           <Grid size={{ xs: 4 }}>
@@ -249,7 +249,7 @@ export default function ProjectReportsPage() {
                                   fontWeight: 600,
                                 }}
                               >
-                                {formatCurrency(report.profit)}
+                                {formatCurrency(report.profit ?? 0)}
                               </Typography>
                             </Box>
                           </Grid>
@@ -258,7 +258,7 @@ export default function ProjectReportsPage() {
                               MARGIN
                             </Typography>
                             <Chip
-                              label={`${report.profitMargin.toFixed(1)}%`}
+                              label={`${(report.profitMargin ?? 0).toFixed(1)}%`}
                               size="small"
                               sx={{
                                 background: profitMarginColor,
