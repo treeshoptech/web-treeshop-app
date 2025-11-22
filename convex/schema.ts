@@ -155,12 +155,100 @@ export default defineSchema({
     annualWorkingHours: v.optional(v.number()),
     hourlyCost: v.optional(v.number()),
 
+    // Multi-track System Fields
+    managementLevelId: v.optional(v.id("managementLevels")), // Links to management level
+    reportsToEmployeeId: v.optional(v.id("employees")), // Self-referential for reporting hierarchy
+    employmentType: v.optional(
+      v.union(
+        v.literal("full_time"),
+        v.literal("part_time"),
+        v.literal("seasonal"),
+        v.literal("contractor")
+      )
+    ),
+    hireDate: v.optional(v.string()), // ISO date string
+    totalQualificationPremium: v.optional(v.number()), // Total qualification premium ($)
+
     isActive: v.boolean(),
     createdAt: v.number(),
   })
     .index("by_active", ["isActive"])
     .index("by_company", ["companyId"])
     .index("by_company_active", ["companyId", "isActive"]),
+
+  careerTracks: defineTable({
+    companyId: v.optional(v.string()),
+    trackType: v.union(v.literal("technical"), v.literal("management"), v.literal("professional"), v.literal("safety")),
+    code: v.string(),
+    name: v.string(),
+    description: v.optional(v.string()),
+    hourlyPremium: v.optional(v.number()),
+    requiresCertification: v.boolean(),
+    sortOrder: v.number(),
+    isActive: v.boolean(),
+    createdAt: v.number(),
+  })
+    .index("by_company", ["companyId"])
+    .index("by_company_type", ["companyId", "trackType"])
+    .index("by_company_active", ["companyId", "isActive"]),
+
+  employeeSkills: defineTable({
+    employeeId: v.id("employees"),
+    trackId: v.id("careerTracks"),
+    proficiencyLevel: v.union(v.literal("learning"), v.literal("qualified"), v.literal("expert")),
+    isPrimary: v.boolean(),
+    yearsExperience: v.optional(v.number()),
+    notes: v.optional(v.string()),
+    createdAt: v.number(),
+    updatedAt: v.number(),
+  })
+    .index("by_employee", ["employeeId"])
+    .index("by_track", ["trackId"])
+    .index("by_employee_primary", ["employeeId", "isPrimary"]),
+
+  // Management Levels
+  managementLevels: defineTable({
+    companyId: v.optional(v.string()),
+    level: v.number(),
+    title: v.string(),
+    code: v.string(),
+    hourlyPremium: v.number(),
+    salaryRange: v.optional(v.string()),
+    reportsToLevel: v.optional(v.number()),
+    isActive: v.boolean(),
+    createdAt: v.number(),
+  })
+    .index("by_company", ["companyId"])
+    .index("by_company_level", ["companyId", "level"]),
+
+  // Certifications
+  certifications: defineTable({
+    companyId: v.optional(v.string()),
+    name: v.string(),
+    code: v.string(),
+    category: v.union(v.literal("safety"), v.literal("professional"), v.literal("equipment"), v.literal("license")),
+    requiresRenewal: v.boolean(),
+    renewalPeriodMonths: v.optional(v.number()),
+    hourlyPremium: v.optional(v.number()),
+    isActive: v.boolean(),
+    createdAt: v.number(),
+  })
+    .index("by_company", ["companyId"])
+    .index("by_company_category", ["companyId", "category"]),
+
+  // Employee Certifications
+  employeeCertifications: defineTable({
+    employeeId: v.id("employees"),
+    certificationId: v.id("certifications"),
+    dateEarned: v.string(),
+    expiresAt: v.optional(v.string()),
+    certificationNumber: v.optional(v.string()),
+    isActive: v.boolean(),
+    createdAt: v.number(),
+  })
+    .index("by_employee", ["employeeId"])
+    .index("by_certification", ["certificationId"])
+    .index("by_employee_active", ["employeeId", "isActive"]),
 
   // Crews (Team Assignments)
   crews: defineTable({
