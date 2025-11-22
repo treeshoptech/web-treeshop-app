@@ -1,11 +1,15 @@
 import { query } from "./_generated/server";
-import { requireOrganizationId } from "./auth";
+import { getOrganizationId } from "./auth";
 
 // List all active crews
 export const listCrews = query({
   args: {},
   handler: async (ctx) => {
-    const orgId = await requireOrganizationId(ctx);
+    const orgId = await getOrganizationId(ctx);
+
+    if (!orgId) {
+      return [];
+    }
 
     const crews = await ctx.db
       .query("crews")

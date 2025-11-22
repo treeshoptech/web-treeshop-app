@@ -1,11 +1,15 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { requireOrganizationId } from "./auth";
+import { getOrganizationId, requireOrganizationId } from "./auth";
 
 export const getCompany = query({
   args: {},
   handler: async (ctx) => {
-    const orgId = await requireOrganizationId(ctx);
+    const orgId = await getOrganizationId(ctx);
+
+    if (!orgId) {
+      return null;
+    }
 
     const company = await ctx.db
       .query("companies")
@@ -59,7 +63,11 @@ export const createOrUpdateCompany = mutation({
 export const getCompanyProductionRates = query({
   args: {},
   handler: async (ctx) => {
-    const orgId = await requireOrganizationId(ctx);
+    const orgId = await getOrganizationId(ctx);
+
+    if (!orgId) {
+      return [];
+    }
 
     return await ctx.db
       .query("companyProductionRates")

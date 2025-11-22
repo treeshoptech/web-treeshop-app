@@ -68,10 +68,11 @@ export const getLoadout = query({
   handler: async (ctx, args) => {
     const loadout = await ctx.db.get(args.loadoutId);
 
+    // Check if loadout exists first
+    if (!loadout) return null;
+
     // Verify ownership - throws error if loadout doesn't belong to user's org
     await verifyDocumentOwnershipOptional(ctx, loadout, "loadout");
-
-    if (!loadout) return null;
 
     // Batch fetch employees, equipment, and production rates in parallel
     const [employees, equipment, productionRates] = await Promise.all([
@@ -180,6 +181,12 @@ export const updateLoadout = mutation({
 
     // Fetch and verify ownership before updating
     const loadout = await ctx.db.get(loadoutId);
+
+    // Check if loadout exists first
+    if (!loadout) {
+      throw new Error("Loadout not found");
+    }
+
     await verifyDocumentOwnershipOptional(ctx, loadout, "loadout");
 
     // Recalculate total hourly cost
@@ -253,6 +260,12 @@ export const deleteLoadout = mutation({
   handler: async (ctx, args) => {
     // Fetch and verify ownership before deleting
     const loadout = await ctx.db.get(args.loadoutId);
+
+    // Check if loadout exists first
+    if (!loadout) {
+      throw new Error("Loadout not found");
+    }
+
     await verifyDocumentOwnershipOptional(ctx, loadout, "loadout");
 
     await ctx.db.delete(args.loadoutId);

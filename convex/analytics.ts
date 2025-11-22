@@ -13,7 +13,16 @@ import { requireOrganizationId, getOrganizationId } from "./auth";
 export const getFinancialOverview = query({
   args: {},
   handler: async (ctx) => {
-    const orgId = await requireOrganizationId(ctx);
+    const orgId = await getOrganizationId(ctx);
+    if (!orgId) {
+      return {
+        totalRevenue: 0,
+        totalCosts: 0,
+        totalProfit: 0,
+        averageProfitMargin: 0,
+        completedJobCount: 0,
+      };
+    }
 
     // Get all completed jobs for this organization
     const completedJobs = await ctx.db
@@ -56,7 +65,9 @@ export const getRevenueByMonth = query({
     months: v.optional(v.number()), // Number of months to look back (default: 12)
   },
   handler: async (ctx, args) => {
-    const orgId = await requireOrganizationId(ctx);
+    const orgId = await getOrganizationId(ctx);
+    if (!orgId) return [];
+
     const monthsToLookBack = args.months || 12;
 
     // Get all completed jobs
@@ -119,7 +130,9 @@ export const getRevenueByQuarter = query({
     quarters: v.optional(v.number()), // Number of quarters to look back (default: 8)
   },
   handler: async (ctx, args) => {
-    const orgId = await requireOrganizationId(ctx);
+    const orgId = await getOrganizationId(ctx);
+    if (!orgId) return [];
+
     const quartersToLookBack = args.quarters || 8;
 
     // Get all completed jobs
@@ -184,7 +197,8 @@ export const getRevenueByQuarter = query({
 export const getProjectsByStatus = query({
   args: {},
   handler: async (ctx) => {
-    const orgId = await requireOrganizationId(ctx);
+    const orgId = await getOrganizationId(ctx);
+    if (!orgId) return [];
 
     // Get all jobs for this organization
     const allJobs = await ctx.db
@@ -228,7 +242,17 @@ export const getProjectsByStatus = query({
 export const getProjectCompletionMetrics = query({
   args: {},
   handler: async (ctx) => {
-    const orgId = await requireOrganizationId(ctx);
+    const orgId = await getOrganizationId(ctx);
+    if (!orgId) {
+      return {
+        totalProjects: 0,
+        completedProjects: 0,
+        completionRate: 0,
+        completedThisMonth: 0,
+        completedLastMonth: 0,
+        monthOverMonthChange: 0,
+      };
+    }
 
     const allJobs = await ctx.db
       .query("jobs")
@@ -277,7 +301,17 @@ export const getProjectCompletionMetrics = query({
 export const getAverageProjectValue = query({
   args: {},
   handler: async (ctx) => {
-    const orgId = await requireOrganizationId(ctx);
+    const orgId = await getOrganizationId(ctx);
+    if (!orgId) {
+      return {
+        averageCompletedProjectValue: 0,
+        averageActiveProjectValue: 0,
+        averageAllProjectsValue: 0,
+        totalProjectCount: 0,
+        completedProjectCount: 0,
+        activeProjectCount: 0,
+      };
+    }
 
     const allJobs = await ctx.db
       .query("jobs")
@@ -326,7 +360,9 @@ export const getTopPerformingEmployees = query({
     limit: v.optional(v.number()), // Number of top employees to return (default: 10)
   },
   handler: async (ctx, args) => {
-    const orgId = await requireOrganizationId(ctx);
+    const orgId = await getOrganizationId(ctx);
+    if (!orgId) return [];
+
     const limit = args.limit || 10;
 
     // Get all employees for this organization
@@ -434,7 +470,8 @@ export const getTopPerformingEmployees = query({
 export const getEmployeeHourlyCosts = query({
   args: {},
   handler: async (ctx) => {
-    const orgId = await requireOrganizationId(ctx);
+    const orgId = await getOrganizationId(ctx);
+    if (!orgId) return [];
 
     const employees = await ctx.db
       .query("employees")
@@ -474,7 +511,8 @@ export const getEmployeeHourlyCosts = query({
 export const getEmployeeBillableRatio = query({
   args: {},
   handler: async (ctx) => {
-    const orgId = await requireOrganizationId(ctx);
+    const orgId = await getOrganizationId(ctx);
+    if (!orgId) return [];
 
     const employees = await ctx.db
       .query("employees")
@@ -557,7 +595,8 @@ export const getEmployeeBillableRatio = query({
 export const getEquipmentUtilization = query({
   args: {},
   handler: async (ctx) => {
-    const orgId = await requireOrganizationId(ctx);
+    const orgId = await getOrganizationId(ctx);
+    if (!orgId) return [];
 
     const equipment = await ctx.db
       .query("equipment")
@@ -625,7 +664,8 @@ export const getEquipmentUtilization = query({
 export const getEquipmentCostsByType = query({
   args: {},
   handler: async (ctx) => {
-    const orgId = await requireOrganizationId(ctx);
+    const orgId = await getOrganizationId(ctx);
+    if (!orgId) return [];
 
     const equipment = await ctx.db
       .query("equipment")
@@ -685,7 +725,9 @@ export const getTopCustomers = query({
     limit: v.optional(v.number()), // Number of top customers to return (default: 10)
   },
   handler: async (ctx, args) => {
-    const orgId = await requireOrganizationId(ctx);
+    const orgId = await getOrganizationId(ctx);
+    if (!orgId) return [];
+
     const limit = args.limit || 10;
 
     const customers = await ctx.db
@@ -787,7 +829,8 @@ export const getTopCustomers = query({
 export const getCustomerProjectValues = query({
   args: {},
   handler: async (ctx) => {
-    const orgId = await requireOrganizationId(ctx);
+    const orgId = await getOrganizationId(ctx);
+    if (!orgId) return [];
 
     const customers = await ctx.db
       .query("customers")
@@ -861,7 +904,17 @@ export const getCustomerProjectValues = query({
 export const getRepeatCustomerRate = query({
   args: {},
   handler: async (ctx) => {
-    const orgId = await requireOrganizationId(ctx);
+    const orgId = await getOrganizationId(ctx);
+    if (!orgId) {
+      return {
+        totalCustomers: 0,
+        repeatCustomers: 0,
+        oneTimeCustomers: 0,
+        repeatCustomerRate: 0,
+        averageProjectsPerCustomer: 0,
+        totalProjects: 0,
+      };
+    }
 
     const jobs = await ctx.db
       .query("jobs")
@@ -912,7 +965,35 @@ export const getRepeatCustomerRate = query({
 export const getDashboardOverview = query({
   args: {},
   handler: async (ctx) => {
-    const orgId = await requireOrganizationId(ctx);
+    const orgId = await getOrganizationId(ctx);
+    if (!orgId) {
+      return {
+        financial: {
+          totalRevenue: 0,
+          totalCosts: 0,
+          totalProfit: 0,
+          averageProfitMargin: 0,
+        },
+        projects: {
+          total: 0,
+          completed: 0,
+          active: 0,
+          completionRate: 0,
+        },
+        employees: {
+          total: 0,
+          active: 0,
+        },
+        customers: {
+          total: 0,
+          active: 0,
+        },
+        equipment: {
+          total: 0,
+          active: 0,
+        },
+      };
+    }
 
     // Get all data in parallel
     const [
@@ -1006,7 +1087,8 @@ export const getAnalytics = query({
     ),
   },
   handler: async (ctx, args) => {
-    const orgId = await requireOrganizationId(ctx);
+    const orgId = await getOrganizationId(ctx);
+    if (!orgId) return null;
 
     const dateRange = args.dateRange || "this_month";
 

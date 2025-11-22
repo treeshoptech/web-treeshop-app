@@ -168,7 +168,11 @@ export const generateProjectReport = mutation({
 export const listProjectReports = query({
   args: {},
   handler: async (ctx) => {
-    const orgId = await requireOrganizationId(ctx);
+    const orgId = await getOrganizationId(ctx);
+
+    if (!orgId) {
+      return [];
+    }
 
     const reports = await ctx.db
       .query("projectReports")
@@ -186,10 +190,10 @@ export const getProjectReport = query({
   handler: async (ctx, args) => {
     const report = await ctx.db.get(args.reportId);
 
+    if (!report) return null;
+
     // Verify ownership
     await verifyDocumentOwnershipOptional(ctx, report, "report");
-
-    if (!report) return null;
 
     // Parse JSON data
     const lineItems = JSON.parse(report.lineItemsData);
@@ -213,12 +217,12 @@ export const deleteProjectReport = mutation({
   handler: async (ctx, args) => {
     const report = await ctx.db.get(args.reportId);
 
-    // Verify ownership
-    await verifyDocumentOwnershipOptional(ctx, report, "report");
-
     if (!report) {
       throw new Error("Report not found");
     }
+
+    // Verify ownership
+    await verifyDocumentOwnershipOptional(ctx, report, "report");
 
     await ctx.db.delete(args.reportId);
   },

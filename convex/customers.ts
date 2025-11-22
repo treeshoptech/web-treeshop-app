@@ -31,6 +31,8 @@ export const getCustomer = query({
   handler: async (ctx, args) => {
     const customer = await ctx.db.get(args.customerId);
 
+    if (!customer) return null;
+
     // Verify ownership - throws error if customer doesn't belong to user's org
     await verifyDocumentOwnershipOptional(ctx, customer, "customer");
 
@@ -110,6 +112,9 @@ export const updateCustomer = mutation({
 
     // Fetch and verify ownership before updating
     const customer = await ctx.db.get(customerId);
+
+    if (!customer) return null;
+
     await verifyDocumentOwnershipOptional(ctx, customer, "customer");
 
     await ctx.db.patch(customerId, data);
@@ -124,6 +129,9 @@ export const deleteCustomer = mutation({
   handler: async (ctx, args) => {
     // Fetch and verify ownership before deleting
     const customer = await ctx.db.get(args.customerId);
+
+    if (!customer) return null;
+
     await verifyDocumentOwnershipOptional(ctx, customer, "customer");
 
     await ctx.db.delete(args.customerId);

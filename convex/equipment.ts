@@ -28,6 +28,10 @@ export const getEquipment = query({
   handler: async (ctx, args) => {
     const equipment = await ctx.db.get(args.equipmentId);
 
+    if (!equipment) {
+      return null;
+    }
+
     // Verify ownership - throws error if equipment doesn't belong to user's org
     await verifyDocumentOwnershipOptional(ctx, equipment, "equipment");
 
@@ -117,6 +121,11 @@ export const updateEquipment = mutation({
 
     // Fetch and verify ownership before updating
     const equipment = await ctx.db.get(equipmentId);
+
+    if (!equipment) {
+      throw new Error("Equipment not found");
+    }
+
     await verifyDocumentOwnershipOptional(ctx, equipment, "equipment");
 
     // Recalculate hourly costs
@@ -152,6 +161,11 @@ export const deleteEquipment = mutation({
   handler: async (ctx, args) => {
     // Fetch and verify ownership before deleting
     const equipment = await ctx.db.get(args.equipmentId);
+
+    if (!equipment) {
+      throw new Error("Equipment not found");
+    }
+
     await verifyDocumentOwnershipOptional(ctx, equipment, "equipment");
 
     await ctx.db.delete(args.equipmentId);

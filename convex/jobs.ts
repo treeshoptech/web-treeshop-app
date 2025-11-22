@@ -55,10 +55,10 @@ export const getJob = query({
   handler: async (ctx, args) => {
     const job = await ctx.db.get(args.jobId);
 
+    if (!job) return null;
+
     // Verify ownership - throws error if job doesn't belong to user's org
     await verifyDocumentOwnershipOptional(ctx, job, "job");
-
-    if (!job) return null;
 
     // Get customer (if customerId exists)
     let customer = null;
@@ -157,12 +157,12 @@ export const markJobComplete = mutation({
   handler: async (ctx, args) => {
     const job = await ctx.db.get(args.jobId);
 
-    // Verify ownership before marking complete
-    await verifyDocumentOwnershipOptional(ctx, job, "job");
-
     if (!job) {
       throw new Error("Job not found");
     }
+
+    // Verify ownership before marking complete
+    await verifyDocumentOwnershipOptional(ctx, job, "job");
 
     // Mark all line items as complete
     const lineItems = await ctx.db
@@ -212,14 +212,14 @@ export const createJob = mutation({
     assignedCrewId: v.optional(v.id("crews")),
   },
   handler: async (ctx, args) => {
-    const orgId = await requireOrganizationId(ctx);
+    const orgId = await getOrganizationId(ctx);
 
     // Generate job number
     const allJobs = await ctx.db.query("jobs").collect();
     const jobNumber = `WO-${(allJobs.length + 1).toString().padStart(4, '0')}`;
 
     const jobId = await ctx.db.insert("jobs", {
-      companyId: orgId,
+      companyId: orgId ?? undefined,
       jobNumber,
       customerId: args.customerId,
       status: args.status || "draft", // Default to draft if not specified

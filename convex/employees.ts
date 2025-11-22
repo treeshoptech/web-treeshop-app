@@ -27,6 +27,7 @@ export const getEmployee = query({
   args: { employeeId: v.id("employees") },
   handler: async (ctx, args) => {
     const employee = await ctx.db.get(args.employeeId);
+    if (!employee) throw new Error("Employee not found");
 
     // Verify ownership - throws error if employee doesn't belong to user's org
     await verifyDocumentOwnershipOptional(ctx, employee, "employee");
@@ -137,6 +138,7 @@ export const updateEmployee = mutation({
 
     // Fetch and verify ownership before updating
     const employee = await ctx.db.get(employeeId);
+    if (!employee) throw new Error("Employee not found");
     await verifyDocumentOwnershipOptional(ctx, employee, "employee");
 
     await ctx.db.patch(employeeId, {
@@ -154,6 +156,7 @@ export const deleteEmployee = mutation({
   handler: async (ctx, args) => {
     // Fetch and verify ownership before deleting
     const employee = await ctx.db.get(args.employeeId);
+    if (!employee) throw new Error("Employee not found");
     await verifyDocumentOwnershipOptional(ctx, employee, "employee");
 
     await ctx.db.delete(args.employeeId);

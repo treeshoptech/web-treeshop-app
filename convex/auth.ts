@@ -15,15 +15,19 @@ export async function getOrganizationId(ctx: QueryCtx | MutationCtx): Promise<st
   try {
     const identity = await getUserIdentity(ctx);
 
-    // Try multiple naming patterns for organization ID claim
-    // Clerk v1: org_id, Clerk v2: o.id, Convex normalized: orgId
-    const orgId = (identity as any).orgId ||
-                  (identity as any).org_id ||
-                  (identity as any).o?.id ||
+    // Convex exposes custom JWT claims including nested ones using dot notation
+    // For Clerk's organization claims:
+    // - Custom JWT template: org_id (top-level)
+    // - Default session token: o.id (nested, accessed as "o.id" string key)
+    // - Legacy: orgId, org_id
+    const orgId = (identity as any).org_id ||           // Custom JWT template claim
+                  (identity as any)["o.id"] ||          // Clerk default session token (nested)
+                  (identity as any).orgId ||            // Legacy format
                   null;
 
     console.log("getOrganizationId - orgId found:", orgId);
     console.log("getOrganizationId - all identity keys:", Object.keys(identity));
+    console.log("getOrganizationId - checking o.id:", (identity as any)["o.id"]);
 
     if (!orgId || typeof orgId !== 'string') {
       console.warn("getOrganizationId - No valid org ID found in identity");
