@@ -9,9 +9,13 @@ export const listCustomers = query({
   handler: async (ctx) => {
     const orgId = await getOrganizationId(ctx);
 
-    // If no org, return empty array
+    // TEMPORARY: If no orgId, return ALL customers until Clerk JWT is configured
     if (!orgId) {
-      return [];
+      console.warn("WARNING: No orgId in listCustomers - returning all customers (TEMP FIX)");
+      return await ctx.db
+        .query("customers")
+        .order("desc")
+        .collect();
     }
 
     const customers = await ctx.db
