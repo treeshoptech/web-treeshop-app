@@ -60,7 +60,7 @@ export default function WorkOrderDetailPage() {
   // Auto-select first crew member on load
   useEffect(() => {
     if (!selectedEmployeeId && job?.crew?.members?.[0]) {
-      setSelectedEmployeeId(job.crew.members[0]._id as Id<'employees'>);
+      setSelectedEmployeeId(job.crew?.members[0]._id as Id<'employees'>);
     }
   }, [job, selectedEmployeeId]);
 
@@ -899,7 +899,7 @@ export default function WorkOrderDetailPage() {
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                   <AvatarGroup max={3}>
-                    {job.crew.members?.map((member: any) => (
+                    {job.crew?.members?.map((member: any) => (
                       <Avatar
                         key={member._id}
                         sx={{
@@ -915,7 +915,7 @@ export default function WorkOrderDetailPage() {
                     ))}
                   </AvatarGroup>
                   <Typography variant="caption" sx={{ color: '#B3B3B3' }}>
-                    {job.crew.members?.map((m: any) => m.name).join(', ')}
+                    {job.crew?.members?.map((m: any) => m.name).join(', ') ?? ''}
                   </Typography>
                 </Box>
               </Box>
