@@ -23,7 +23,7 @@ interface EquipmentFormData {
   typeId: string;
   purchasePrice: string;
   usefulLifeYears: string;
-  salvageValuePercent: string;
+  auctionPrice: string;
   annualOperatingHours: string;
   fuelConsumptionPerHour: string;
   annualMaintenanceCost: string;
@@ -59,7 +59,7 @@ export default function EquipmentFormModal({
     typeId: '',
     purchasePrice: '',
     usefulLifeYears: '5',
-    salvageValuePercent: '20',
+    auctionPrice: '0',
     annualOperatingHours: '1500',
     fuelConsumptionPerHour: '',
     annualMaintenanceCost: '',
@@ -78,9 +78,7 @@ export default function EquipmentFormModal({
   // Populate form when editing
   useEffect(() => {
     if (initialData) {
-      const salvagePercent = initialData.purchasePrice > 0
-        ? ((initialData.salvageValue / initialData.purchasePrice) * 100).toFixed(0)
-        : '20';
+      // Removed salvagePercent calculation - using direct auction price
 
       setFormData({
         name: initialData.name,
@@ -88,7 +86,7 @@ export default function EquipmentFormModal({
         typeId: initialData.typeId || '',
         purchasePrice: initialData.purchasePrice.toString(),
         usefulLifeYears: initialData.usefulLifeYears.toString(),
-        salvageValuePercent: salvagePercent,
+        auctionPrice: equipment.auctionPrice?.toString() || '0',
         annualOperatingHours: initialData.annualOperatingHours.toString(),
         fuelConsumptionPerHour: initialData.fuelConsumptionPerHour.toString(),
         annualMaintenanceCost: initialData.annualMaintenanceCost.toString(),
@@ -102,7 +100,7 @@ export default function EquipmentFormModal({
   const calculateCosts = () => {
     const purchasePrice = parseFloat(formData.purchasePrice) || 0;
     const usefulLifeYears = parseFloat(formData.usefulLifeYears) || 1;
-    const salvagePercent = parseFloat(formData.salvageValuePercent) || 0;
+    const auctionPrice = parseFloat(formData.auctionPrice) || 0;
     const salvageValue = purchasePrice * (salvagePercent / 100);
     const annualOperatingHours = parseFloat(formData.annualOperatingHours) || 1;
     const fuelConsumption = parseFloat(formData.fuelConsumptionPerHour) || 0;
@@ -110,7 +108,7 @@ export default function EquipmentFormModal({
     const annualOther = parseFloat(formData.annualOtherCosts) || 0;
 
     // Calculations (using org fuel price)
-    const annualDepreciation = (purchasePrice - salvageValue) / usefulLifeYears;
+    const annualDepreciation = (purchasePrice - auctionPrice) / usefulLifeYears;
     const hourlyDepreciation = annualDepreciation / annualOperatingHours;
     const hourlyFuel = fuelConsumption * orgFuelPrice;
     const hourlyMaintenance = annualMaintenance / annualOperatingHours;
@@ -119,7 +117,7 @@ export default function EquipmentFormModal({
     const hourlyCost = hourlyCostBeforeOverhead * 1.15; // 15% overhead
 
     return {
-      salvageValue,
+      auctionPrice,
       hourlyDepreciation,
       hourlyFuel,
       hourlyMaintenance,
@@ -138,7 +136,7 @@ export default function EquipmentFormModal({
     }
 
     const purchasePrice = parseFloat(formData.purchasePrice);
-    const salvagePercent = parseFloat(formData.salvageValuePercent) || 20;
+    const auctionPrice = parseFloat(formData.auctionPrice) || 0;
     const salvageValue = purchasePrice * (salvagePercent / 100);
 
     onSubmit({
@@ -147,7 +145,7 @@ export default function EquipmentFormModal({
       typeId: formData.typeId,
       purchasePrice,
       usefulLifeYears: parseFloat(formData.usefulLifeYears) || 5,
-      salvageValue,
+      auctionPrice,
       annualOperatingHours: parseFloat(formData.annualOperatingHours) || 1500,
       fuelConsumptionPerHour: parseFloat(formData.fuelConsumptionPerHour) || 0,
       fuelPricePerGallon: orgFuelPrice, // Use org fuel price
