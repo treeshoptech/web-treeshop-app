@@ -214,8 +214,8 @@ export default function EmployeesPage() {
             const expandedDetails: DetailField[] = [];
 
             const certifications = [];
-            if (emp.isLeadership) certifications.push('Leadership');
-            if (emp.isSupervisor) certifications.push('Supervisor');
+            if (emp.hasLeadership) certifications.push('Leadership');
+            if (emp.hasSupervisor) certifications.push('Supervisor');
             if (emp.hasCDL) certifications.push('CDL');
             if (emp.hasCrane) certifications.push('Crane');
             if (emp.hasOSHA) certifications.push('OSHA');
