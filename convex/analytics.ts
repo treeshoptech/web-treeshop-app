@@ -1006,11 +1006,7 @@ export const getAnalytics = query({
     ),
   },
   handler: async (ctx, args) => {
-    const orgId = await getOrganizationId(ctx);
-
-    if (!orgId) {
-      return null;
-    }
+    const orgId = await requireOrganizationId(ctx);
 
     const dateRange = args.dateRange || "this_month";
 

@@ -7,13 +7,9 @@ import { verifyDocumentOwnershipOptional } from "./authHelpers";
 export const listJobs = query({
   args: {},
   handler: async (ctx) => {
-    const orgId = await getOrganizationId(ctx);
+    const orgId = await requireOrganizationId(ctx);
 
-    // If no org, return empty array
-    if (!orgId) {
-      return [];
-    }
-
+    // Get all jobs for the organization
     const jobs = await ctx.db
       .query("jobs")
       .filter((q) => q.eq(q.field("companyId"), orgId))

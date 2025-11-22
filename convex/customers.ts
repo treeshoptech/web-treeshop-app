@@ -7,16 +7,7 @@ import { verifyDocumentOwnershipOptional } from "./authHelpers";
 export const listCustomers = query({
   args: {},
   handler: async (ctx) => {
-    const orgId = await getOrganizationId(ctx);
-
-    // TEMPORARY: If no orgId, return ALL customers until Clerk JWT is configured
-    if (!orgId) {
-      console.warn("WARNING: No orgId in listCustomers - returning all customers (TEMP FIX)");
-      return await ctx.db
-        .query("customers")
-        .order("desc")
-        .collect();
-    }
+    const orgId = await requireOrganizationId(ctx);
 
     const customers = await ctx.db
       .query("customers")
@@ -59,17 +50,11 @@ export const createCustomer = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    // TEMPORARY: Make orgId optional until Clerk JWT template is configured with org_id claim
-    const orgId = await getOrganizationId(ctx);
-    if (orgId) {
-      console.log("Creating customer for organization:", orgId);
-    } else {
-      console.warn("WARNING: No organization ID - Clerk JWT template needs org_id claim configured!");
-    }
+    const orgId = await requireOrganizationId(ctx);
 
     try {
       const customerId = await ctx.db.insert("customers", {
-        companyId: orgId || undefined,
+        companyId: orgId,
         firstName: args.firstName,
         lastName: args.lastName,
         businessName: args.businessName,

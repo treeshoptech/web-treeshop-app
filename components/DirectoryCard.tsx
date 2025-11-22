@@ -14,7 +14,6 @@ import {
   ListItemText,
   Divider,
   Collapse,
-  Grid,
   Tooltip,
 } from '@mui/material';
 import {
@@ -328,52 +327,55 @@ export default function DirectoryCard({
           <Box sx={{ mt: 2 }}>
             {/* Expanded Metrics */}
             {expandedMetrics && expandedMetrics.length > 0 && (
-              <Grid container spacing={2} sx={{ mb: 2 }}>
+              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2 }}>
                 {expandedMetrics.map((metric, index) => (
-                  <Grid item xs={6} sm={4} md={3} key={index}>
-                    <Box
+                  <Box
+                    key={index}
+                    sx={{
+                      flex: { xs: '1 1 calc(50% - 8px)', sm: '1 1 calc(33% - 11px)', md: '1 1 calc(25% - 12px)' },
+                      minWidth: 0,
+                      background: '#2A2A2A',
+                      borderRadius: '8px',
+                      p: 1.5,
+                    }}
+                  >
+                    <Typography variant="caption" sx={{ color: '#8E8E93', display: 'block', mb: 0.5 }}>
+                      {metric.label}
+                    </Typography>
+                    <Typography
+                      variant="h6"
                       sx={{
-                        background: '#2A2A2A',
-                        borderRadius: '8px',
-                        p: 1.5,
+                        color: metric.color || '#FFFFFF',
+                        fontWeight: 600,
+                        fontSize: '1.1rem',
                       }}
                     >
-                      <Typography variant="caption" sx={{ color: '#8E8E93', display: 'block', mb: 0.5 }}>
-                        {metric.label}
-                      </Typography>
-                      <Typography
-                        variant="h6"
-                        sx={{
-                          color: metric.color || '#FFFFFF',
-                          fontWeight: 600,
-                          fontSize: '1.1rem',
-                        }}
-                      >
-                        {metric.value}
-                      </Typography>
-                    </Box>
-                  </Grid>
+                      {metric.value}
+                    </Typography>
+                  </Box>
                 ))}
-              </Grid>
+              </Box>
             )}
 
             {/* Expanded Details */}
             {expandedDetails && expandedDetails.length > 0 && (
-              <Box sx={{ mb: 2 }}>
-                <Grid container spacing={2}>
-                  {expandedDetails.map((detail, index) => (
-                    <Grid item xs={12} sm={detail.fullWidth ? 12 : 6} key={index}>
-                      <Box>
-                        <Typography variant="caption" sx={{ color: '#8E8E93', display: 'block', mb: 0.5 }}>
-                          {detail.label}
-                        </Typography>
-                        <Typography variant="body2" sx={{ color: '#FFFFFF' }}>
-                          {detail.value}
-                        </Typography>
-                      </Box>
-                    </Grid>
-                  ))}
-                </Grid>
+              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', mb: 2 }}>
+                {expandedDetails.map((detail, index) => (
+                  <Box
+                    key={index}
+                    sx={{
+                      flex: detail.fullWidth ? '1 1 100%' : { xs: '1 1 100%', sm: '1 1 calc(50% - 8px)' },
+                      minWidth: 0,
+                    }}
+                  >
+                    <Typography variant="caption" sx={{ color: '#8E8E93', display: 'block', mb: 0.5 }}>
+                      {detail.label}
+                    </Typography>
+                    <Typography variant="body2" sx={{ color: '#FFFFFF' }}>
+                      {detail.value}
+                    </Typography>
+                  </Box>
+                ))}
               </Box>
             )}
 

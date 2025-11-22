@@ -190,15 +190,15 @@ export default function EquipmentPage() {
                 },
                 {
                   label: 'Useful Life',
-                  value: `${item.usefulLifeHours || 0} hours`,
+                  value: `${item.usefulLifeYears || 0} years`,
                 },
                 {
                   label: 'Fuel Consumption',
-                  value: `${item.fuelConsumption || 0} gal/hr`,
+                  value: `${item.fuelConsumptionPerHour || 0} gal/hr`,
                 },
                 {
-                  label: 'Operating Hours',
-                  value: `${item.operatingHours || 0} hours`,
+                  label: 'Annual Operating Hours',
+                  value: `${item.annualOperatingHours || 0}`,
                 },
               ]}
               notes={item.notes}

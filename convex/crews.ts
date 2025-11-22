@@ -1,11 +1,15 @@
 import { query } from "./_generated/server";
+import { requireOrganizationId } from "./auth";
 
 // List all active crews
 export const listCrews = query({
   args: {},
   handler: async (ctx) => {
+    const orgId = await requireOrganizationId(ctx);
+
     const crews = await ctx.db
       .query("crews")
+      .filter((q) => q.eq(q.field("companyId"), orgId))
       .withIndex("by_active", (q) => q.eq("isActive", true))
       .collect();
 

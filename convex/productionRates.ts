@@ -1,5 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
+import { requireOrganizationId } from "./auth";
 
 // Get production rates for an employee
 export const getEmployeeProductionRates = query({
@@ -104,7 +105,12 @@ export const deleteProductionRate = mutation({
 export const listAllProductionRates = query({
   args: {},
   handler: async (ctx) => {
-    const rates = await ctx.db.query("productionRates").collect();
+    const orgId = await requireOrganizationId(ctx);
+
+    const rates = await ctx.db
+      .query("productionRates")
+      .filter((q) => q.eq(q.field("companyId"), orgId))
+      .collect();
 
     // Enrich with employee names
     const enriched = await Promise.all(

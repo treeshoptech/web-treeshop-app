@@ -168,11 +168,7 @@ export const generateProjectReport = mutation({
 export const listProjectReports = query({
   args: {},
   handler: async (ctx) => {
-    const orgId = await getOrganizationId(ctx);
-
-    if (!orgId) {
-      return [];
-    }
+    const orgId = await requireOrganizationId(ctx);
 
     const reports = await ctx.db
       .query("projectReports")
