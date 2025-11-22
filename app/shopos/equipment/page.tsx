@@ -141,9 +141,17 @@ export default function EquipmentPage() {
               title={item.name}
               subtitle={item.type}
               badges={[
+                ...(item.category
+                  ? [
+                      {
+                        label: item.category,
+                        color: '#007AFF',
+                      },
+                    ]
+                  : []),
                 {
                   label: item.type,
-                  color: '#007AFF',
+                  color: '#34C759',
                 },
                 ...(!item.isActive
                   ? [
@@ -187,6 +195,10 @@ export default function EquipmentPage() {
                 {
                   label: 'Purchase Price',
                   value: `$${(item.purchasePrice || 0).toLocaleString()}`,
+                },
+                {
+                  label: 'Auction Price',
+                  value: `$${(item.auctionPrice || 0).toLocaleString()}`,
                 },
                 {
                   label: 'Useful Life',

@@ -11,18 +11,21 @@ import {
   Box,
   Typography,
   Divider,
+  MenuItem,
 } from '@mui/material';
 import { useSnackbar } from '@/app/contexts/SnackbarContext';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 
 interface EquipmentFormData {
   name: string;
-  type: string;
+  categoryId: string;
+  typeId: string;
   purchasePrice: string;
   usefulLifeYears: string;
   salvageValuePercent: string;
   annualOperatingHours: string;
   fuelConsumptionPerHour: string;
-  fuelPricePerGallon: string;
   annualMaintenanceCost: string;
   annualOtherCosts: string;
   notes: string;
@@ -44,19 +47,33 @@ export default function EquipmentFormModal({
   isEditing,
 }: EquipmentFormModalProps) {
   const { showError } = useSnackbar();
+
+  // Fetch equipment categories and types
+  const categories = useQuery(api.equipmentCategories.listCategories) || [];
+  const allTypes = useQuery(api.equipmentTypes.listTypes) || [];
+  const company = useQuery(api.companies.getCompany);
+
   const [formData, setFormData] = useState<EquipmentFormData>({
     name: '',
-    type: '',
+    categoryId: '',
+    typeId: '',
     purchasePrice: '',
     usefulLifeYears: '5',
     salvageValuePercent: '20',
     annualOperatingHours: '1500',
     fuelConsumptionPerHour: '',
-    fuelPricePerGallon: '3.50',
     annualMaintenanceCost: '',
     annualOtherCosts: '',
     notes: '',
   });
+
+  // Filter types based on selected category
+  const filteredTypes = formData.categoryId
+    ? allTypes.filter((t: any) => t.categoryId === formData.categoryId)
+    : [];
+
+  // Get org fuel price (default to 3.50 if not set)
+  const orgFuelPrice = company?.defaultFuelPricePerGallon || 3.50;
 
   // Populate form when editing
   useEffect(() => {
@@ -67,13 +84,13 @@ export default function EquipmentFormModal({
 
       setFormData({
         name: initialData.name,
-        type: initialData.type,
+        categoryId: initialData.categoryId || '',
+        typeId: initialData.typeId || '',
         purchasePrice: initialData.purchasePrice.toString(),
         usefulLifeYears: initialData.usefulLifeYears.toString(),
         salvageValuePercent: salvagePercent,
         annualOperatingHours: initialData.annualOperatingHours.toString(),
         fuelConsumptionPerHour: initialData.fuelConsumptionPerHour.toString(),
-        fuelPricePerGallon: initialData.fuelPricePerGallon.toString(),
         annualMaintenanceCost: initialData.annualMaintenanceCost.toString(),
         annualOtherCosts: initialData.annualOtherCosts?.toString() || '',
         notes: initialData.notes || '',
@@ -81,7 +98,7 @@ export default function EquipmentFormModal({
     }
   }, [initialData]);
 
-  // Calculate costs in real-time
+  // Calculate costs in real-time (using org fuel price)
   const calculateCosts = () => {
     const purchasePrice = parseFloat(formData.purchasePrice) || 0;
     const usefulLifeYears = parseFloat(formData.usefulLifeYears) || 1;
@@ -89,14 +106,13 @@ export default function EquipmentFormModal({
     const salvageValue = purchasePrice * (salvagePercent / 100);
     const annualOperatingHours = parseFloat(formData.annualOperatingHours) || 1;
     const fuelConsumption = parseFloat(formData.fuelConsumptionPerHour) || 0;
-    const fuelPrice = parseFloat(formData.fuelPricePerGallon) || 0;
     const annualMaintenance = parseFloat(formData.annualMaintenanceCost) || 0;
     const annualOther = parseFloat(formData.annualOtherCosts) || 0;
 
-    // Calculations
+    // Calculations (using org fuel price)
     const annualDepreciation = (purchasePrice - salvageValue) / usefulLifeYears;
     const hourlyDepreciation = annualDepreciation / annualOperatingHours;
-    const hourlyFuel = fuelConsumption * fuelPrice;
+    const hourlyFuel = fuelConsumption * orgFuelPrice;
     const hourlyMaintenance = annualMaintenance / annualOperatingHours;
     const hourlyOther = annualOther / annualOperatingHours;
     const hourlyCostBeforeOverhead = hourlyDepreciation + hourlyFuel + hourlyMaintenance + hourlyOther;
@@ -116,8 +132,8 @@ export default function EquipmentFormModal({
   const costs = calculateCosts();
 
   const handleSubmit = () => {
-    if (!formData.name || !formData.type || !formData.purchasePrice) {
-      showError('Please fill in required fields (Name, Type, Purchase Price)');
+    if (!formData.name || !formData.categoryId || !formData.typeId || !formData.purchasePrice) {
+      showError('Please fill in required fields (Name, Category, Type, Purchase Price)');
       return;
     }
 
@@ -127,13 +143,14 @@ export default function EquipmentFormModal({
 
     onSubmit({
       name: formData.name,
-      type: formData.type,
+      categoryId: formData.categoryId,
+      typeId: formData.typeId,
       purchasePrice,
       usefulLifeYears: parseFloat(formData.usefulLifeYears) || 5,
       salvageValue,
       annualOperatingHours: parseFloat(formData.annualOperatingHours) || 1500,
       fuelConsumptionPerHour: parseFloat(formData.fuelConsumptionPerHour) || 0,
-      fuelPricePerGallon: parseFloat(formData.fuelPricePerGallon) || 3.50,
+      fuelPricePerGallon: orgFuelPrice, // Use org fuel price
       annualMaintenanceCost: parseFloat(formData.annualMaintenanceCost) || 0,
       annualOtherCosts: parseFloat(formData.annualOtherCosts) || 0,
       overheadMultiplier: 1.15,
@@ -190,23 +207,56 @@ export default function EquipmentFormModal({
             }}
           />
 
-          <TextField
-            fullWidth
-            label="Type *"
-            value={formData.type}
-            onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-            placeholder="e.g., mulcher, chipper, stump_grinder, truck"
-            sx={{
-              '& .MuiInputLabel-root': { color: '#B3B3B3' },
-              '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
-              '& .MuiOutlinedInput-root': {
-                color: '#FFFFFF',
-                '& fieldset': { borderColor: '#2A2A2A' },
-                '&:hover fieldset': { borderColor: '#007AFF' },
-                '&.Mui-focused fieldset': { borderColor: '#007AFF' },
-              },
-            }}
-          />
+          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+            <TextField
+              select
+              fullWidth
+              label="Category *"
+              value={formData.categoryId}
+              onChange={(e) => setFormData({ ...formData, categoryId: e.target.value, typeId: '' })}
+              sx={{
+                '& .MuiInputLabel-root': { color: '#B3B3B3' },
+                '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
+                '& .MuiOutlinedInput-root': {
+                  color: '#FFFFFF',
+                  '& fieldset': { borderColor: '#2A2A2A' },
+                  '&:hover fieldset': { borderColor: '#007AFF' },
+                  '&.Mui-focused fieldset': { borderColor: '#007AFF' },
+                },
+              }}
+            >
+              {categories.map((category: any) => (
+                <MenuItem key={category._id} value={category._id}>
+                  {category.name}
+                </MenuItem>
+              ))}
+            </TextField>
+
+            <TextField
+              select
+              fullWidth
+              label="Type *"
+              value={formData.typeId}
+              onChange={(e) => setFormData({ ...formData, typeId: e.target.value })}
+              disabled={!formData.categoryId}
+              sx={{
+                '& .MuiInputLabel-root': { color: '#B3B3B3' },
+                '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
+                '& .MuiOutlinedInput-root': {
+                  color: '#FFFFFF',
+                  '& fieldset': { borderColor: '#2A2A2A' },
+                  '&:hover fieldset': { borderColor: '#007AFF' },
+                  '&.Mui-focused fieldset': { borderColor: '#007AFF' },
+                },
+              }}
+            >
+              {filteredTypes.map((type: any) => (
+                <MenuItem key={type._id} value={type._id}>
+                  {type.name}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Box>
 
           <Divider sx={{ borderColor: '#2A2A2A' }} />
 
@@ -253,12 +303,12 @@ export default function EquipmentFormModal({
             />
 
             <TextField
-              label="Salvage Value %"
+              label="Auction Price %"
               type="number"
               value={formData.salvageValuePercent}
               onChange={(e) => setFormData({ ...formData, salvageValuePercent: e.target.value })}
               placeholder="20"
-              helperText={`$${costs.salvageValue.toFixed(0)} salvage value`}
+              helperText={`$${costs.salvageValue.toFixed(0)} auction value`}
               sx={{
                 '& .MuiInputLabel-root': { color: '#B3B3B3' },
                 '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
@@ -318,24 +368,29 @@ export default function EquipmentFormModal({
               }}
             />
 
-            <TextField
-              label="Fuel Price ($/gal)"
-              type="number"
-              inputProps={{ step: 0.01 }}
-              value={formData.fuelPricePerGallon}
-              onChange={(e) => setFormData({ ...formData, fuelPricePerGallon: e.target.value })}
-              placeholder="3.50"
-              sx={{
-                '& .MuiInputLabel-root': { color: '#B3B3B3' },
-                '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
-                '& .MuiOutlinedInput-root': {
-                  color: '#FFFFFF',
-                  '& fieldset': { borderColor: '#2A2A2A' },
-                  '&:hover fieldset': { borderColor: '#007AFF' },
-                  '&.Mui-focused fieldset': { borderColor: '#007AFF' },
-                },
-              }}
-            />
+            <Box>
+              <Typography variant="caption" sx={{ color: '#B3B3B3', display: 'block', mb: 0.5 }}>
+                Organization Fuel Price
+              </Typography>
+              <Box
+                sx={{
+                  p: 1.75,
+                  background: '#0A0A0A',
+                  border: '1px solid #2A2A2A',
+                  borderRadius: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  height: '56px',
+                }}
+              >
+                <Typography variant="body1" sx={{ color: '#FFFFFF', fontWeight: 600 }}>
+                  ${orgFuelPrice.toFixed(2)}/gal
+                </Typography>
+              </Box>
+              <Typography variant="caption" sx={{ color: '#666', display: 'block', mt: 0.5 }}>
+                Set in company settings
+              </Typography>
+            </Box>
           </Box>
 
           <Divider sx={{ borderColor: '#2A2A2A' }} />

@@ -44,12 +44,13 @@ export const createEquipment = mutation({
   args: {
     name: v.string(),
     type: v.string(),
+    category: v.optional(v.string()),
+    subcategory: v.optional(v.string()),
     purchasePrice: v.number(),
     usefulLifeYears: v.number(),
-    salvageValue: v.number(),
+    auctionPrice: v.number(),
     annualOperatingHours: v.number(),
     fuelConsumptionPerHour: v.number(),
-    fuelPricePerGallon: v.number(),
     annualMaintenanceCost: v.number(),
     annualOtherCosts: v.optional(v.number()),
     overheadMultiplier: v.optional(v.number()),
@@ -58,11 +59,19 @@ export const createEquipment = mutation({
   handler: async (ctx, args) => {
     const orgId = await getOrganizationId(ctx);
 
+    // Get fuel price from company settings
+    const company = await ctx.db
+      .query("companies")
+      .withIndex("by_company", (q) => q.eq("companyId", orgId ?? undefined))
+      .first();
+
+    const fuelPricePerGallon = company?.defaultFuelPricePerGallon || 3.50; // Default fallback
+
     // Calculate hourly costs using Army Corps method
-    const annualDepreciation = (args.purchasePrice - args.salvageValue) / args.usefulLifeYears;
+    const annualDepreciation = (args.purchasePrice - args.auctionPrice) / args.usefulLifeYears;
     const hourlyDepreciation = annualDepreciation / args.annualOperatingHours;
 
-    const hourlyFuel = args.fuelConsumptionPerHour * args.fuelPricePerGallon;
+    const hourlyFuel = args.fuelConsumptionPerHour * fuelPricePerGallon;
     const hourlyMaintenance = args.annualMaintenanceCost / args.annualOperatingHours;
     const hourlyOther = (args.annualOtherCosts || 0) / args.annualOperatingHours;
 
@@ -74,12 +83,13 @@ export const createEquipment = mutation({
       companyId: orgId ?? undefined,
       name: args.name,
       type: args.type,
+      category: args.category,
+      subcategory: args.subcategory,
       purchasePrice: args.purchasePrice,
       usefulLifeYears: args.usefulLifeYears,
-      salvageValue: args.salvageValue,
+      auctionPrice: args.auctionPrice,
       annualOperatingHours: args.annualOperatingHours,
       fuelConsumptionPerHour: args.fuelConsumptionPerHour,
-      fuelPricePerGallon: args.fuelPricePerGallon,
       annualMaintenanceCost: args.annualMaintenanceCost,
       annualOtherCosts: args.annualOtherCosts,
       hourlyDepreciation,
@@ -104,12 +114,13 @@ export const updateEquipment = mutation({
     equipmentId: v.id("equipment"),
     name: v.string(),
     type: v.string(),
+    category: v.optional(v.string()),
+    subcategory: v.optional(v.string()),
     purchasePrice: v.number(),
     usefulLifeYears: v.number(),
-    salvageValue: v.number(),
+    auctionPrice: v.number(),
     annualOperatingHours: v.number(),
     fuelConsumptionPerHour: v.number(),
-    fuelPricePerGallon: v.number(),
     annualMaintenanceCost: v.number(),
     annualOtherCosts: v.optional(v.number()),
     overheadMultiplier: v.optional(v.number()),
@@ -128,11 +139,20 @@ export const updateEquipment = mutation({
 
     await verifyDocumentOwnershipOptional(ctx, equipment, "equipment");
 
+    // Get fuel price from company settings
+    const orgId = await getOrganizationId(ctx);
+    const company = await ctx.db
+      .query("companies")
+      .withIndex("by_company", (q) => q.eq("companyId", orgId ?? undefined))
+      .first();
+
+    const fuelPricePerGallon = company?.defaultFuelPricePerGallon || 3.50; // Default fallback
+
     // Recalculate hourly costs
-    const annualDepreciation = (data.purchasePrice - data.salvageValue) / data.usefulLifeYears;
+    const annualDepreciation = (data.purchasePrice - data.auctionPrice) / data.usefulLifeYears;
     const hourlyDepreciation = annualDepreciation / data.annualOperatingHours;
 
-    const hourlyFuel = data.fuelConsumptionPerHour * data.fuelPricePerGallon;
+    const hourlyFuel = data.fuelConsumptionPerHour * fuelPricePerGallon;
     const hourlyMaintenance = data.annualMaintenanceCost / data.annualOperatingHours;
     const hourlyOther = (data.annualOtherCosts || 0) / data.annualOperatingHours;
 

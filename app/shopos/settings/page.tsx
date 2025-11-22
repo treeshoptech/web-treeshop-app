@@ -72,6 +72,8 @@ export default function SettingsPage() {
     email: '',
     website: '',
     defaultProfitMargin: '30',
+    defaultFuelPrice: '3.50',
+    equipmentOverheadMultiplier: '1.5',
     sops: '',
   });
 
@@ -88,6 +90,8 @@ export default function SettingsPage() {
         email: company.email || '',
         website: company.website || '',
         defaultProfitMargin: company.defaultProfitMargin.toString(),
+        defaultFuelPrice: company.defaultFuelPrice?.toString() || '3.50',
+        equipmentOverheadMultiplier: company.equipmentOverheadMultiplier?.toString() || '1.5',
         sops: company.sops || '',
       });
     }
@@ -110,6 +114,8 @@ export default function SettingsPage() {
         email: companyForm.email || undefined,
         website: companyForm.website || undefined,
         defaultProfitMargin: parseFloat(companyForm.defaultProfitMargin) || 30,
+        defaultFuelPrice: parseFloat(companyForm.defaultFuelPrice) || 3.50,
+        equipmentOverheadMultiplier: parseFloat(companyForm.equipmentOverheadMultiplier) || 1.5,
         sops: companyForm.sops || undefined,
       });
       showSuccess('Company settings saved');
@@ -309,6 +315,48 @@ export default function SettingsPage() {
                 value={companyForm.defaultProfitMargin}
                 onChange={(e) => setCompanyForm({ ...companyForm, defaultProfitMargin: e.target.value })}
                 helperText="Default profit margin % for new projects"
+                sx={{
+                  '& .MuiInputLabel-root': { color: '#B3B3B3' },
+                  '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
+                  '& .MuiOutlinedInput-root': {
+                    color: '#FFFFFF',
+                    '& fieldset': { borderColor: '#2A2A2A' },
+                    '&:hover fieldset': { borderColor: '#007AFF' },
+                    '&.Mui-focused fieldset': { borderColor: '#007AFF' },
+                  },
+                  '& .MuiFormHelperText-root': { color: '#666' },
+                }}
+              />
+
+              <TextField
+                fullWidth
+                label="Default Fuel Price ($/gallon)"
+                type="number"
+                value={companyForm.defaultFuelPrice}
+                onChange={(e) => setCompanyForm({ ...companyForm, defaultFuelPrice: e.target.value })}
+                helperText="Default fuel price per gallon for equipment cost calculations"
+                inputProps={{ step: '0.01', min: '0' }}
+                sx={{
+                  '& .MuiInputLabel-root': { color: '#B3B3B3' },
+                  '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
+                  '& .MuiOutlinedInput-root': {
+                    color: '#FFFFFF',
+                    '& fieldset': { borderColor: '#2A2A2A' },
+                    '&:hover fieldset': { borderColor: '#007AFF' },
+                    '&.Mui-focused fieldset': { borderColor: '#007AFF' },
+                  },
+                  '& .MuiFormHelperText-root': { color: '#666' },
+                }}
+              />
+
+              <TextField
+                fullWidth
+                label="Equipment Overhead Multiplier"
+                type="number"
+                value={companyForm.equipmentOverheadMultiplier}
+                onChange={(e) => setCompanyForm({ ...companyForm, equipmentOverheadMultiplier: e.target.value })}
+                helperText="Multiplier for equipment overhead costs (maintenance, depreciation, etc.)"
+                inputProps={{ step: '0.1', min: '1' }}
                 sx={{
                   '& .MuiInputLabel-root': { color: '#B3B3B3' },
                   '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },

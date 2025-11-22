@@ -178,16 +178,19 @@ export default defineSchema({
     companyId: v.optional(v.string()), // Optional for backward compatibility
     name: v.string(), // "Forestry Mulcher #2"
     type: v.string(), // "mulcher", "chipper", "stump_grinder"
+    category: v.optional(v.string()),
+    subcategory: v.optional(v.string()),
 
     // Financial Data (Army Corps Method) - Optional for backward compatibility
     purchasePrice: v.optional(v.number()),
     usefulLifeYears: v.optional(v.number()),
-    salvageValue: v.optional(v.number()),
+    auctionPrice: v.optional(v.number()),
     annualOperatingHours: v.optional(v.number()),
 
     // Fuel
     fuelConsumptionPerHour: v.optional(v.number()), // gallons/hour
-    fuelPricePerGallon: v.optional(v.number()),
+    fuelPricePerGallon: v.optional(v.number()), // DEPRECATED - use company defaultFuelPricePerGallon
+    salvageValue: v.optional(v.number()), // DEPRECATED - use auctionPrice
 
     // Maintenance
     annualMaintenanceCost: v.optional(v.number()),
@@ -210,6 +213,35 @@ export default defineSchema({
     .index("by_active", ["isActive"])
     .index("by_company", ["companyId"]),
 
+  // Equipment Categories
+  equipmentCategories: defineTable({
+    companyId: v.optional(v.string()),
+    name: v.string(),
+    code: v.string(),
+    sortOrder: v.number(),
+    isActive: v.boolean(),
+    createdAt: v.number(),
+  })
+    .index("by_company", ["companyId"])
+    .index("by_company_active", ["companyId", "isActive"]),
+
+  // Equipment Types
+  equipmentTypes: defineTable({
+    companyId: v.optional(v.string()),
+    categoryId: v.id("equipmentCategories"),
+    name: v.string(),
+    code: v.string(),
+    defaultUsefulLife: v.optional(v.number()),
+    defaultOperatingHours: v.optional(v.number()),
+    requiresFuelTracking: v.boolean(),
+    sortOrder: v.number(),
+    isActive: v.boolean(),
+    createdAt: v.number(),
+  })
+    .index("by_category", ["categoryId"])
+    .index("by_company", ["companyId"])
+    .index("by_company_active", ["companyId", "isActive"]),
+
   // Company Settings
   companies: defineTable({
     companyId: v.optional(v.string()), // Clerk organization ID (optional for backward compatibility)
@@ -226,6 +258,8 @@ export default defineSchema({
 
     // Financial Settings
     defaultProfitMargin: v.number(), // Default profit margin %
+    defaultFuelPricePerGallon: v.optional(v.number()),
+    defaultEquipmentOverhead: v.optional(v.number()),
 
     // SOPs and Documentation
     sops: v.optional(v.string()), // JSON string of SOPs or markdown
