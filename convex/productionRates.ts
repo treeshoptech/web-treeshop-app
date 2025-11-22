@@ -1,6 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { requireOrganizationId } from "./auth";
+import { getOrganizationId, requireOrganizationId } from "./auth";
 
 // Get production rates for an employee
 export const getEmployeeProductionRates = query({
