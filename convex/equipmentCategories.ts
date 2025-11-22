@@ -8,6 +8,7 @@ export const listCategories = query({
   args: {},
   handler: async (ctx) => {
     const orgId = await getOrganizationId(ctx);
+    console.log("listCategories - orgId:", orgId);
 
     // If no orgId, return all categories (JWT not configured)
     const categories = orgId
@@ -23,8 +24,12 @@ export const listCategories = query({
           .order("desc")
           .collect();
 
+    console.log("listCategories - found categories:", categories.length);
+
     // Sort by sortOrder if available
-    return categories.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+    const sorted = categories.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+    console.log("listCategories - returning:", sorted.length, "categories");
+    return sorted;
   },
 });
 
