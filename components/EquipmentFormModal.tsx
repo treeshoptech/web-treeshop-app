@@ -50,7 +50,7 @@ export default function EquipmentFormModal({
 
   // Fetch equipment categories and types
   const categories = useQuery(api.equipmentCategories.listCategories) || [];
-  const allTypes = useQuery(api.equipmentTypes.listTypes) || [];
+  const allTypes = useQuery(api.equipmentTypes.listAllTypes) || [];
   const company = useQuery(api.companies.getCompany);
 
   const [formData, setFormData] = useState<EquipmentFormData>({
