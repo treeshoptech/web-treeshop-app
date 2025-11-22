@@ -101,7 +101,6 @@ export default function EquipmentFormModal({
     const purchasePrice = parseFloat(formData.purchasePrice) || 0;
     const usefulLifeYears = parseFloat(formData.usefulLifeYears) || 1;
     const auctionPrice = parseFloat(formData.auctionPrice) || 0;
-    const salvageValue = purchasePrice * (salvagePercent / 100);
     const annualOperatingHours = parseFloat(formData.annualOperatingHours) || 1;
     const fuelConsumption = parseFloat(formData.fuelConsumptionPerHour) || 0;
     const annualMaintenance = parseFloat(formData.annualMaintenanceCost) || 0;
