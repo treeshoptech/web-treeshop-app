@@ -136,7 +136,6 @@ export default function EquipmentFormModal({
 
     const purchasePrice = parseFloat(formData.purchasePrice);
     const auctionPrice = parseFloat(formData.auctionPrice) || 0;
-    const salvageValue = purchasePrice * (salvagePercent / 100);
 
     onSubmit({
       name: formData.name,
