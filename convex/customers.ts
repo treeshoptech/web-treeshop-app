@@ -58,13 +58,15 @@ export const createCustomer = mutation({
     let orgId;
     try {
       orgId = await requireOrganizationId(ctx);
+      console.log("Creating customer for organization:", orgId);
     } catch (error: any) {
       console.error("Organization ID error:", error.message);
       throw new Error(`Failed to get organization: ${error.message}. Make sure you have created or joined an organization in Clerk.`);
     }
 
-    const customerId = await ctx.db.insert("customers", {
-      companyId: orgId,
+    try {
+      const customerId = await ctx.db.insert("customers", {
+        companyId: orgId,
       firstName: args.firstName,
       lastName: args.lastName,
       businessName: args.businessName,
@@ -78,11 +80,16 @@ export const createCustomer = mutation({
       propertyType: args.propertyType,
       howDidTheyFindUs: args.howDidTheyFindUs,
       notes: args.notes,
-      isActive: true,
-      createdAt: Date.now(),
-    });
+        isActive: true,
+        createdAt: Date.now(),
+      });
 
-    return customerId;
+      console.log("Customer created successfully:", customerId);
+      return customerId;
+    } catch (error: any) {
+      console.error("Error inserting customer:", error);
+      throw new Error(`Database error: ${error.message}`);
+    }
   },
 });
 
