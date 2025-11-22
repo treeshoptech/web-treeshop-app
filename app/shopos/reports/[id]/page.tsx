@@ -196,7 +196,7 @@ export default function ProjectReportDetailPage() {
 
             {/* Customer & Date Info */}
             <Grid container spacing={3}>
-              <Grid size={{ xs: 12} md: 6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Box sx={{ mb: 2 }}>
                   <Typography
                     variant="caption"
@@ -256,7 +256,7 @@ export default function ProjectReportDetailPage() {
                   )}
                 </Box>
               </Grid>
-              <Grid size={{ xs: 12} md: 6}>
+              <Grid size={{ xs: 12, md: 6 }}>
                 <Box sx={{ mb: 2 }}>
                   <Typography
                     variant="caption"
@@ -325,7 +325,7 @@ export default function ProjectReportDetailPage() {
             </Typography>
 
             <Grid container spacing={3}>
-              <Grid size={{ xs: 6} md: 3}>
+              <Grid size={{ xs: 6, md: 3 }}>
                 <Box
                   sx={{
                     p: 2.5,
@@ -368,7 +368,7 @@ export default function ProjectReportDetailPage() {
                 </Box>
               </Grid>
 
-              <Grid size={{ xs: 6} md: 3}>
+              <Grid size={{ xs: 6, md: 3 }}>
                 <Box
                   sx={{
                     p: 2.5,
@@ -402,7 +402,7 @@ export default function ProjectReportDetailPage() {
                 </Box>
               </Grid>
 
-              <Grid size={{ xs: 6} md: 3}>
+              <Grid size={{ xs: 6, md: 3 }}>
                 <Box
                   sx={{
                     p: 2.5,
@@ -436,7 +436,7 @@ export default function ProjectReportDetailPage() {
                 </Box>
               </Grid>
 
-              <Grid size={{ xs: 6} md: 3}>
+              <Grid size={{ xs: 6, md: 3 }}>
                 <Box
                   sx={{
                     p: 2.5,
