@@ -90,8 +90,8 @@ export default function SettingsPage() {
         email: company.email || '',
         website: company.website || '',
         defaultProfitMargin: company.defaultProfitMargin.toString(),
-        defaultFuelPrice: company.defaultFuelPrice?.toString() || '3.50',
-        equipmentOverheadMultiplier: company.equipmentOverheadMultiplier?.toString() || '1.5',
+        defaultFuelPrice: company.defaultFuelPricePerGallon?.toString() || '3.50',
+        equipmentOverheadMultiplier: company.defaultEquipmentOverhead?.toString() || '1.5',
         sops: company.sops || '',
       });
     }
@@ -114,8 +114,8 @@ export default function SettingsPage() {
         email: companyForm.email || undefined,
         website: companyForm.website || undefined,
         defaultProfitMargin: parseFloat(companyForm.defaultProfitMargin) || 30,
-        defaultFuelPrice: parseFloat(companyForm.defaultFuelPrice) || 3.50,
-        equipmentOverheadMultiplier: parseFloat(companyForm.equipmentOverheadMultiplier) || 1.5,
+        defaultFuelPricePerGallon: parseFloat(companyForm.defaultFuelPrice) || 3.50,
+        defaultEquipmentOverhead: parseFloat(companyForm.equipmentOverheadMultiplier) || 1.5,
         sops: companyForm.sops || undefined,
       });
       showSuccess('Company settings saved');

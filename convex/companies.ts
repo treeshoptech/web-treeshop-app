@@ -31,6 +31,8 @@ export const createOrUpdateCompany = mutation({
     email: v.optional(v.string()),
     website: v.optional(v.string()),
     defaultProfitMargin: v.number(),
+    defaultFuelPricePerGallon: v.optional(v.number()),
+    defaultEquipmentOverhead: v.optional(v.number()),
     sops: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
