@@ -65,7 +65,7 @@ interface EmployeeSkillForm {
 }
 
 interface EmployeeCertificationForm {
-  certificationId: Id<'certifications'> | null;
+  certificationId: Id<'careerTracks'> | null;
   dateEarned: string;
   expiresAt?: string;
   certificationNumber?: string;
@@ -73,13 +73,19 @@ interface EmployeeCertificationForm {
 }
 
 interface EmployeeFormData {
+  firstName: string;
+  lastName: string;
   name: string;
   employmentType: 'full_time' | 'part_time' | 'seasonal' | 'contractor';
   hireDate: string;
   baseRate: string;
   tierLevel: string;
-  managementLevelId: Id<'managementLevels'> | null;
+  managementLevelId: Id<'careerTracks'> | null;
   reportsToEmployeeId: Id<'employees'> | null;
+  // ICE
+  emergencyContactName: string;
+  emergencyContactPhone: string;
+  emergencyContactRelationship: string;
   // Legacy fields
   positionCode: string;
   hasLeadership: boolean;
@@ -109,9 +115,10 @@ export default function EmployeeFormModal({
   const [activeTab, setActiveTab] = useState(0);
 
   // Fetch data from APIs
-  const careerTracks = useQuery(api.careerTracks.listTracks, {}) || [];
-  const managementLevels = useQuery(api.managementLevels.listManagementLevels, {}) || [];
-  const certifications = useQuery(api.certifications.listCertifications, {}) || [];
+  const allTracks = useQuery(api.careerTracks.listTracks, {}) || [];
+  const careerTracks = allTracks.filter(t => t.trackType !== 'management' && !t.code?.startsWith('CERT_'));
+  const managementLevels = allTracks.filter(t => t.trackType === 'management');
+  const certifications = allTracks.filter(t => t.code?.startsWith('CERT_'));
   const employees = useQuery(api.employees.listEmployees, {}) || [];
 
   // Debug logging to check what data is being fetched
@@ -155,6 +162,8 @@ export default function EmployeeFormModal({
   const removeCertification = useMutation(api.employeeCertifications.removeCertification);
 
   const [formData, setFormData] = useState<EmployeeFormData>({
+    firstName: '',
+    lastName: '',
     name: '',
     employmentType: 'full_time',
     hireDate: new Date().toISOString().split('T')[0],
@@ -162,6 +171,10 @@ export default function EmployeeFormModal({
     tierLevel: '1',
     managementLevelId: null,
     reportsToEmployeeId: null,
+    // ICE
+    emergencyContactName: '',
+    emergencyContactPhone: '',
+    emergencyContactRelationship: '',
     // Legacy
     positionCode: 'GC',
     hasLeadership: false,
@@ -195,6 +208,8 @@ export default function EmployeeFormModal({
   useEffect(() => {
     if (initialData) {
       setFormData({
+        firstName: initialData.firstName || '',
+        lastName: initialData.lastName || '',
         name: initialData.name,
         employmentType: initialData.employmentType || 'full_time',
         hireDate: initialData.hireDate || new Date().toISOString().split('T')[0],
@@ -202,6 +217,10 @@ export default function EmployeeFormModal({
         tierLevel: initialData.tierLevel?.toString() || '1',
         managementLevelId: initialData.managementLevelId || null,
         reportsToEmployeeId: initialData.reportsToEmployeeId || null,
+        // ICE
+        emergencyContactName: initialData.emergencyContactName || '',
+        emergencyContactPhone: initialData.emergencyContactPhone || '',
+        emergencyContactRelationship: initialData.emergencyContactRelationship || '',
         // Legacy
         positionCode: initialData.positionCode || 'GC',
         hasLeadership: initialData.hasLeadership || false,
@@ -235,7 +254,7 @@ export default function EmployeeFormModal({
     if (existingCertifications && existingCertifications.length > 0) {
       setCertifs(
         existingCertifications.map((cert) => ({
-          certificationId: cert.certificationId,
+          certificationId: cert.certificationId as any,
           dateEarned: cert.dateEarned,
           expiresAt: cert.expiresAt,
           certificationNumber: cert.certificationNumber,
@@ -357,7 +376,7 @@ export default function EmployeeFormModal({
     if (formData.managementLevelId) {
       const mgmtLevel = managementLevels.find((m) => m._id === formData.managementLevelId);
       if (mgmtLevel) {
-        managementPremium = mgmtLevel.hourlyPremium;
+        managementPremium = mgmtLevel.hourlyPremium ?? 0;
         qualificationRate += managementPremium;
       }
     }
@@ -487,7 +506,7 @@ export default function EmployeeFormModal({
   };
 
   // Helper to get certification name by ID
-  const getCertificationName = (certId: Id<'certifications'> | null) => {
+  const getCertificationName = (certId: Id<'careerTracks'> | null) => {
     if (!certId) return 'Unknown';
     const cert = certifications.find((c) => c._id === certId);
     return cert?.name || 'Unknown';
@@ -563,23 +582,56 @@ export default function EmployeeFormModal({
         {/* TAB 0: BASIC INFO */}
         <TabPanel value={activeTab} index={0}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-            <TextField
-              fullWidth
-              label="Employee Name *"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="John Smith"
-              sx={{
-                '& .MuiInputLabel-root': { color: '#B3B3B3' },
-                '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
-                '& .MuiOutlinedInput-root': {
-                  color: '#FFFFFF',
-                  '& fieldset': { borderColor: '#2A2A2A' },
-                  '&:hover fieldset': { borderColor: '#007AFF' },
-                  '&.Mui-focused fieldset': { borderColor: '#007AFF' },
-                },
-              }}
-            />
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+              <TextField
+                fullWidth
+                label="First Name *"
+                value={formData.firstName}
+                onChange={(e) => {
+                  const firstName = e.target.value;
+                  setFormData({
+                    ...formData,
+                    firstName,
+                    name: `${firstName} ${formData.lastName}`.trim()
+                  });
+                }}
+                placeholder="John"
+                sx={{
+                  '& .MuiInputLabel-root': { color: '#B3B3B3' },
+                  '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
+                  '& .MuiOutlinedInput-root': {
+                    color: '#FFFFFF',
+                    '& fieldset': { borderColor: '#2A2A2A' },
+                    '&:hover fieldset': { borderColor: '#007AFF' },
+                    '&.Mui-focused fieldset': { borderColor: '#007AFF' },
+                  },
+                }}
+              />
+              <TextField
+                fullWidth
+                label="Last Name *"
+                value={formData.lastName}
+                onChange={(e) => {
+                  const lastName = e.target.value;
+                  setFormData({
+                    ...formData,
+                    lastName,
+                    name: `${formData.firstName} ${lastName}`.trim()
+                  });
+                }}
+                placeholder="Smith"
+                sx={{
+                  '& .MuiInputLabel-root': { color: '#B3B3B3' },
+                  '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
+                  '& .MuiOutlinedInput-root': {
+                    color: '#FFFFFF',
+                    '& fieldset': { borderColor: '#2A2A2A' },
+                    '&:hover fieldset': { borderColor: '#007AFF' },
+                    '&.Mui-focused fieldset': { borderColor: '#007AFF' },
+                  },
+                }}
+              />
+            </Box>
 
             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
               <FormControl fullWidth>
@@ -682,6 +734,70 @@ export default function EmployeeFormModal({
                   <MenuItem value="5">Tier 5 (5+ yr) - 2.2x</MenuItem>
                 </Select>
               </FormControl>
+            </Box>
+
+            <Divider sx={{ borderColor: '#2A2A2A', my: 1 }} />
+
+            <Typography
+              variant="subtitle2"
+              sx={{ color: '#FF3B30', fontWeight: 600, fontSize: '0.75rem', letterSpacing: '0.05em' }}
+            >
+              EMERGENCY CONTACT (ICE)
+            </Typography>
+
+            <TextField
+              fullWidth
+              label="Emergency Contact Name"
+              value={formData.emergencyContactName}
+              onChange={(e) => setFormData({ ...formData, emergencyContactName: e.target.value })}
+              placeholder="Jane Doe"
+              sx={{
+                '& .MuiInputLabel-root': { color: '#B3B3B3' },
+                '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
+                '& .MuiOutlinedInput-root': {
+                  color: '#FFFFFF',
+                  '& fieldset': { borderColor: '#2A2A2A' },
+                  '&:hover fieldset': { borderColor: '#007AFF' },
+                  '&.Mui-focused fieldset': { borderColor: '#007AFF' },
+                },
+              }}
+            />
+
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+              <TextField
+                fullWidth
+                label="Emergency Contact Phone"
+                value={formData.emergencyContactPhone}
+                onChange={(e) => setFormData({ ...formData, emergencyContactPhone: e.target.value })}
+                placeholder="(555) 123-4567"
+                sx={{
+                  '& .MuiInputLabel-root': { color: '#B3B3B3' },
+                  '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
+                  '& .MuiOutlinedInput-root': {
+                    color: '#FFFFFF',
+                    '& fieldset': { borderColor: '#2A2A2A' },
+                    '&:hover fieldset': { borderColor: '#007AFF' },
+                    '&.Mui-focused fieldset': { borderColor: '#007AFF' },
+                  },
+                }}
+              />
+              <TextField
+                fullWidth
+                label="Relationship"
+                value={formData.emergencyContactRelationship}
+                onChange={(e) => setFormData({ ...formData, emergencyContactRelationship: e.target.value })}
+                placeholder="Spouse, Parent, etc."
+                sx={{
+                  '& .MuiInputLabel-root': { color: '#B3B3B3' },
+                  '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
+                  '& .MuiOutlinedInput-root': {
+                    color: '#FFFFFF',
+                    '& fieldset': { borderColor: '#2A2A2A' },
+                    '&:hover fieldset': { borderColor: '#007AFF' },
+                    '&.Mui-focused fieldset': { borderColor: '#007AFF' },
+                  },
+                }}
+              />
             </Box>
 
             <Divider sx={{ borderColor: '#2A2A2A', my: 1 }} />
@@ -1138,7 +1254,7 @@ export default function EmployeeFormModal({
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    managementLevelId: (e.target.value as Id<'managementLevels'>) || null,
+                    managementLevelId: (e.target.value as Id<'careerTracks'>) || null,
                   })
                 }
                 label="Management Level"
@@ -1155,8 +1271,7 @@ export default function EmployeeFormModal({
                 </MenuItem>
                 {managementLevels.map((level) => (
                   <MenuItem key={level._id} value={level._id}>
-                    Level {level.level} - {level.title} ({level.code}) - $
-                    {level.hourlyPremium}/hr
+                    {level.name} - ${level.hourlyPremium ?? 0}/hr
                   </MenuItem>
                 ))}
               </Select>
@@ -1219,7 +1334,7 @@ export default function EmployeeFormModal({
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#FFFFFF', fontWeight: 600 }}>
                   {formData.managementLevelId
-                    ? managementLevels.find((m) => m._id === formData.managementLevelId)?.title ||
+                    ? managementLevels.find((m) => m._id === formData.managementLevelId)?.name ||
                       'Unknown'
                     : 'None'}
                 </Typography>
@@ -1273,7 +1388,7 @@ export default function EmployeeFormModal({
                 onChange={(e) =>
                   setNewCertif({
                     ...newCertif,
-                    certificationId: e.target.value as Id<'certifications'>,
+                    certificationId: e.target.value as Id<'careerTracks'>,
                   })
                 }
                 label="Certification"
