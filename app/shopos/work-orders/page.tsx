@@ -29,9 +29,36 @@ export default function WorkOrdersPage() {
   const customers = useQuery(api.customers.listCustomers);
   const crews = useQuery(api.crews.listCrews);
   const createJob = useMutation(api.jobs.createJob);
-  const { showError } = useSnackbar();
+  const deleteJob = useMutation(api.jobs.deleteJob);
+  const { showError, showConfirm } = useSnackbar();
 
   const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [stageFilter, setStageFilter] = useState<string>('ALL');
+
+  // Helper to get display ID based on lifecycle stage
+  const getDisplayId = (job: any) => {
+    const stage = job.lifecycleStage || 'WO';
+    const number = job.jobNumber.replace('WO-', '');
+    return `${stage}-${number}`;
+  };
+
+  // Helper to get stage color
+  const getStageColor = (stage: string) => {
+    const colors: Record<string, string> = {
+      LE: '#6C6C70',  // Gray (Lead)
+      PR: '#007AFF',  // Blue (Proposal)
+      WO: '#FF9500',  // Orange (Work Order)
+      IN: '#FF9500',  // Orange (Invoice)
+      CO: '#34C759',  // Green (Complete)
+    };
+    return colors[stage] || '#8E8E93';
+  };
+
+  // Filter jobs by stage
+  const filteredJobs = jobs?.filter(job => {
+    if (stageFilter === 'ALL') return true;
+    return (job.lifecycleStage || 'WO') === stageFilter;
+  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -86,7 +113,7 @@ export default function WorkOrdersPage() {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          mb: 4,
+          mb: 3,
         }}
       >
         <Typography variant="h4" sx={{ fontWeight: 600, color: '#FFFFFF' }}>
@@ -105,7 +132,55 @@ export default function WorkOrdersPage() {
         </Button>
       </Box>
 
-      {jobs.length === 0 ? (
+      {/* Stage Filter Tabs */}
+      <Box sx={{
+        display: 'flex',
+        gap: 1,
+        mb: 3,
+        overflowX: 'auto',
+        pb: 1,
+      }}>
+        {['ALL', 'LE', 'PR', 'WO', 'IN', 'CO'].map((stage) => {
+          const count = stage === 'ALL'
+            ? jobs?.length || 0
+            : jobs?.filter(j => (j.lifecycleStage || 'WO') === stage).length || 0;
+          const isActive = stageFilter === stage;
+
+          const stageNames: Record<string, string> = {
+            ALL: 'All',
+            LE: 'Leads',
+            PR: 'Proposals',
+            WO: 'Work Orders',
+            IN: 'Invoices',
+            CO: 'Complete',
+          };
+
+          return (
+            <Button
+              key={stage}
+              onClick={() => setStageFilter(stage)}
+              sx={{
+                minWidth: 'auto',
+                px: 2,
+                py: 0.75,
+                background: isActive ? getStageColor(stage) : '#2A2A2A',
+                color: isActive ? '#FFFFFF' : '#8E8E93',
+                fontWeight: isActive ? 600 : 400,
+                fontSize: '0.875rem',
+                textTransform: 'none',
+                borderRadius: 2,
+                '&:hover': {
+                  background: isActive ? getStageColor(stage) : '#333',
+                },
+              }}
+            >
+              {stageNames[stage]} ({count})
+            </Button>
+          );
+        })}
+      </Box>
+
+      {filteredJobs && filteredJobs.length === 0 ? (
         <Card
           sx={{
             background: '#1C1C1E',
@@ -125,10 +200,10 @@ export default function WorkOrdersPage() {
         </Card>
       ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-          {jobs.map((job) => {
+          {filteredJobs?.map((job) => {
             const customerName = job.customer
               ? `${job.customer?.firstName ?? ''} ${job.customer?.lastName ?? ''}`.trim() || 'Unknown Customer'
-              : 'Unknown Customer';
+              : 'No Customer Assigned';
             const location = job.customer
               ? `${job.customer?.city ?? ''}, ${job.customer?.state ?? ''}`.replace(/^,\s*|,\s*$/g, '').trim()
               : '';
@@ -151,8 +226,17 @@ export default function WorkOrdersPage() {
                 icon: <DeleteIcon />,
                 label: 'Delete',
                 onClick: () => {
-                  // TODO: Implement delete functionality
-                  showError('Delete functionality not yet implemented');
+                  showConfirm(
+                    `Delete ${job.jobNumber}? This will permanently delete the project and all associated time logs, line items, and reports. This cannot be undone.`,
+                    async () => {
+                      try {
+                        await deleteJob({ jobId: job._id });
+                      } catch (error: any) {
+                        showError(error.message);
+                      }
+                    },
+                    'Delete Project'
+                  );
                 },
                 color: 'error',
                 divider: true,
@@ -180,18 +264,36 @@ export default function WorkOrdersPage() {
               },
             ];
 
+            const displayId = getDisplayId(job);
+            const stage = job.lifecycleStage || 'WO';
+            const stageName = {
+              LE: 'LEAD',
+              PR: 'PROPOSAL',
+              WO: 'WORK ORDER',
+              IN: 'INVOICE',
+              CO: 'COMPLETE',
+            }[stage];
+
             return (
               <DirectoryCard
                 key={job._id}
                 id={job._id}
                 icon={<AssignmentIcon />}
-                title={job.jobNumber}
+                title={displayId}
                 subtitle={subtitle}
                 badges={[
+                  {
+                    label: stageName,
+                    color: getStageColor(stage),
+                  },
                   {
                     label: job.status.replace('_', ' ').toUpperCase(),
                     color: getStatusColor(job.status),
                   },
+                  ...(!job.customer ? [{
+                    label: 'NO CUSTOMER',
+                    color: '#FF9500', // warning orange
+                  }] : []),
                 ]}
                 collapsedMetrics={[
                   {

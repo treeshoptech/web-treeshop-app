@@ -531,7 +531,7 @@ export default function CreateWorkOrderModal({
               After creating:
             </Typography>
             <Typography variant="caption" sx={{ color: '#B3B3B3', lineHeight: 1.6 }}>
-              Default support tasks (Transport, Setup, Tear Down) will be created. You can add billable tasks like Forestry Mulching, Tree Removal, etc.
+              Default project phases will be created: Transport to Site → Site Setup → (Your Production Tasks) → Site Cleanup → Transport Back to Shop. Add billable tasks like Forestry Mulching, Tree Removal, etc.
             </Typography>
           </Box>
         </Box>

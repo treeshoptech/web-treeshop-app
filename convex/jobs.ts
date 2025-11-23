@@ -221,6 +221,7 @@ export const createJob = mutation({
     const jobId = await ctx.db.insert("jobs", {
       companyId: orgId ?? undefined,
       jobNumber,
+      lifecycleStage: "WO", // Default to Work Order stage
       customerId: args.customerId,
       status: args.status || "draft", // Default to draft if not specified
       startDate: args.startDate,
@@ -232,37 +233,55 @@ export const createJob = mutation({
       updatedAt: Date.now(),
     });
 
-    // Create default overhead line items
+    // Create default project phase line items
+    // Phase 1: Mobilization
     await ctx.db.insert("jobLineItems", {
       jobId,
-      serviceType: "transport",
-      displayName: "Transport",
+      serviceType: "transport_to_site",
+      displayName: "Transport to Site",
       baseScore: 1,
       adjustedScore: 1,
       estimatedHours: 1,
       lineItemTotal: 500,
       status: "not_started",
-      sortOrder: 0,
+      sortOrder: 1,
       createdAt: Date.now(),
     });
 
     await ctx.db.insert("jobLineItems", {
       jobId,
-      serviceType: "setup",
-      displayName: "Setup",
+      serviceType: "site_setup",
+      displayName: "Site Setup & Preparation",
       baseScore: 1,
       adjustedScore: 1,
       estimatedHours: 0.5,
       lineItemTotal: 250,
       status: "not_started",
-      sortOrder: 0.5,
+      sortOrder: 2,
+      createdAt: Date.now(),
+    });
+
+    // Phase 2: Production (user adds custom tasks here - mulching, tree removal, etc.)
+    // sortOrder 3-97 reserved for production tasks
+
+    // Phase 3: Demobilization
+    await ctx.db.insert("jobLineItems", {
+      jobId,
+      serviceType: "site_cleanup",
+      displayName: "Site Cleanup & Tear Down",
+      baseScore: 1,
+      adjustedScore: 1,
+      estimatedHours: 0.5,
+      lineItemTotal: 250,
+      status: "not_started",
+      sortOrder: 98,
       createdAt: Date.now(),
     });
 
     await ctx.db.insert("jobLineItems", {
       jobId,
-      serviceType: "tear_down",
-      displayName: "Tear Down",
+      serviceType: "transport_from_site",
+      displayName: "Transport Back to Shop",
       baseScore: 1,
       adjustedScore: 1,
       estimatedHours: 1,
@@ -273,5 +292,90 @@ export const createJob = mutation({
     });
 
     return jobId;
+  },
+});
+
+// Update lifecycle stage
+export const updateLifecycleStage = mutation({
+  args: {
+    jobId: v.id("jobs"),
+    lifecycleStage: v.union(
+      v.literal("LE"),
+      v.literal("PR"),
+      v.literal("WO"),
+      v.literal("IN"),
+      v.literal("CO")
+    ),
+  },
+  handler: async (ctx, args) => {
+    const job = await ctx.db.get(args.jobId);
+    if (!job) throw new Error("Job not found");
+
+    await verifyDocumentOwnershipOptional(ctx, job, "job");
+
+    await ctx.db.patch(args.jobId, {
+      lifecycleStage: args.lifecycleStage,
+      updatedAt: Date.now(),
+    });
+
+    return { success: true };
+  },
+});
+
+// Helper to get display ID (LE-0001, PR-0001, WO-0001, etc.)
+export const getDisplayId = query({
+  args: { jobId: v.id("jobs") },
+  handler: async (ctx, args) => {
+    const job = await ctx.db.get(args.jobId);
+    if (!job) return null;
+
+    const stage = job.lifecycleStage || "WO";
+    const number = job.jobNumber.replace("WO-", ""); // Extract number part
+    return `${stage}-${number}`;
+  },
+});
+
+// Delete job (and all related data)
+export const deleteJob = mutation({
+  args: { jobId: v.id("jobs") },
+  handler: async (ctx, args) => {
+    const job = await ctx.db.get(args.jobId);
+    if (!job) throw new Error("Job not found");
+
+    // Verify ownership
+    await verifyDocumentOwnershipOptional(ctx, job, "job");
+
+    // Delete all related records
+    // 1. Delete all line items
+    const lineItems = await ctx.db
+      .query("jobLineItems")
+      .withIndex("by_job", (q) => q.eq("jobId", args.jobId))
+      .collect();
+    for (const lineItem of lineItems) {
+      await ctx.db.delete(lineItem._id);
+    }
+
+    // 2. Delete all time logs
+    const timeLogs = await ctx.db
+      .query("timeLogs")
+      .withIndex("by_job", (q) => q.eq("jobId", args.jobId))
+      .collect();
+    for (const timeLog of timeLogs) {
+      await ctx.db.delete(timeLog._id);
+    }
+
+    // 3. Delete any project reports
+    const reports = await ctx.db
+      .query("projectReports")
+      .withIndex("by_job", (q) => q.eq("jobId", args.jobId))
+      .collect();
+    for (const report of reports) {
+      await ctx.db.delete(report._id);
+    }
+
+    // 4. Finally delete the job itself
+    await ctx.db.delete(args.jobId);
+
+    return { success: true };
   },
 });

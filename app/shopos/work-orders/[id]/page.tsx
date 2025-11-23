@@ -4,7 +4,7 @@ import { useQuery, useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { useParams } from 'next/navigation';
 import { Id } from '@/convex/_generated/dataModel';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Container,
@@ -44,7 +44,12 @@ import Select from '@mui/material/Select';
 import Menu from '@mui/material/Menu';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import DeleteIcon from '@mui/icons-material/Delete';
+import DownloadIcon from '@mui/icons-material/Download';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import ImageIcon from '@mui/icons-material/Image';
 import { useSnackbar } from '@/app/contexts/SnackbarContext';
+import { useQuoteExport } from '@/hooks/useQuoteExport';
+import { CustomerQuoteTemplate } from '@/components/CustomerQuoteTemplate';
 
 export default function WorkOrderDetailPage() {
   const params = useParams();
@@ -86,6 +91,24 @@ export default function WorkOrderDetailPage() {
   const [addLineItemModalOpen, setAddLineItemModalOpen] = useState(false);
   const [taskMenuAnchor, setTaskMenuAnchor] = useState<null | HTMLElement>(null);
   const [selectedTaskId, setSelectedTaskId] = useState<Id<'jobLineItems'> | null>(null);
+  const [exportMenuAnchor, setExportMenuAnchor] = useState<null | HTMLElement>(null);
+  const [showQuotePreview, setShowQuotePreview] = useState(false);
+
+  // Ref for JPG export
+  const quoteTemplateRef = useRef<HTMLDivElement>(null);
+
+  // Company settings for quote
+  const company = useQuery(api.companies.getCompany, {});
+
+  // Export hook
+  const customerName = job?.customer?.businessName ||
+    `${job?.customer?.firstName || ''} ${job?.customer?.lastName || ''}`.trim();
+
+  const { exportToPDF, exportToJPG, isExporting, error: exportError } = useQuoteExport({
+    jobId,
+    jobNumber: job?.jobNumber || '',
+    customerName,
+  });
 
   // Update elapsed time every second for active timer
   useEffect(() => {
@@ -160,6 +183,38 @@ export default function WorkOrderDetailPage() {
   const handleOpenTaskMenu = (event: React.MouseEvent<HTMLElement>, taskId: Id<'jobLineItems'>) => {
     setTaskMenuAnchor(event.currentTarget);
     setSelectedTaskId(taskId);
+  };
+
+  // Handle export errors
+  useEffect(() => {
+    if (exportError) {
+      showError(exportError);
+    }
+  }, [exportError, showError]);
+
+  const handleOpenExportMenu = (event: React.MouseEvent<HTMLElement>) => {
+    setExportMenuAnchor(event.currentTarget);
+  };
+
+  const handleCloseExportMenu = () => {
+    setExportMenuAnchor(null);
+  };
+
+  const handleExportPDF = async () => {
+    handleCloseExportMenu();
+    await exportToPDF();
+    showSuccess('Quote PDF downloaded successfully!');
+  };
+
+  const handleExportJPG = async () => {
+    handleCloseExportMenu();
+    // Show the preview temporarily for rendering
+    setShowQuotePreview(true);
+    // Wait for React to render the component
+    await new Promise(resolve => setTimeout(resolve, 100));
+    await exportToJPG(quoteTemplateRef);
+    setShowQuotePreview(false);
+    showSuccess('Quote JPG downloaded successfully!');
   };
 
   const handleCloseTaskMenu = () => {
@@ -299,11 +354,54 @@ export default function WorkOrderDetailPage() {
         <Typography variant="h4" sx={{ fontWeight: 600, color: '#FFFFFF' }}>
           {job.jobNumber}
         </Typography>
-        <Chip
-          label={job.status.replace('_', ' ').toUpperCase()}
-          color={getStatusColor(job.status)}
-          sx={{ fontWeight: 600 }}
-        />
+        <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+          {/* Export Button */}
+          {company && (
+            <>
+              <Button
+                variant="outlined"
+                startIcon={<DownloadIcon />}
+                onClick={handleOpenExportMenu}
+                disabled={isExporting}
+                sx={{
+                  borderColor: '#2E7D32',
+                  color: '#2E7D32',
+                  '&:hover': {
+                    borderColor: '#4CAF50',
+                    backgroundColor: 'rgba(46, 125, 50, 0.08)',
+                  },
+                }}
+              >
+                {isExporting ? 'Exporting...' : 'Export Quote'}
+              </Button>
+              <Menu
+                anchorEl={exportMenuAnchor}
+                open={Boolean(exportMenuAnchor)}
+                onClose={handleCloseExportMenu}
+                PaperProps={{
+                  sx: {
+                    backgroundColor: '#1C1C1E',
+                    border: '1px solid #2A2A2A',
+                  },
+                }}
+              >
+                <MenuItem onClick={handleExportPDF}>
+                  <PictureAsPdfIcon sx={{ mr: 1, color: '#FF3B30' }} />
+                  Export as PDF
+                </MenuItem>
+                <MenuItem onClick={handleExportJPG}>
+                  <ImageIcon sx={{ mr: 1, color: '#007AFF' }} />
+                  Export as JPG
+                </MenuItem>
+              </Menu>
+            </>
+          )}
+          <Chip
+            label={job.status.replace('_', ' ').toUpperCase()}
+            color={getStatusColor(job.status)}
+            sx={{ fontWeight: 600 }}
+          />
+        </Box>
       </Box>
 
       {/* Active Timer Banner */}
@@ -1069,6 +1167,20 @@ export default function WorkOrderDetailPage() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Hidden Quote Template for JPG Export */}
+      {showQuotePreview && company && (
+        <Box
+          sx={{
+            position: 'fixed',
+            left: '-9999px',
+            top: 0,
+            zIndex: -1,
+          }}
+        >
+          <CustomerQuoteTemplate ref={quoteTemplateRef} job={job} company={company} />
+        </Box>
+      )}
     </Container>
   );
 }

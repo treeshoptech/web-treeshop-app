@@ -8,6 +8,15 @@ export default defineSchema({
     jobNumber: v.string(), // Auto-generated like "WO-1234"
     customerId: v.optional(v.id("customers")), // Links to customer record (optional for backward compat)
 
+    // Lifecycle stage - changes display prefix (LE/PR/WO/IN/CO)
+    lifecycleStage: v.optional(v.union(
+      v.literal("LE"),  // Lead
+      v.literal("PR"),  // Proposal
+      v.literal("WO"),  // Work Order (default)
+      v.literal("IN"),  // Invoice
+      v.literal("CO")   // Complete
+    )),
+
     status: v.union(
       v.literal("draft"),        // Being created/quoted
       v.literal("sent"),          // Sent to customer, awaiting response
