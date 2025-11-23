@@ -16,7 +16,9 @@ function useAuthWithConvexTemplate() {
   const auth = useAuth();
   return {
     ...auth,
-    getToken: () => auth.getToken({ template: 'convex' }),
+    getToken: async (options: any) => {
+      return await auth.getToken({ template: 'convex' });
+    },
   };
 }
 
