@@ -19,6 +19,9 @@ import { api } from '@/convex/_generated/api';
 
 interface EquipmentFormData {
   name: string;
+  year: string;
+  make: string;
+  model: string;
   categoryId: string;
   typeId: string;
   purchasePrice: string;
@@ -55,6 +58,9 @@ export default function EquipmentFormModal({
 
   const [formData, setFormData] = useState<EquipmentFormData>({
     name: '',
+    year: '',
+    make: '',
+    model: '',
     categoryId: '',
     typeId: '',
     purchasePrice: '',
@@ -82,6 +88,9 @@ export default function EquipmentFormModal({
 
       setFormData({
         name: initialData.name,
+        year: initialData.year || '',
+        make: initialData.make || '',
+        model: initialData.model || '',
         categoryId: initialData.categoryId || '',
         typeId: initialData.typeId || '',
         purchasePrice: initialData.purchasePrice.toString(),
@@ -139,6 +148,9 @@ export default function EquipmentFormModal({
 
     onSubmit({
       name: formData.name,
+      year: formData.year || undefined,
+      make: formData.make || undefined,
+      model: formData.model || undefined,
       categoryId: formData.categoryId,
       typeId: formData.typeId,
       purchasePrice,
@@ -173,7 +185,7 @@ export default function EquipmentFormModal({
             {isEditing ? 'Edit Equipment' : 'Add New Equipment'}
           </Typography>
           <Typography variant="caption" sx={{ color: '#666' }}>
-            Army Corps of Engineers Cost Calculation Method
+            TreeShop Cost Calculation Method
           </Typography>
         </Box>
       </DialogTitle>
@@ -202,6 +214,60 @@ export default function EquipmentFormModal({
               },
             }}
           />
+
+          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 2 }}>
+            <TextField
+              fullWidth
+              label="Year"
+              value={formData.year}
+              onChange={(e) => setFormData({ ...formData, year: e.target.value })}
+              placeholder="2020"
+              sx={{
+                '& .MuiInputLabel-root': { color: '#B3B3B3' },
+                '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
+                '& .MuiOutlinedInput-root': {
+                  color: '#FFFFFF',
+                  '& fieldset': { borderColor: '#2A2A2A' },
+                  '&:hover fieldset': { borderColor: '#007AFF' },
+                  '&.Mui-focused fieldset': { borderColor: '#007AFF' },
+                },
+              }}
+            />
+            <TextField
+              fullWidth
+              label="Make"
+              value={formData.make}
+              onChange={(e) => setFormData({ ...formData, make: e.target.value })}
+              placeholder="John Deere"
+              sx={{
+                '& .MuiInputLabel-root': { color: '#B3B3B3' },
+                '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
+                '& .MuiOutlinedInput-root': {
+                  color: '#FFFFFF',
+                  '& fieldset': { borderColor: '#2A2A2A' },
+                  '&:hover fieldset': { borderColor: '#007AFF' },
+                  '&.Mui-focused fieldset': { borderColor: '#007AFF' },
+                },
+              }}
+            />
+            <TextField
+              fullWidth
+              label="Model"
+              value={formData.model}
+              onChange={(e) => setFormData({ ...formData, model: e.target.value })}
+              placeholder="803M"
+              sx={{
+                '& .MuiInputLabel-root': { color: '#B3B3B3' },
+                '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
+                '& .MuiOutlinedInput-root': {
+                  color: '#FFFFFF',
+                  '& fieldset': { borderColor: '#2A2A2A' },
+                  '&:hover fieldset': { borderColor: '#007AFF' },
+                  '&.Mui-focused fieldset': { borderColor: '#007AFF' },
+                },
+              }}
+            />
+          </Box>
 
           <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
             <TextField

@@ -43,6 +43,9 @@ export const getEquipment = query({
 export const createEquipment = mutation({
   args: {
     name: v.string(),
+    year: v.optional(v.string()),
+    make: v.optional(v.string()),
+    model: v.optional(v.string()),
     type: v.string(),
     category: v.optional(v.string()),
     subcategory: v.optional(v.string()),
@@ -67,7 +70,7 @@ export const createEquipment = mutation({
 
     const fuelPricePerGallon = company?.defaultFuelPricePerGallon || 3.50; // Default fallback
 
-    // Calculate hourly costs using Army Corps method
+    // Calculate hourly costs using TreeShop method
     const annualDepreciation = (args.purchasePrice - args.auctionPrice) / args.usefulLifeYears;
     const hourlyDepreciation = annualDepreciation / args.annualOperatingHours;
 
@@ -82,6 +85,9 @@ export const createEquipment = mutation({
     const equipmentId = await ctx.db.insert("equipment", {
       companyId: orgId ?? undefined,
       name: args.name,
+      year: args.year,
+      make: args.make,
+      model: args.model,
       type: args.type,
       category: args.category,
       subcategory: args.subcategory,
@@ -113,6 +119,9 @@ export const updateEquipment = mutation({
   args: {
     equipmentId: v.id("equipment"),
     name: v.string(),
+    year: v.optional(v.string()),
+    make: v.optional(v.string()),
+    model: v.optional(v.string()),
     type: v.string(),
     category: v.optional(v.string()),
     subcategory: v.optional(v.string()),

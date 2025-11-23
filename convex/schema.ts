@@ -274,11 +274,14 @@ export default defineSchema({
   equipment: defineTable({
     companyId: v.optional(v.string()), // Optional for backward compatibility
     name: v.string(), // "Forestry Mulcher #2"
+    year: v.optional(v.string()), // "2020"
+    make: v.optional(v.string()), // "John Deere"
+    model: v.optional(v.string()), // "803M"
     type: v.string(), // "mulcher", "chipper", "stump_grinder"
     category: v.optional(v.string()),
     subcategory: v.optional(v.string()),
 
-    // Financial Data (Army Corps Method) - Optional for backward compatibility
+    // Financial Data (TreeShop Method) - Optional for backward compatibility
     purchasePrice: v.optional(v.number()),
     usefulLifeYears: v.optional(v.number()),
     auctionPrice: v.optional(v.number()),
