@@ -47,10 +47,21 @@ export const createEmployee = mutation({
     name: v.string(),
     firstName: v.optional(v.string()),
     lastName: v.optional(v.string()),
+    employmentType: v.optional(v.union(
+      v.literal("full_time"),
+      v.literal("part_time"),
+      v.literal("seasonal"),
+      v.literal("contractor")
+    )),
+    hireDate: v.optional(v.string()),
     // ICE
     emergencyContactName: v.optional(v.string()),
     emergencyContactPhone: v.optional(v.string()),
     emergencyContactRelationship: v.optional(v.string()),
+    // Multi-track fields
+    managementLevelId: v.optional(v.id("managementLevels")),
+    reportsToEmployeeId: v.optional(v.id("employees")),
+    totalQualificationPremium: v.optional(v.number()),
     // TreeShop Qualification Code System
     positionCode: v.optional(v.string()),
     tierLevel: v.optional(v.number()),
@@ -85,9 +96,14 @@ export const createEmployee = mutation({
       name: args.name,
       firstName: args.firstName,
       lastName: args.lastName,
+      employmentType: args.employmentType,
+      hireDate: args.hireDate,
       emergencyContactName: args.emergencyContactName,
       emergencyContactPhone: args.emergencyContactPhone,
       emergencyContactRelationship: args.emergencyContactRelationship,
+      managementLevelId: args.managementLevelId,
+      reportsToEmployeeId: args.reportsToEmployeeId,
+      totalQualificationPremium: args.totalQualificationPremium,
       positionCode: args.positionCode,
       tierLevel: args.tierLevel,
       baseHourlyRate: args.baseHourlyRate,
