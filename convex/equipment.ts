@@ -9,16 +9,19 @@ export const listEquipment = query({
   handler: async (ctx) => {
     const orgId = await getOrganizationId(ctx);
 
-    if (!orgId) {
-      return [];
-    }
-
-    const equipment = await ctx.db
-      .query("equipment")
-      .filter((q) => q.eq(q.field("companyId"), orgId))
-      .filter((q) => q.eq(q.field("isActive"), true))
-      .order("desc")
-      .collect();
+    // Get equipment - filter by orgId if available
+    const equipment = orgId
+      ? await ctx.db
+          .query("equipment")
+          .filter((q) => q.eq(q.field("companyId"), orgId))
+          .filter((q) => q.eq(q.field("isActive"), true))
+          .order("desc")
+          .collect()
+      : await ctx.db
+          .query("equipment")
+          .filter((q) => q.eq(q.field("isActive"), true))
+          .order("desc")
+          .collect();
 
     return equipment;
   },
