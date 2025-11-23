@@ -10,8 +10,9 @@ const convex = new ConvexHttpClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { jobId: string } }
+  { params }: { params: Promise<{ jobId: string }> }
 ) {
+  const { jobId } = await params;
   try {
     // Authenticate the request
     const { getToken, orgId } = await auth();
@@ -36,9 +37,9 @@ export async function GET(
     convex.setAuth(token);
 
     // Fetch job data from Convex
-    const jobId = params.jobId as Id<'jobs'>;
+    const jobIdTyped = jobId as Id<'jobs'>;
     const [job, company] = await Promise.all([
-      convex.query(api.jobs.getJob, { jobId }),
+      convex.query(api.jobs.getJob, { jobId: jobIdTyped }),
       convex.query(api.companies.getCompany, {}),
     ]);
 
