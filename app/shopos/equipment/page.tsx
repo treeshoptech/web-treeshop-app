@@ -23,6 +23,8 @@ import DirectoryCard from '@/components/DirectoryCard';
 
 export default function EquipmentPage() {
   const equipment = useQuery(api.equipment.listEquipment);
+  const categories = useQuery(api.equipmentCategories.listCategories);
+  const allTypes = useQuery(api.equipmentTypes.listAllTypes);
   const createEquipment = useMutation(api.equipment.createEquipment);
   const updateEquipment = useMutation(api.equipment.updateEquipment);
   const deleteEquipment = useMutation(api.equipment.deleteEquipment);
@@ -38,14 +40,28 @@ export default function EquipmentPage() {
 
   const handleSubmit = async (data: any) => {
     try {
+      // Look up category and type names from IDs
+      const category = categories?.find((c: any) => c._id === data.categoryId);
+      const type = allTypes?.find((t: any) => t._id === data.typeId);
+
+      const submitData = {
+        ...data,
+        category: category?.name || undefined,
+        type: type?.name || data.type, // fallback to type if not found
+      };
+
+      // Remove the ID fields (we send names instead)
+      delete submitData.categoryId;
+      delete submitData.typeId;
+
       if (editingItem) {
         await updateEquipment({
           equipmentId: editingItem._id,
-          ...data,
+          ...submitData,
           isActive: true,
         });
       } else {
-        await createEquipment(data);
+        await createEquipment(submitData);
       }
       setFormOpen(false);
       setEditingItem(null);
