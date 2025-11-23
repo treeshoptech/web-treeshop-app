@@ -20,14 +20,12 @@ export const listTracks = query({
 
     console.log('careerTracks.listTracks - orgId:', orgId);
 
-    if (!orgId) {
-      console.log('careerTracks.listTracks - No orgId, returning empty array');
-      return [];
-    }
-
-    let query = ctx.db
-      .query("careerTracks")
-      .filter((q) => q.eq(q.field("companyId"), orgId));
+    // Build query - filter by orgId if available, otherwise show all
+    let query = orgId
+      ? ctx.db
+          .query("careerTracks")
+          .filter((q) => q.eq(q.field("companyId"), orgId))
+      : ctx.db.query("careerTracks");
 
     // Optionally filter by track type
     if (args.trackType) {

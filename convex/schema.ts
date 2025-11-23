@@ -130,7 +130,14 @@ export default defineSchema({
   // Employees (Crew Members)
   employees: defineTable({
     companyId: v.optional(v.string()), // Optional for backward compatibility
-    name: v.string(),
+    name: v.string(), // Legacy full name field
+    firstName: v.optional(v.string()),
+    lastName: v.optional(v.string()),
+
+    // Emergency Contact (ICE)
+    emergencyContactName: v.optional(v.string()),
+    emergencyContactPhone: v.optional(v.string()),
+    emergencyContactRelationship: v.optional(v.string()),
 
     // TreeShop Qualification Code System
     positionCode: v.optional(v.string()), // "TRS", "GC", "EO", etc.
