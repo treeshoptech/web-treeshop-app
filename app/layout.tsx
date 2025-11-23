@@ -18,6 +18,10 @@ export const metadata: Metadata = {
   title: "ShopOS - Field Operations Platform",
   description: "Project management and operations platform for field service businesses",
   manifest: "/manifest.json",
+  icons: {
+    icon: '/icon.png',
+    apple: '/icon.png',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
