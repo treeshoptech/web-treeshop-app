@@ -71,7 +71,7 @@ export const useQuoteExport = ({ jobId, jobNumber, customerName }: UseQuoteExpor
   }, [jobId, jobNumber, customerName]);
 
   // Export to JPG using html2canvas
-  const exportToJPG = useCallback(async (elementRef: React.RefObject<HTMLElement>) => {
+  const exportToJPG = useCallback(async (elementRef: React.RefObject<HTMLElement | null>) => {
     if (!elementRef.current) {
       setState({
         isExporting: false,
@@ -129,7 +129,7 @@ export const useQuoteExport = ({ jobId, jobNumber, customerName }: UseQuoteExpor
   }, [jobNumber, customerName]);
 
   // Export JPG to PDF (for better compatibility)
-  const exportJPGasPDF = useCallback(async (elementRef: React.RefObject<HTMLElement>) => {
+  const exportJPGasPDF = useCallback(async (elementRef: React.RefObject<HTMLElement | null>) => {
     if (!elementRef.current) {
       setState({
         isExporting: false,

@@ -95,7 +95,7 @@ export default function WorkOrderDetailPage() {
   const [showQuotePreview, setShowQuotePreview] = useState(false);
 
   // Ref for JPG export
-  const quoteTemplateRef = useRef<HTMLElement | null>(null);
+  const quoteTemplateRef = useRef<HTMLDivElement>(null);
 
   // Company settings for quote
   const company = useQuery(api.companies.getCompany, {});
