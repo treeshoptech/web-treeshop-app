@@ -23,6 +23,7 @@ import type * as employees from "../employees.js";
 import type * as equipment from "../equipment.js";
 import type * as equipmentCategories from "../equipmentCategories.js";
 import type * as equipmentTypes from "../equipmentTypes.js";
+import type * as fixEquipmentCompanyId from "../fixEquipmentCompanyId.js";
 import type * as jobLineItems from "../jobLineItems.js";
 import type * as jobs from "../jobs.js";
 import type * as loadouts from "../loadouts.js";
@@ -55,6 +56,7 @@ declare const fullApi: ApiFromModules<{
   equipment: typeof equipment;
   equipmentCategories: typeof equipmentCategories;
   equipmentTypes: typeof equipmentTypes;
+  fixEquipmentCompanyId: typeof fixEquipmentCompanyId;
   jobLineItems: typeof jobLineItems;
   jobs: typeof jobs;
   loadouts: typeof loadouts;
