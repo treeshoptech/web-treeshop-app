@@ -30,6 +30,16 @@ export default function EquipmentPage() {
   const deleteEquipment = useMutation(api.equipment.deleteEquipment);
   const { showError, showConfirm } = useSnackbar();
 
+  // DEBUG LOGGING
+  console.log("🔍 EQUIPMENT DEBUG:", {
+    equipment,
+    isUndefined: equipment === undefined,
+    isNull: equipment === null,
+    isArray: Array.isArray(equipment),
+    length: equipment?.length,
+    data: equipment,
+  });
+
   const [formOpen, setFormOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
 
