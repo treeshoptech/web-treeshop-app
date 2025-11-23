@@ -40,6 +40,12 @@ export const getEmployee = query({
 export const createEmployee = mutation({
   args: {
     name: v.string(),
+    firstName: v.optional(v.string()),
+    lastName: v.optional(v.string()),
+    // ICE
+    emergencyContactName: v.optional(v.string()),
+    emergencyContactPhone: v.optional(v.string()),
+    emergencyContactRelationship: v.optional(v.string()),
     // TreeShop Qualification Code System
     positionCode: v.optional(v.string()),
     tierLevel: v.optional(v.number()),
@@ -72,6 +78,11 @@ export const createEmployee = mutation({
     const employeeId = await ctx.db.insert("employees", {
       companyId: orgId ?? undefined,
       name: args.name,
+      firstName: args.firstName,
+      lastName: args.lastName,
+      emergencyContactName: args.emergencyContactName,
+      emergencyContactPhone: args.emergencyContactPhone,
+      emergencyContactRelationship: args.emergencyContactRelationship,
       positionCode: args.positionCode,
       tierLevel: args.tierLevel,
       baseHourlyRate: args.baseHourlyRate,
