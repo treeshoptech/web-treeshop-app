@@ -264,19 +264,21 @@ export default function EmployeeFormModal({
 
         // Compensation
         payType: formData.payType,
+        positionTitle: formData.position,
         baseHourlyRate: costs.hourlyRate,
         hourlyRate: costs.hourlyRate, // For backward compatibility
         annualSalary: costs.annualBasePay,
-        expectedAnnualHours: parseFloat(formData.expectedAnnualHours) || 2000,
+        expectedAnnualBillableHours: parseFloat(formData.expectedAnnualHours) || 2000,
         annualWorkingHours: parseFloat(formData.expectedAnnualHours) || 2000,
         overtimeEligible: formData.overtimeEligible,
+        fullyBurdenedHourlyRate: costs.totalBurdenedHourly,
 
         // Burden costs
         workersCompRate: parseFloat(formData.workersCompRate) || 0,
         payrollTaxRate: parseFloat(formData.payrollTaxRate) || 0,
         healthInsuranceMonthly: parseFloat(formData.healthInsuranceMonthly) || 0,
-        ptoDays: parseFloat(formData.ptoDays) || 0,
-        holidayDays: parseFloat(formData.holidayDays) || 0,
+        ptoHoursPerYear: (parseFloat(formData.ptoDays) || 0) * 8,
+        holidayHoursPerYear: (parseFloat(formData.holidayDays) || 0) * 8,
         phoneAllowance: parseFloat(formData.phoneAllowance) || 0,
         vehicleAllowance: parseFloat(formData.vehicleAllowance) || 0,
 
