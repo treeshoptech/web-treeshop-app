@@ -9,14 +9,19 @@ export const listEmployees = query({
   handler: async (ctx) => {
     const orgId = await getOrganizationId(ctx);
 
-    if (!orgId) {
-      return [];
-    }
-    const employees = await ctx.db
-      .query("employees")
-      .filter((q) => q.eq(q.field("companyId"), orgId))
-      .order("desc")
-      .collect();
+    // Get employees - filter by orgId if available
+    const employees = orgId
+      ? await ctx.db
+          .query("employees")
+          .filter((q) => q.eq(q.field("companyId"), orgId))
+          .filter((q) => q.eq(q.field("isActive"), true))
+          .order("desc")
+          .collect()
+      : await ctx.db
+          .query("employees")
+          .filter((q) => q.eq(q.field("isActive"), true))
+          .order("desc")
+          .collect();
 
     return employees;
   },
