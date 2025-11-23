@@ -9,7 +9,10 @@ export const listManagementLevels = query({
   handler: async (ctx) => {
     const orgId = await getOrganizationId(ctx);
 
+    console.log('managementLevels.listManagementLevels - orgId:', orgId);
+
     if (!orgId) {
+      console.log('managementLevels.listManagementLevels - No orgId, returning empty array');
       return [];
     }
 
@@ -19,6 +22,8 @@ export const listManagementLevels = query({
       .filter((q) => q.eq(q.field("isActive"), true))
       .order("asc")
       .collect();
+
+    console.log('managementLevels.listManagementLevels - Found levels:', levels.length);
 
     // Sort by level number
     return levels.sort((a, b) => a.level - b.level);
@@ -125,5 +130,44 @@ export const deleteManagementLevel = mutation({
     await ctx.db.patch(args.levelId, { isActive: false });
 
     return { success: true };
+  },
+});
+
+// Seed default management levels (public mutation - can be run from CLI)
+export const seedDefaultLevels = mutation({
+  args: {
+    companyId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const companyId = args.companyId;
+
+    // Check if already seeded
+    const existing = await ctx.db
+      .query("managementLevels")
+      .filter((q) => q.eq(q.field("companyId"), companyId))
+      .collect();
+
+    if (existing.length > 0) {
+      return { success: false, message: "Management levels already exist", count: existing.length };
+    }
+
+    const levels = [
+      { level: 1, title: "Crew Leader", code: "CREW_LEAD", hourlyPremium: 3.0, salaryRange: "$45,000 - $55,000", reportsToLevel: 2 },
+      { level: 2, title: "Crew Supervisor", code: "CREW_SUPER", hourlyPremium: 7.0, salaryRange: "$55,000 - $70,000", reportsToLevel: 3 },
+      { level: 3, title: "Operations Manager", code: "OPS_MGR", hourlyPremium: 15.0, salaryRange: "$70,000 - $90,000", reportsToLevel: 4 },
+      { level: 4, title: "Department Director", code: "DEPT_DIR", hourlyPremium: 25.0, salaryRange: "$90,000 - $120,000", reportsToLevel: 5 },
+      { level: 5, title: "VP Operations", code: "VP_OPS", hourlyPremium: 40.0, salaryRange: "$120,000 - $160,000" },
+    ];
+
+    for (const levelData of levels) {
+      await ctx.db.insert("managementLevels", {
+        companyId,
+        ...levelData,
+        isActive: true,
+        createdAt: Date.now(),
+      });
+    }
+
+    return { success: true, message: `Seeded ${levels.length} management levels`, count: levels.length };
   },
 });

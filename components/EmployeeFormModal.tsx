@@ -114,6 +114,28 @@ export default function EmployeeFormModal({
   const certifications = useQuery(api.certifications.listCertifications, {}) || [];
   const employees = useQuery(api.employees.listEmployees, {}) || [];
 
+  // Debug logging to check what data is being fetched
+  useEffect(() => {
+    console.log('EmployeeFormModal - Data fetch status:', {
+      careerTracks: {
+        count: careerTracks?.length || 0,
+        data: careerTracks,
+      },
+      managementLevels: {
+        count: managementLevels?.length || 0,
+        data: managementLevels,
+      },
+      certifications: {
+        count: certifications?.length || 0,
+        data: certifications,
+      },
+      employees: {
+        count: employees?.length || 0,
+        data: employees,
+      },
+    });
+  }, [careerTracks, managementLevels, certifications, employees]);
+
   // For edit mode - fetch existing skills and certifications
   const existingSkills = useQuery(
     api.employeeSkills.getEmployeeSkills,

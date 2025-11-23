@@ -9,7 +9,10 @@ export const listCertifications = query({
   handler: async (ctx) => {
     const orgId = await getOrganizationId(ctx);
 
+    console.log('certifications.listCertifications - orgId:', orgId);
+
     if (!orgId) {
+      console.log('certifications.listCertifications - No orgId, returning empty array');
       return [];
     }
 
@@ -19,6 +22,8 @@ export const listCertifications = query({
       .filter((q) => q.eq(q.field("isActive"), true))
       .order("desc")
       .collect();
+
+    console.log('certifications.listCertifications - Found certifications:', certifications.length);
 
     return certifications;
   },
@@ -129,5 +134,59 @@ export const deleteCertification = mutation({
     await ctx.db.patch(args.certificationId, { isActive: false });
 
     return { success: true };
+  },
+});
+
+// Seed default certifications (public mutation - can be run from CLI)
+export const seedDefaultCertifications = mutation({
+  args: {
+    companyId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const companyId = args.companyId;
+
+    // Check if already seeded
+    const existing = await ctx.db
+      .query("certifications")
+      .filter((q) => q.eq(q.field("companyId"), companyId))
+      .collect();
+
+    if (existing.length > 0) {
+      return { success: false, message: "Certifications already exist", count: existing.length };
+    }
+
+    const certs = [
+      // Safety
+      { name: "OSHA 10-Hour Safety", code: "OSHA_10", category: "safety" as const, requiresRenewal: false, hourlyPremium: 1.0 },
+      { name: "OSHA 30-Hour Safety", code: "OSHA_30", category: "safety" as const, requiresRenewal: false, hourlyPremium: 2.0 },
+      { name: "First Aid & CPR", code: "FIRST_AID_CPR", category: "safety" as const, requiresRenewal: true, renewalPeriodMonths: 24, hourlyPremium: 0.5 },
+      { name: "Aerial Lift Operator", code: "AERIAL_LIFT", category: "safety" as const, requiresRenewal: true, renewalPeriodMonths: 36, hourlyPremium: 1.5 },
+      // Professional
+      { name: "ISA Certified Arborist", code: "ISA_CERTIFIED_ARBORIST", category: "professional" as const, requiresRenewal: true, renewalPeriodMonths: 36, hourlyPremium: 4.0 },
+      { name: "ISA Tree Worker", code: "ISA_TREE_WORKER", category: "professional" as const, requiresRenewal: true, renewalPeriodMonths: 36, hourlyPremium: 3.0 },
+      { name: "ISA Master Arborist", code: "ISA_MASTER_ARBORIST", category: "professional" as const, requiresRenewal: true, renewalPeriodMonths: 36, hourlyPremium: 6.0 },
+      { name: "TRAQ Certification", code: "TRAQ", category: "professional" as const, requiresRenewal: true, renewalPeriodMonths: 60, hourlyPremium: 4.0 },
+      // Equipment
+      { name: "CDL Class A", code: "CDL_A", category: "equipment" as const, requiresRenewal: true, renewalPeriodMonths: 60, hourlyPremium: 3.0 },
+      { name: "CDL Class B", code: "CDL_B", category: "equipment" as const, requiresRenewal: true, renewalPeriodMonths: 60, hourlyPremium: 2.5 },
+      { name: "Crane Operator", code: "CRANE_OPERATOR", category: "equipment" as const, requiresRenewal: true, renewalPeriodMonths: 60, hourlyPremium: 4.0 },
+      { name: "Skid Steer Operator", code: "SKID_STEER", category: "equipment" as const, requiresRenewal: true, renewalPeriodMonths: 36, hourlyPremium: 1.5 },
+      { name: "Excavator Operator", code: "EXCAVATOR", category: "equipment" as const, requiresRenewal: true, renewalPeriodMonths: 36, hourlyPremium: 2.0 },
+      { name: "Forestry Mulcher Operator", code: "FORESTRY_MULCHER", category: "equipment" as const, requiresRenewal: true, renewalPeriodMonths: 36, hourlyPremium: 3.0 },
+      // License
+      { name: "Pesticide Applicator", code: "PESTICIDE_APPLICATOR", category: "license" as const, requiresRenewal: true, renewalPeriodMonths: 36, hourlyPremium: 2.0 },
+      { name: "State Arborist License", code: "STATE_ARBORIST_LICENSE", category: "license" as const, requiresRenewal: true, renewalPeriodMonths: 24, hourlyPremium: 3.0 },
+    ];
+
+    for (const certData of certs) {
+      await ctx.db.insert("certifications", {
+        companyId,
+        ...certData,
+        isActive: true,
+        createdAt: Date.now(),
+      });
+    }
+
+    return { success: true, message: `Seeded ${certs.length} certifications`, count: certs.length };
   },
 });

@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as admin from "../admin.js";
 import type * as analytics from "../analytics.js";
 import type * as auth from "../auth.js";
 import type * as authHelpers from "../authHelpers.js";
@@ -30,8 +31,11 @@ import type * as loadouts from "../loadouts.js";
 import type * as managementLevels from "../managementLevels.js";
 import type * as productionRates from "../productionRates.js";
 import type * as projectReports from "../projectReports.js";
+import type * as seedCertifications from "../seedCertifications.js";
+import type * as seedData from "../seedData.js";
 import type * as seedEmployeeCareers from "../seedEmployeeCareers.js";
 import type * as seedEquipmentCategories from "../seedEquipmentCategories.js";
+import type * as seedManagementLevels from "../seedManagementLevels.js";
 import type * as timeLogs from "../timeLogs.js";
 
 import type {
@@ -41,6 +45,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  admin: typeof admin;
   analytics: typeof analytics;
   auth: typeof auth;
   authHelpers: typeof authHelpers;
@@ -63,8 +68,11 @@ declare const fullApi: ApiFromModules<{
   managementLevels: typeof managementLevels;
   productionRates: typeof productionRates;
   projectReports: typeof projectReports;
+  seedCertifications: typeof seedCertifications;
+  seedData: typeof seedData;
   seedEmployeeCareers: typeof seedEmployeeCareers;
   seedEquipmentCategories: typeof seedEquipmentCategories;
+  seedManagementLevels: typeof seedManagementLevels;
   timeLogs: typeof timeLogs;
 }>;
 

@@ -18,7 +18,10 @@ export const listTracks = query({
   handler: async (ctx, args) => {
     const orgId = await getOrganizationId(ctx);
 
+    console.log('careerTracks.listTracks - orgId:', orgId);
+
     if (!orgId) {
+      console.log('careerTracks.listTracks - No orgId, returning empty array');
       return [];
     }
 
@@ -32,6 +35,8 @@ export const listTracks = query({
     }
 
     const tracks = await query.order("desc").collect();
+
+    console.log('careerTracks.listTracks - Found tracks:', tracks.length);
 
     // Sort by sortOrder
     return tracks.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
