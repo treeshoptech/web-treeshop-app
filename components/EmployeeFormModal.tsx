@@ -711,9 +711,6 @@ export default function EmployeeFormModal({
               background: 'linear-gradient(135deg, #0A0A0A 0%, #1A1A1A 100%)',
               border: '2px solid #007AFF',
               borderRadius: 2,
-              position: 'sticky',
-              bottom: 0,
-              zIndex: 1,
             }}
           >
             <Typography
