@@ -408,7 +408,7 @@ export default function AddLineItemModal({ open, onClose, onSubmit }: AddLineIte
                         >
                           {employees?.map((emp) => (
                             <MenuItem key={emp._id} value={emp._id}>
-                              {emp.name} - ${emp.effectiveRate.toFixed(2)}/hr
+                              {emp.name} - ${(emp.effectiveRate || 0).toFixed(2)}/hr
                             </MenuItem>
                           ))}
                         </Select>
@@ -588,10 +588,10 @@ export default function AddLineItemModal({ open, onClose, onSubmit }: AddLineIte
                           return (
                             <Box key={id} sx={{ display: 'flex', justifyContent: 'space-between', ml: 1, mb: 0.25 }}>
                               <Typography variant="caption" sx={{ color: '#B3B3B3', fontSize: '0.7rem' }}>
-                                {emp.name} ({costs.estimatedHours.toFixed(1)} hrs × ${emp.effectiveRate.toFixed(2)}/hr)
+                                {emp.name} ({costs.estimatedHours.toFixed(1)} hrs × ${(emp.effectiveRate || 0).toFixed(2)}/hr)
                               </Typography>
                               <Typography variant="caption" sx={{ color: '#FFFFFF', fontSize: '0.7rem' }}>
-                                ${(emp.effectiveRate * costs.estimatedHours).toFixed(0)}
+                                ${((emp.effectiveRate || 0) * costs.estimatedHours).toFixed(0)}
                               </Typography>
                             </Box>
                           );

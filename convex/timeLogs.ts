@@ -36,7 +36,7 @@ export const startTimer = mutation({
       taskType: args.taskType,
       taskName: args.taskName,
       startTime: Date.now(),
-      employeeRate: employee.effectiveRate,
+      employeeRate: employee.effectiveRate || employee.fullyBurdenedHourlyRate || 40,
       equipmentCost: 110, // TODO: Calculate from actual equipment assigned
       createdAt: Date.now(),
     });
@@ -123,7 +123,8 @@ export const addManualTimeEntry = mutation({
 
     const now = Date.now();
     const startTime = now - args.durationHours * 60 * 60 * 1000; // Backdate start time
-    const hourlyCost = employee.effectiveRate + 110; // TODO: Calculate actual equipment cost
+    const employeeRate = employee.effectiveRate || employee.fullyBurdenedHourlyRate || 40;
+    const hourlyCost = employeeRate + 110; // TODO: Calculate actual equipment cost
     const totalCost = hourlyCost * args.durationHours;
 
     // Create completed time log
@@ -136,7 +137,7 @@ export const addManualTimeEntry = mutation({
       startTime,
       endTime: now,
       durationHours: args.durationHours,
-      employeeRate: employee.effectiveRate,
+      employeeRate,
       equipmentCost: 110,
       totalCost,
       notes: args.notes,

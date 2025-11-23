@@ -15,85 +15,41 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Chip,
-  Tabs,
-  Tab,
-  IconButton,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  Paper,
-  Autocomplete,
+  FormControlLabel,
+  Switch,
+  ToggleButtonGroup,
+  ToggleButton,
 } from '@mui/material';
 import { useSnackbar } from '@/app/contexts/SnackbarContext';
-import { useQuery, useMutation } from 'convex/react';
-import { api } from '@/convex/_generated/api';
-import { Id } from '@/convex/_generated/dataModel';
-import DeleteIcon from '@mui/icons-material/Delete';
-import AddIcon from '@mui/icons-material/Add';
-
-interface TabPanelProps {
-  children?: React.ReactNode;
-  index: number;
-  value: number;
-}
-
-function TabPanel(props: TabPanelProps) {
-  const { children, value, index, ...other } = props;
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`employee-tabpanel-${index}`}
-      aria-labelledby={`employee-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ pt: 3 }}>{children}</Box>}
-    </div>
-  );
-}
-
-interface EmployeeSkillForm {
-  trackId: Id<'careerTracks'> | null;
-  proficiencyLevel: 'learning' | 'qualified' | 'expert';
-  isPrimary: boolean;
-  yearsExperience?: number;
-  notes?: string;
-  existingSkillId?: Id<'employeeSkills'>; // For edit mode
-}
-
-interface EmployeeCertificationForm {
-  certificationId: Id<'careerTracks'> | null;
-  dateEarned: string;
-  expiresAt?: string;
-  certificationNumber?: string;
-  existingCertId?: Id<'employeeCertifications'>; // For edit mode
-}
 
 interface EmployeeFormData {
   firstName: string;
   lastName: string;
   name: string;
+  position: string;
   employmentType: 'full_time' | 'part_time' | 'seasonal' | 'contractor';
   hireDate: string;
-  baseRate: string;
-  tierLevel: string;
-  managementLevelId: Id<'careerTracks'> | null;
-  reportsToEmployeeId: Id<'employees'> | null;
-  // ICE
+
+  // Compensation
+  payType: 'hourly' | 'salary';
+  baseHourlyRate: string;
+  annualSalary: string;
+  expectedAnnualHours: string;
+  overtimeEligible: boolean;
+
+  // Burden Costs
+  workersCompRate: string;
+  payrollTaxRate: string;
+  healthInsuranceMonthly: string;
+  ptoDays: string;
+  holidayDays: string;
+  phoneAllowance: string;
+  vehicleAllowance: string;
+
+  // Emergency Contact
   emergencyContactName: string;
   emergencyContactPhone: string;
   emergencyContactRelationship: string;
-  // Legacy fields
-  positionCode: string;
-  hasLeadership: boolean;
-  hasSupervisor: boolean;
-  equipmentLevel: string;
-  hasCDL: boolean;
-  hasCrane: boolean;
-  hasOSHA: boolean;
 }
 
 interface EmployeeFormModalProps {
@@ -104,6 +60,15 @@ interface EmployeeFormModalProps {
   isEditing: boolean;
 }
 
+// Common Workers Comp Rate Presets
+const WORKERS_COMP_PRESETS = [
+  { label: 'Tree Climber', rate: 32 },
+  { label: 'Ground Crew', rate: 28 },
+  { label: 'Mulcher/Chipper', rate: 25 },
+  { label: 'Bucket/Crane', rate: 22 },
+  { label: 'Admin/Sales', rate: 2 },
+];
+
 export default function EmployeeFormModal({
   open,
   onClose,
@@ -112,411 +77,258 @@ export default function EmployeeFormModal({
   isEditing,
 }: EmployeeFormModalProps) {
   const { showError, showSuccess } = useSnackbar();
-  const [activeTab, setActiveTab] = useState(0);
-
-  // Fetch data from APIs
-  const allTracks = useQuery(api.careerTracks.listTracks, {}) || [];
-  const careerTracks = allTracks.filter(t => t.trackType !== 'management' && !t.code?.startsWith('CERT_'));
-  const managementLevels = allTracks.filter(t => t.trackType === 'management');
-  const certifications = allTracks.filter(t => t.code?.startsWith('CERT_'));
-  const employees = useQuery(api.employees.listEmployees, {}) || [];
-
-  // Debug logging to check what data is being fetched
-  useEffect(() => {
-    console.log('EmployeeFormModal - Data fetch status:', {
-      careerTracks: {
-        count: careerTracks?.length || 0,
-        data: careerTracks,
-      },
-      managementLevels: {
-        count: managementLevels?.length || 0,
-        data: managementLevels,
-      },
-      certifications: {
-        count: certifications?.length || 0,
-        data: certifications,
-      },
-      employees: {
-        count: employees?.length || 0,
-        data: employees,
-      },
-    });
-  }, [careerTracks, managementLevels, certifications, employees]);
-
-  // For edit mode - fetch existing skills and certifications
-  const existingSkills = useQuery(
-    api.employeeSkills.getEmployeeSkills,
-    isEditing && initialData?._id ? { employeeId: initialData._id } : 'skip'
-  );
-  const existingCertifications = useQuery(
-    api.employeeCertifications.getEmployeeCertifications,
-    isEditing && initialData?._id ? { employeeId: initialData._id } : 'skip'
-  );
-
-  // Mutations for skills and certifications
-  const addSkill = useMutation(api.employeeSkills.addEmployeeSkill);
-  const updateSkill = useMutation(api.employeeSkills.updateEmployeeSkill);
-  const removeSkill = useMutation(api.employeeSkills.removeEmployeeSkill);
-  const addCertification = useMutation(api.employeeCertifications.addCertification);
-  const updateCertification = useMutation(api.employeeCertifications.updateCertification);
-  const removeCertification = useMutation(api.employeeCertifications.removeCertification);
 
   const [formData, setFormData] = useState<EmployeeFormData>({
     firstName: '',
     lastName: '',
     name: '',
+    position: '',
     employmentType: 'full_time',
     hireDate: new Date().toISOString().split('T')[0],
-    baseRate: '20',
-    tierLevel: '1',
-    managementLevelId: null,
-    reportsToEmployeeId: null,
-    // ICE
+
+    payType: 'hourly',
+    baseHourlyRate: '20',
+    annualSalary: '40000',
+    expectedAnnualHours: '2000',
+    overtimeEligible: true,
+
+    workersCompRate: '28',
+    payrollTaxRate: '12',
+    healthInsuranceMonthly: '400',
+    ptoDays: '10',
+    holidayDays: '6',
+    phoneAllowance: '0',
+    vehicleAllowance: '0',
+
     emergencyContactName: '',
     emergencyContactPhone: '',
     emergencyContactRelationship: '',
-    // Legacy
-    positionCode: 'GC',
-    hasLeadership: false,
-    hasSupervisor: false,
-    equipmentLevel: '1',
-    hasCDL: false,
-    hasCrane: false,
-    hasOSHA: false,
-  });
-
-  // Skills management
-  const [skills, setSkills] = useState<EmployeeSkillForm[]>([]);
-  const [newSkill, setNewSkill] = useState<EmployeeSkillForm>({
-    trackId: null,
-    proficiencyLevel: 'qualified',
-    isPrimary: false,
-    yearsExperience: undefined,
-    notes: '',
-  });
-
-  // Certifications management
-  const [certifs, setCertifs] = useState<EmployeeCertificationForm[]>([]);
-  const [newCertif, setNewCertif] = useState<EmployeeCertificationForm>({
-    certificationId: null,
-    dateEarned: new Date().toISOString().split('T')[0],
-    expiresAt: '',
-    certificationNumber: '',
   });
 
   // Load initial data for editing
   useEffect(() => {
     if (initialData) {
+      const hourlyRate = initialData.baseHourlyRate || initialData.hourlyRate || 20;
+      const annualHours = initialData.annualWorkingHours || 2000;
+      const salary = initialData.annualSalary || (hourlyRate * annualHours);
+
       setFormData({
         firstName: initialData.firstName || '',
         lastName: initialData.lastName || '',
-        name: initialData.name,
+        name: initialData.name || '',
+        position: initialData.position || initialData.positionCode || '',
         employmentType: initialData.employmentType || 'full_time',
         hireDate: initialData.hireDate || new Date().toISOString().split('T')[0],
-        baseRate: initialData.baseHourlyRate?.toString() || '20',
-        tierLevel: initialData.tierLevel?.toString() || '1',
-        managementLevelId: initialData.managementLevelId || null,
-        reportsToEmployeeId: initialData.reportsToEmployeeId || null,
-        // ICE
+
+        payType: initialData.payType || 'hourly',
+        baseHourlyRate: hourlyRate.toString(),
+        annualSalary: Math.round(salary).toString(),
+        expectedAnnualHours: annualHours.toString(),
+        overtimeEligible: initialData.overtimeEligible ?? true,
+
+        workersCompRate: (initialData.workersCompRate || 28).toString(),
+        payrollTaxRate: (initialData.payrollTaxRate || 12).toString(),
+        healthInsuranceMonthly: (initialData.healthInsuranceMonthly || 400).toString(),
+        ptoDays: (initialData.ptoDays || 10).toString(),
+        holidayDays: (initialData.holidayDays || 6).toString(),
+        phoneAllowance: (initialData.phoneAllowance || 0).toString(),
+        vehicleAllowance: (initialData.vehicleAllowance || 0).toString(),
+
         emergencyContactName: initialData.emergencyContactName || '',
         emergencyContactPhone: initialData.emergencyContactPhone || '',
         emergencyContactRelationship: initialData.emergencyContactRelationship || '',
-        // Legacy
-        positionCode: initialData.positionCode || 'GC',
-        hasLeadership: initialData.hasLeadership || false,
-        hasSupervisor: initialData.hasSupervisor || false,
-        equipmentLevel: initialData.equipmentLevel?.toString() || '1',
-        hasCDL: initialData.hasCDL || false,
-        hasCrane: initialData.hasCrane || false,
-        hasOSHA: initialData.hasOSHA || false,
       });
     }
   }, [initialData]);
 
-  // Load existing skills in edit mode
-  useEffect(() => {
-    if (existingSkills && existingSkills.length > 0) {
-      setSkills(
-        existingSkills.map((skill) => ({
-          trackId: skill.trackId,
-          proficiencyLevel: skill.proficiencyLevel,
-          isPrimary: skill.isPrimary,
-          yearsExperience: skill.yearsExperience,
-          notes: skill.notes,
-          existingSkillId: skill._id,
-        }))
-      );
-    }
-  }, [existingSkills]);
+  // Calculate fully burdened hourly cost in real-time
+  const calculateBurdenedCost = () => {
+    const { payType, baseHourlyRate, annualSalary, expectedAnnualHours, workersCompRate,
+            payrollTaxRate, healthInsuranceMonthly, ptoDays, holidayDays,
+            phoneAllowance, vehicleAllowance } = formData;
 
-  // Load existing certifications in edit mode
-  useEffect(() => {
-    if (existingCertifications && existingCertifications.length > 0) {
-      setCertifs(
-        existingCertifications.map((cert) => ({
-          certificationId: cert.certificationId as any,
-          dateEarned: cert.dateEarned,
-          expiresAt: cert.expiresAt,
-          certificationNumber: cert.certificationNumber,
-          existingCertId: cert._id,
-        }))
-      );
-    }
-  }, [existingCertifications]);
+    // Get effective hourly rate
+    const hourlyRate = payType === 'hourly'
+      ? parseFloat(baseHourlyRate) || 0
+      : (parseFloat(annualSalary) || 0) / (parseFloat(expectedAnnualHours) || 2000);
 
-  // Add new skill to list
-  const handleAddSkill = () => {
-    if (!newSkill.trackId) {
-      showError('Please select a career track');
-      return;
-    }
+    const annualHours = parseFloat(expectedAnnualHours) || 2000;
+    const workingHoursPerYear = 2080; // Standard full-time
 
-    // Check if skill already exists
-    if (skills.some((s) => s.trackId === newSkill.trackId)) {
-      showError('This skill has already been added');
-      return;
-    }
+    // Calculate hourly costs
+    const wcRate = parseFloat(workersCompRate) || 0;
+    const taxRate = parseFloat(payrollTaxRate) || 0;
+    const workersComp = hourlyRate * (wcRate / 100);
+    const payrollTax = hourlyRate * (taxRate / 100);
 
-    // If setting as primary, unset other primary skills
-    if (newSkill.isPrimary) {
-      setSkills(skills.map((s) => ({ ...s, isPrimary: false })));
-    }
+    // Annual costs converted to hourly
+    const healthMonthly = parseFloat(healthInsuranceMonthly) || 0;
+    const healthHourly = (healthMonthly * 12) / annualHours;
 
-    setSkills([...skills, { ...newSkill }]);
-    setNewSkill({
-      trackId: null,
-      proficiencyLevel: 'qualified',
-      isPrimary: false,
-      yearsExperience: undefined,
-      notes: '',
-    });
-  };
+    // PTO/Holiday cost (paying for non-working hours)
+    const pto = parseFloat(ptoDays) || 0;
+    const holidays = parseFloat(holidayDays) || 0;
+    const nonWorkingDays = pto + holidays;
+    const nonWorkingHours = nonWorkingDays * 8; // 8 hours per day
+    const ptoHolidayCost = (hourlyRate * nonWorkingHours) / annualHours;
 
-  // Remove skill from list
-  const handleRemoveSkill = (index: number) => {
-    setSkills(skills.filter((_, i) => i !== index));
-  };
+    // Allowances converted to hourly
+    const phoneMonthly = parseFloat(phoneAllowance) || 0;
+    const vehicleMonthly = parseFloat(vehicleAllowance) || 0;
+    const phoneHourly = (phoneMonthly * 12) / annualHours;
+    const vehicleHourly = (vehicleMonthly * 12) / annualHours;
 
-  // Set skill as primary
-  const handleSetPrimarySkill = (index: number) => {
-    setSkills(
-      skills.map((skill, i) => ({
-        ...skill,
-        isPrimary: i === index,
-      }))
-    );
-  };
+    // Total burdened cost
+    const totalBurdenedHourly = hourlyRate + workersComp + payrollTax + healthHourly +
+                                 ptoHolidayCost + phoneHourly + vehicleHourly;
 
-  // Add new certification to list
-  const handleAddCertification = () => {
-    if (!newCertif.certificationId) {
-      showError('Please select a certification');
-      return;
-    }
-
-    // Check if certification already exists
-    if (certifs.some((c) => c.certificationId === newCertif.certificationId)) {
-      showError('This certification has already been added');
-      return;
-    }
-
-    setCertifs([...certifs, { ...newCertif }]);
-    setNewCertif({
-      certificationId: null,
-      dateEarned: new Date().toISOString().split('T')[0],
-      expiresAt: '',
-      certificationNumber: '',
-    });
-  };
-
-  // Remove certification from list
-  const handleRemoveCertification = (index: number) => {
-    setCertifs(certifs.filter((_, i) => i !== index));
-  };
-
-  // Calculate costs using comprehensive multi-track system
-  const calculateCosts = () => {
-    const baseRate = parseFloat(formData.baseRate) || 20;
-    const tier = parseInt(formData.tierLevel) || 1;
-
-    // Tier multipliers
-    const tierMultipliers = [1.6, 1.7, 1.8, 2.0, 2.2];
-    const tierMultiplier = tierMultipliers[tier - 1] || 1.6;
-
-    // Start with base × tier
-    let qualificationRate = baseRate * tierMultiplier;
-
-    // Primary skill premium
-    const primarySkill = skills.find((s) => s.isPrimary);
-    let primarySkillPremium = 0;
-    if (primarySkill) {
-      const track = careerTracks.find((t) => t._id === primarySkill.trackId);
-      if (track?.hourlyPremium) {
-        primarySkillPremium = track.hourlyPremium;
-        qualificationRate += primarySkillPremium;
-      }
-    }
-
-    // Additional skills premiums (non-primary qualified/expert skills)
-    let additionalSkillsPremiums = 0;
-    skills
-      .filter((s) => !s.isPrimary && s.proficiencyLevel !== 'learning')
-      .forEach((skill) => {
-        const track = careerTracks.find((t) => t._id === skill.trackId);
-        if (track?.hourlyPremium) {
-          // 50% premium for additional skills
-          const premium = track.hourlyPremium * 0.5;
-          additionalSkillsPremiums += premium;
-          qualificationRate += premium;
-        }
-      });
-
-    // Management premium
-    let managementPremium = 0;
-    if (formData.managementLevelId) {
-      const mgmtLevel = managementLevels.find((m) => m._id === formData.managementLevelId);
-      if (mgmtLevel) {
-        managementPremium = mgmtLevel.hourlyPremium ?? 0;
-        qualificationRate += managementPremium;
-      }
-    }
-
-    // Certification premiums
-    let certificationPremiums = 0;
-    certifs.forEach((cert) => {
-      const certification = certifications.find((c) => c._id === cert.certificationId);
-      if (certification?.hourlyPremium) {
-        certificationPremiums += certification.hourlyPremium;
-        qualificationRate += certification.hourlyPremium;
-      }
-    });
-
-    // Legacy qualifications (for backward compatibility)
-    if (formData.hasLeadership) qualificationRate += 3;
-    if (formData.hasSupervisor) qualificationRate += 7;
-
-    const equipLevel = parseInt(formData.equipmentLevel) || 1;
-    const equipmentPremiums = [0, 1.5, 4, 7];
-    qualificationRate += equipmentPremiums[equipLevel - 1] || 0;
-
-    if (formData.hasCDL) qualificationRate += 3;
-    if (formData.hasCrane) qualificationRate += 4;
-    if (formData.hasOSHA) qualificationRate += 2;
-
-    // Build qualification code
-    let code = `${formData.positionCode}${tier}`;
-    if (primarySkill) {
-      const track = careerTracks.find((t) => t._id === primarySkill.trackId);
-      if (track) code += `+${track.code}`;
-    }
-    if (formData.managementLevelId) {
-      const mgmtLevel = managementLevels.find((m) => m._id === formData.managementLevelId);
-      if (mgmtLevel) code += `+${mgmtLevel.code}`;
-    }
-    if (formData.hasLeadership) code += '+L';
-    if (formData.hasSupervisor) code += '+S';
-    if (equipLevel > 1) code += `+E${equipLevel}`;
-    if (formData.hasCDL) code += '+D3';
-    if (formData.hasCrane) code += '+CRA';
-    if (formData.hasOSHA) code += '+OSHA';
-
-    // Apply burden multiplier
-    const burdenMultiplier = tierMultipliers[tier - 1] || 1.6;
-    const effectiveRate = qualificationRate * burdenMultiplier;
+    const annualBasePay = hourlyRate * annualHours;
+    const annualBurdenedCost = totalBurdenedHourly * annualHours;
+    const burdenPercentage = ((totalBurdenedHourly - hourlyRate) / hourlyRate) * 100;
 
     return {
-      baseRate,
-      tierMultiplier,
-      primarySkillPremium,
-      additionalSkillsPremiums,
-      managementPremium,
-      certificationPremiums,
-      qualificationRate,
-      qualificationCode: code,
-      burdenMultiplier,
-      effectiveRate,
-      annualCost: effectiveRate * 2000,
+      hourlyRate,
+      workersComp,
+      payrollTax,
+      healthHourly,
+      ptoHolidayCost,
+      phoneHourly,
+      vehicleHourly,
+      totalBurdenedHourly,
+      annualBasePay,
+      annualBurdenedCost,
+      burdenPercentage,
+      annualHours,
     };
   };
 
-  const costs = calculateCosts();
+  const costs = calculateBurdenedCost();
+
+  // Update name when first/last change
+  const handleFirstNameChange = (value: string) => {
+    setFormData({
+      ...formData,
+      firstName: value,
+      name: `${value} ${formData.lastName}`.trim(),
+    });
+  };
+
+  const handleLastNameChange = (value: string) => {
+    setFormData({
+      ...formData,
+      lastName: value,
+      name: `${formData.firstName} ${value}`.trim(),
+    });
+  };
+
+  // Sync hourly rate and salary when either changes
+  const handleHourlyRateChange = (value: string) => {
+    const hourly = parseFloat(value) || 0;
+    const hours = parseFloat(formData.expectedAnnualHours) || 2000;
+    setFormData({
+      ...formData,
+      baseHourlyRate: value,
+      annualSalary: Math.round(hourly * hours).toString(),
+    });
+  };
+
+  const handleSalaryChange = (value: string) => {
+    const salary = parseFloat(value) || 0;
+    const hours = parseFloat(formData.expectedAnnualHours) || 2000;
+    setFormData({
+      ...formData,
+      annualSalary: value,
+      baseHourlyRate: (salary / hours).toFixed(2),
+    });
+  };
 
   const handleSubmit = async () => {
-    if (!formData.name || !formData.baseRate) {
-      showError('Please fill in required fields (Name, Base Rate)');
+    if (!formData.firstName || !formData.lastName) {
+      showError('Please enter first and last name');
+      return;
+    }
+
+    if (!formData.position) {
+      showError('Please enter a position/title');
       return;
     }
 
     try {
-      // Create or update employee
       const employeeData = {
         name: formData.name,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        position: formData.position,
         employmentType: formData.employmentType,
         hireDate: formData.hireDate,
-        baseHourlyRate: parseFloat(formData.baseRate),
-        tierLevel: parseInt(formData.tierLevel),
-        managementLevelId: formData.managementLevelId,
-        reportsToEmployeeId: formData.reportsToEmployeeId,
-        totalQualificationPremium:
-          costs.primarySkillPremium +
-          costs.additionalSkillsPremiums +
-          costs.managementPremium +
-          costs.certificationPremiums,
-        // Legacy fields
-        positionCode: formData.positionCode,
-        hasLeadership: formData.hasLeadership,
-        hasSupervisor: formData.hasSupervisor,
-        equipmentLevel: parseInt(formData.equipmentLevel),
-        hasCDL: formData.hasCDL,
-        hasCrane: formData.hasCrane,
-        hasOSHA: formData.hasOSHA,
-        qualificationRate: costs.qualificationRate,
-        qualificationCode: costs.qualificationCode,
-        burdenMultiplier: costs.burdenMultiplier,
-        effectiveRate: costs.effectiveRate,
-        // Legacy backward compat
-        position: formData.positionCode,
-        hourlyRate: costs.qualificationRate,
-        annualSalary: costs.qualificationRate * 2000,
-        totalAnnualCost: costs.annualCost,
-        annualWorkingHours: 2000,
+
+        // Compensation
+        payType: formData.payType,
+        baseHourlyRate: costs.hourlyRate,
+        hourlyRate: costs.hourlyRate, // For backward compatibility
+        annualSalary: costs.annualBasePay,
+        expectedAnnualHours: parseFloat(formData.expectedAnnualHours) || 2000,
+        annualWorkingHours: parseFloat(formData.expectedAnnualHours) || 2000,
+        overtimeEligible: formData.overtimeEligible,
+
+        // Burden costs
+        workersCompRate: parseFloat(formData.workersCompRate) || 0,
+        payrollTaxRate: parseFloat(formData.payrollTaxRate) || 0,
+        healthInsuranceMonthly: parseFloat(formData.healthInsuranceMonthly) || 0,
+        ptoDays: parseFloat(formData.ptoDays) || 0,
+        holidayDays: parseFloat(formData.holidayDays) || 0,
+        phoneAllowance: parseFloat(formData.phoneAllowance) || 0,
+        vehicleAllowance: parseFloat(formData.vehicleAllowance) || 0,
+
+        // Calculated values
+        effectiveRate: costs.totalBurdenedHourly,
+        totalAnnualCost: costs.annualBurdenedCost,
+        burdenMultiplier: costs.burdenPercentage / 100 + 1,
+
+        // Emergency contact
+        emergencyContactName: formData.emergencyContactName,
+        emergencyContactPhone: formData.emergencyContactPhone,
+        emergencyContactRelationship: formData.emergencyContactRelationship,
+
+        // Legacy fields for backward compatibility
+        positionCode: formData.position,
+        tierLevel: 1,
+        qualificationRate: costs.hourlyRate,
+        qualificationCode: formData.position,
       };
 
-      // Call parent submit handler (this creates/updates the employee)
       await onSubmit(employeeData);
-
-      // If editing, get the employee ID from initialData
-      // If creating, we'll need to get the ID from the response
-      // For now, we'll handle skills/certs after employee creation via the parent component
-      // This is a simplified approach - in production, you might want to return the ID
-
-      showSuccess(
-        isEditing ? 'Employee updated successfully' : 'Employee created successfully'
-      );
+      showSuccess(isEditing ? 'Employee updated successfully' : 'Employee created successfully');
     } catch (error: any) {
       showError(error.message || 'Failed to save employee');
     }
   };
 
-  // Helper to get track name by ID
-  const getTrackName = (trackId: Id<'careerTracks'> | null) => {
-    if (!trackId) return 'Unknown';
-    const track = careerTracks.find((t) => t._id === trackId);
-    return track?.name || 'Unknown';
+  const textFieldStyles = {
+    '& .MuiInputLabel-root': { color: '#B3B3B3' },
+    '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
+    '& .MuiOutlinedInput-root': {
+      color: '#FFFFFF',
+      '& fieldset': { borderColor: '#2A2A2A' },
+      '&:hover fieldset': { borderColor: '#007AFF' },
+      '&.Mui-focused fieldset': { borderColor: '#007AFF' },
+    },
+    '& .MuiFormHelperText-root': { color: '#666' },
   };
 
-  // Helper to get certification name by ID
-  const getCertificationName = (certId: Id<'careerTracks'> | null) => {
-    if (!certId) return 'Unknown';
-    const cert = certifications.find((c) => c._id === certId);
-    return cert?.name || 'Unknown';
+  const selectStyles = {
+    color: '#FFFFFF',
+    '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2A2A2A' },
+    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#007AFF' },
+    '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#007AFF' },
+    '& .MuiSvgIcon-root': { color: '#FFFFFF' },
   };
 
   return (
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="lg"
+      maxWidth="md"
       fullWidth
       PaperProps={{
         sx: {
@@ -527,140 +339,57 @@ export default function EmployeeFormModal({
       }}
     >
       <DialogTitle sx={{ color: '#FFFFFF', borderBottom: '1px solid #2A2A2A', pb: 2 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Box>
-            <Typography sx={{ fontWeight: 600, fontSize: '1.25rem' }}>
-              {isEditing ? 'Edit Employee' : 'Add New Employee'}
-            </Typography>
-            <Typography variant="caption" sx={{ color: '#666' }}>
-              Multi-Track Qualification System
-            </Typography>
-          </Box>
-          {costs.qualificationCode && (
-            <Chip
-              label={costs.qualificationCode}
-              sx={{
-                background: '#007AFF',
-                color: '#FFFFFF',
-                fontWeight: 700,
-                fontSize: '0.9rem',
-                fontFamily: 'monospace',
-              }}
-            />
-          )}
-        </Box>
-
-        <Tabs
-          value={activeTab}
-          onChange={(_, newValue) => setActiveTab(newValue)}
-          sx={{
-            mt: 2,
-            '& .MuiTab-root': {
-              color: '#666',
-              textTransform: 'none',
-              fontWeight: 600,
-              fontSize: '0.875rem',
-            },
-            '& .Mui-selected': {
-              color: '#007AFF !important',
-            },
-            '& .MuiTabs-indicator': {
-              backgroundColor: '#007AFF',
-            },
-          }}
-        >
-          <Tab label="Basic Info" />
-          <Tab label="Primary Skill" />
-          <Tab label="Additional Skills" />
-          <Tab label="Management" />
-          <Tab label="Certifications" />
-          <Tab label="Compensation" />
-        </Tabs>
+        <Typography sx={{ fontWeight: 600, fontSize: '1.25rem' }}>
+          {isEditing ? 'Edit Employee' : 'Add New Employee'}
+        </Typography>
+        <Typography variant="caption" sx={{ color: '#666' }}>
+          Simple payroll-focused employee form
+        </Typography>
       </DialogTitle>
 
-      <DialogContent sx={{ pt: 0, maxHeight: '60vh', overflowY: 'auto' }}>
-        {/* TAB 0: BASIC INFO */}
-        <TabPanel value={activeTab} index={0}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+      <DialogContent sx={{ pt: 3, maxHeight: '70vh', overflowY: 'auto' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+
+          {/* SECTION 1: BASIC INFO */}
+          <Box>
+            <Typography
+              variant="subtitle2"
+              sx={{ color: '#007AFF', fontWeight: 600, fontSize: '0.875rem', mb: 2 }}
+            >
+              BASIC INFORMATION
+            </Typography>
+
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mb: 2 }}>
               <TextField
                 fullWidth
-                label="First Name *"
+                required
+                label="First Name"
                 value={formData.firstName}
-                onChange={(e) => {
-                  const firstName = e.target.value;
-                  setFormData({
-                    ...formData,
-                    firstName,
-                    name: `${firstName} ${formData.lastName}`.trim()
-                  });
-                }}
+                onChange={(e) => handleFirstNameChange(e.target.value)}
                 placeholder="John"
-                sx={{
-                  '& .MuiInputLabel-root': { color: '#B3B3B3' },
-                  '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
-                  '& .MuiOutlinedInput-root': {
-                    color: '#FFFFFF',
-                    '& fieldset': { borderColor: '#2A2A2A' },
-                    '&:hover fieldset': { borderColor: '#007AFF' },
-                    '&.Mui-focused fieldset': { borderColor: '#007AFF' },
-                  },
-                }}
+                sx={textFieldStyles}
               />
               <TextField
                 fullWidth
-                label="Last Name *"
+                required
+                label="Last Name"
                 value={formData.lastName}
-                onChange={(e) => {
-                  const lastName = e.target.value;
-                  setFormData({
-                    ...formData,
-                    lastName,
-                    name: `${formData.firstName} ${lastName}`.trim()
-                  });
-                }}
+                onChange={(e) => handleLastNameChange(e.target.value)}
                 placeholder="Smith"
-                sx={{
-                  '& .MuiInputLabel-root': { color: '#B3B3B3' },
-                  '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
-                  '& .MuiOutlinedInput-root': {
-                    color: '#FFFFFF',
-                    '& fieldset': { borderColor: '#2A2A2A' },
-                    '&:hover fieldset': { borderColor: '#007AFF' },
-                    '&.Mui-focused fieldset': { borderColor: '#007AFF' },
-                  },
-                }}
+                sx={textFieldStyles}
               />
             </Box>
 
             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
-              <FormControl fullWidth>
-                <InputLabel sx={{ color: '#B3B3B3', '&.Mui-focused': { color: '#007AFF' } }}>
-                  Employment Type
-                </InputLabel>
-                <Select
-                  value={formData.employmentType}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      employmentType: e.target.value as any,
-                    })
-                  }
-                  label="Employment Type"
-                  sx={{
-                    color: '#FFFFFF',
-                    '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2A2A2A' },
-                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#007AFF' },
-                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#007AFF' },
-                    '& .MuiSvgIcon-root': { color: '#FFFFFF' },
-                  }}
-                >
-                  <MenuItem value="full_time">Full Time</MenuItem>
-                  <MenuItem value="part_time">Part Time</MenuItem>
-                  <MenuItem value="seasonal">Seasonal</MenuItem>
-                  <MenuItem value="contractor">Contractor</MenuItem>
-                </Select>
-              </FormControl>
+              <TextField
+                fullWidth
+                required
+                label="Position/Title"
+                value={formData.position}
+                onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                placeholder="Tree Climber, Foreman, etc."
+                sx={textFieldStyles}
+              />
 
               <TextField
                 label="Hire Date"
@@ -668,79 +397,278 @@ export default function EmployeeFormModal({
                 value={formData.hireDate}
                 onChange={(e) => setFormData({ ...formData, hireDate: e.target.value })}
                 InputLabelProps={{ shrink: true }}
-                sx={{
-                  '& .MuiInputLabel-root': { color: '#B3B3B3' },
-                  '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
-                  '& .MuiOutlinedInput-root': {
-                    color: '#FFFFFF',
-                    '& fieldset': { borderColor: '#2A2A2A' },
-                    '&:hover fieldset': { borderColor: '#007AFF' },
-                    '&.Mui-focused fieldset': { borderColor: '#007AFF' },
-                  },
-                }}
+                sx={textFieldStyles}
               />
             </Box>
 
-            <Divider sx={{ borderColor: '#2A2A2A', my: 1 }} />
-
-            <Typography
-              variant="subtitle2"
-              sx={{ color: '#666', fontWeight: 600, fontSize: '0.75rem', letterSpacing: '0.05em' }}
-            >
-              BASE COMPENSATION
-            </Typography>
-
-            <Box sx={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 2 }}>
-              <TextField
-                label="Base Hourly Rate *"
-                type="number"
-                value={formData.baseRate}
-                onChange={(e) => setFormData({ ...formData, baseRate: e.target.value })}
-                placeholder="20"
-                helperText="$/hr before qualifications"
-                sx={{
-                  '& .MuiInputLabel-root': { color: '#B3B3B3' },
-                  '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
-                  '& .MuiOutlinedInput-root': {
-                    color: '#FFFFFF',
-                    '& fieldset': { borderColor: '#2A2A2A' },
-                    '&:hover fieldset': { borderColor: '#007AFF' },
-                    '&.Mui-focused fieldset': { borderColor: '#007AFF' },
-                  },
-                  '& .MuiFormHelperText-root': { color: '#666' },
-                }}
-              />
-
+            <Box sx={{ mt: 2 }}>
               <FormControl fullWidth>
                 <InputLabel sx={{ color: '#B3B3B3', '&.Mui-focused': { color: '#007AFF' } }}>
-                  Tier Level
+                  Employment Type
                 </InputLabel>
                 <Select
-                  value={formData.tierLevel}
-                  onChange={(e) => setFormData({ ...formData, tierLevel: e.target.value })}
-                  label="Tier Level"
-                  sx={{
-                    color: '#FFFFFF',
-                    '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2A2A2A' },
-                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#007AFF' },
-                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#007AFF' },
-                    '& .MuiSvgIcon-root': { color: '#FFFFFF' },
-                  }}
+                  value={formData.employmentType}
+                  onChange={(e) => setFormData({ ...formData, employmentType: e.target.value as any })}
+                  label="Employment Type"
+                  sx={selectStyles}
                 >
-                  <MenuItem value="1">Tier 1 (0-6 mo) - 1.6x</MenuItem>
-                  <MenuItem value="2">Tier 2 (6-18 mo) - 1.7x</MenuItem>
-                  <MenuItem value="3">Tier 3 (18mo-3yr) - 1.8x</MenuItem>
-                  <MenuItem value="4">Tier 4 (3-5 yr) - 2.0x</MenuItem>
-                  <MenuItem value="5">Tier 5 (5+ yr) - 2.2x</MenuItem>
+                  <MenuItem value="full_time">Full Time</MenuItem>
+                  <MenuItem value="part_time">Part Time</MenuItem>
+                  <MenuItem value="seasonal">Seasonal</MenuItem>
+                  <MenuItem value="contractor">Contractor</MenuItem>
                 </Select>
               </FormControl>
             </Box>
+          </Box>
 
-            <Divider sx={{ borderColor: '#2A2A2A', my: 1 }} />
+          <Divider sx={{ borderColor: '#2A2A2A' }} />
 
+          {/* SECTION 2: COMPENSATION */}
+          <Box>
             <Typography
               variant="subtitle2"
-              sx={{ color: '#FF3B30', fontWeight: 600, fontSize: '0.75rem', letterSpacing: '0.05em' }}
+              sx={{ color: '#007AFF', fontWeight: 600, fontSize: '0.875rem', mb: 2 }}
+            >
+              COMPENSATION
+            </Typography>
+
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="body2" sx={{ color: '#B3B3B3', mb: 1 }}>
+                Pay Type
+              </Typography>
+              <ToggleButtonGroup
+                value={formData.payType}
+                exclusive
+                onChange={(_, value) => {
+                  if (value) setFormData({ ...formData, payType: value });
+                }}
+                fullWidth
+                sx={{
+                  '& .MuiToggleButton-root': {
+                    color: '#B3B3B3',
+                    borderColor: '#2A2A2A',
+                    '&.Mui-selected': {
+                      background: '#007AFF',
+                      color: '#FFFFFF',
+                      '&:hover': { background: '#0066DD' },
+                    },
+                  },
+                }}
+              >
+                <ToggleButton value="hourly">Hourly</ToggleButton>
+                <ToggleButton value="salary">Salary</ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
+
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mb: 2 }}>
+              {formData.payType === 'hourly' ? (
+                <TextField
+                  fullWidth
+                  required
+                  label="Base Hourly Rate"
+                  type="number"
+                  value={formData.baseHourlyRate}
+                  onChange={(e) => handleHourlyRateChange(e.target.value)}
+                  placeholder="20.00"
+                  InputProps={{ startAdornment: <Typography sx={{ color: '#B3B3B3', mr: 0.5 }}>$</Typography> }}
+                  helperText="/hour before burden"
+                  sx={textFieldStyles}
+                />
+              ) : (
+                <TextField
+                  fullWidth
+                  required
+                  label="Annual Salary"
+                  type="number"
+                  value={formData.annualSalary}
+                  onChange={(e) => handleSalaryChange(e.target.value)}
+                  placeholder="40000"
+                  InputProps={{ startAdornment: <Typography sx={{ color: '#B3B3B3', mr: 0.5 }}>$</Typography> }}
+                  helperText="per year before burden"
+                  sx={textFieldStyles}
+                />
+              )}
+
+              <TextField
+                fullWidth
+                label="Expected Annual Billable Hours"
+                type="number"
+                value={formData.expectedAnnualHours}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setFormData({ ...formData, expectedAnnualHours: value });
+                  // Recalc salary/hourly based on new hours
+                  if (formData.payType === 'hourly') {
+                    const hourly = parseFloat(formData.baseHourlyRate) || 0;
+                    setFormData(prev => ({
+                      ...prev,
+                      expectedAnnualHours: value,
+                      annualSalary: Math.round(hourly * (parseFloat(value) || 2000)).toString(),
+                    }));
+                  } else {
+                    const salary = parseFloat(formData.annualSalary) || 0;
+                    setFormData(prev => ({
+                      ...prev,
+                      expectedAnnualHours: value,
+                      baseHourlyRate: (salary / (parseFloat(value) || 2000)).toFixed(2),
+                    }));
+                  }
+                }}
+                placeholder="2000"
+                helperText="Typically 2000 hrs/year"
+                sx={textFieldStyles}
+              />
+            </Box>
+
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={formData.overtimeEligible}
+                  onChange={(e) => setFormData({ ...formData, overtimeEligible: e.target.checked })}
+                  sx={{
+                    '& .MuiSwitch-switchBase.Mui-checked': {
+                      color: '#007AFF',
+                    },
+                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                      backgroundColor: '#007AFF',
+                    },
+                  }}
+                />
+              }
+              label={<Typography sx={{ color: '#B3B3B3' }}>Overtime Eligible</Typography>}
+            />
+          </Box>
+
+          <Divider sx={{ borderColor: '#2A2A2A' }} />
+
+          {/* SECTION 3: BURDEN COSTS */}
+          <Box>
+            <Typography
+              variant="subtitle2"
+              sx={{ color: '#007AFF', fontWeight: 600, fontSize: '0.875rem', mb: 2 }}
+            >
+              BURDEN COSTS
+            </Typography>
+
+            <Typography variant="body2" sx={{ color: '#666', mb: 2, fontSize: '0.875rem' }}>
+              Quick presets for Workers Comp:
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+              {WORKERS_COMP_PRESETS.map((preset) => (
+                <Button
+                  key={preset.label}
+                  size="small"
+                  variant="outlined"
+                  onClick={() => setFormData({ ...formData, workersCompRate: preset.rate.toString() })}
+                  sx={{
+                    borderColor: '#2A2A2A',
+                    color: '#B3B3B3',
+                    fontSize: '0.75rem',
+                    textTransform: 'none',
+                    '&:hover': { borderColor: '#007AFF', color: '#007AFF' },
+                  }}
+                >
+                  {preset.label} ({preset.rate}%)
+                </Button>
+              ))}
+            </Box>
+
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mb: 2 }}>
+              <TextField
+                fullWidth
+                label="Workers Comp Rate"
+                type="number"
+                value={formData.workersCompRate}
+                onChange={(e) => setFormData({ ...formData, workersCompRate: e.target.value })}
+                placeholder="28"
+                InputProps={{ endAdornment: <Typography sx={{ color: '#B3B3B3' }}>%</Typography> }}
+                helperText="% of wages"
+                sx={textFieldStyles}
+              />
+
+              <TextField
+                fullWidth
+                label="Payroll Tax Rate"
+                type="number"
+                value={formData.payrollTaxRate}
+                onChange={(e) => setFormData({ ...formData, payrollTaxRate: e.target.value })}
+                placeholder="12"
+                InputProps={{ endAdornment: <Typography sx={{ color: '#B3B3B3' }}>%</Typography> }}
+                helperText="FICA, unemployment, etc."
+                sx={textFieldStyles}
+              />
+            </Box>
+
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mb: 2 }}>
+              <TextField
+                fullWidth
+                label="Health Insurance (Company Paid)"
+                type="number"
+                value={formData.healthInsuranceMonthly}
+                onChange={(e) => setFormData({ ...formData, healthInsuranceMonthly: e.target.value })}
+                placeholder="400"
+                InputProps={{ startAdornment: <Typography sx={{ color: '#B3B3B3', mr: 0.5 }}>$</Typography> }}
+                helperText="per month"
+                sx={textFieldStyles}
+              />
+
+              <TextField
+                fullWidth
+                label="Phone Allowance"
+                type="number"
+                value={formData.phoneAllowance}
+                onChange={(e) => setFormData({ ...formData, phoneAllowance: e.target.value })}
+                placeholder="0"
+                InputProps={{ startAdornment: <Typography sx={{ color: '#B3B3B3', mr: 0.5 }}>$</Typography> }}
+                helperText="per month"
+                sx={textFieldStyles}
+              />
+            </Box>
+
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 2 }}>
+              <TextField
+                fullWidth
+                label="PTO Days/Year"
+                type="number"
+                value={formData.ptoDays}
+                onChange={(e) => setFormData({ ...formData, ptoDays: e.target.value })}
+                placeholder="10"
+                helperText="Paid time off"
+                sx={textFieldStyles}
+              />
+
+              <TextField
+                fullWidth
+                label="Holiday Days/Year"
+                type="number"
+                value={formData.holidayDays}
+                onChange={(e) => setFormData({ ...formData, holidayDays: e.target.value })}
+                placeholder="6"
+                helperText="Paid holidays"
+                sx={textFieldStyles}
+              />
+
+              <TextField
+                fullWidth
+                label="Vehicle Allowance"
+                type="number"
+                value={formData.vehicleAllowance}
+                onChange={(e) => setFormData({ ...formData, vehicleAllowance: e.target.value })}
+                placeholder="0"
+                InputProps={{ startAdornment: <Typography sx={{ color: '#B3B3B3', mr: 0.5 }}>$</Typography> }}
+                helperText="per month"
+                sx={textFieldStyles}
+              />
+            </Box>
+          </Box>
+
+          <Divider sx={{ borderColor: '#2A2A2A' }} />
+
+          {/* SECTION 4: EMERGENCY CONTACT */}
+          <Box>
+            <Typography
+              variant="subtitle2"
+              sx={{ color: '#FF3B30', fontWeight: 600, fontSize: '0.875rem', mb: 2 }}
             >
               EMERGENCY CONTACT (ICE)
             </Typography>
@@ -751,16 +679,7 @@ export default function EmployeeFormModal({
               value={formData.emergencyContactName}
               onChange={(e) => setFormData({ ...formData, emergencyContactName: e.target.value })}
               placeholder="Jane Doe"
-              sx={{
-                '& .MuiInputLabel-root': { color: '#B3B3B3' },
-                '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
-                '& .MuiOutlinedInput-root': {
-                  color: '#FFFFFF',
-                  '& fieldset': { borderColor: '#2A2A2A' },
-                  '&:hover fieldset': { borderColor: '#007AFF' },
-                  '&.Mui-focused fieldset': { borderColor: '#007AFF' },
-                },
-              }}
+              sx={{ ...textFieldStyles, mb: 2 }}
             />
 
             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
@@ -770,16 +689,7 @@ export default function EmployeeFormModal({
                 value={formData.emergencyContactPhone}
                 onChange={(e) => setFormData({ ...formData, emergencyContactPhone: e.target.value })}
                 placeholder="(555) 123-4567"
-                sx={{
-                  '& .MuiInputLabel-root': { color: '#B3B3B3' },
-                  '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
-                  '& .MuiOutlinedInput-root': {
-                    color: '#FFFFFF',
-                    '& fieldset': { borderColor: '#2A2A2A' },
-                    '&:hover fieldset': { borderColor: '#007AFF' },
-                    '&.Mui-focused fieldset': { borderColor: '#007AFF' },
-                  },
-                }}
+                sx={textFieldStyles}
               />
               <TextField
                 fullWidth
@@ -787,966 +697,110 @@ export default function EmployeeFormModal({
                 value={formData.emergencyContactRelationship}
                 onChange={(e) => setFormData({ ...formData, emergencyContactRelationship: e.target.value })}
                 placeholder="Spouse, Parent, etc."
-                sx={{
-                  '& .MuiInputLabel-root': { color: '#B3B3B3' },
-                  '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
-                  '& .MuiOutlinedInput-root': {
-                    color: '#FFFFFF',
-                    '& fieldset': { borderColor: '#2A2A2A' },
-                    '&:hover fieldset': { borderColor: '#007AFF' },
-                    '&.Mui-focused fieldset': { borderColor: '#007AFF' },
-                  },
-                }}
+                sx={textFieldStyles}
               />
             </Box>
-
-            <Divider sx={{ borderColor: '#2A2A2A', my: 1 }} />
-
-            <Typography
-              variant="subtitle2"
-              sx={{ color: '#666', fontWeight: 600, fontSize: '0.75rem', letterSpacing: '0.05em' }}
-            >
-              LEGACY POSITION (Backward Compatibility)
-            </Typography>
-
-            <FormControl fullWidth>
-              <InputLabel sx={{ color: '#B3B3B3', '&.Mui-focused': { color: '#007AFF' } }}>
-                Position Code
-              </InputLabel>
-              <Select
-                value={formData.positionCode}
-                onChange={(e) => setFormData({ ...formData, positionCode: e.target.value })}
-                label="Position Code"
-                sx={{
-                  color: '#FFFFFF',
-                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2A2A2A' },
-                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#007AFF' },
-                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#007AFF' },
-                  '& .MuiSvgIcon-root': { color: '#FFFFFF' },
-                }}
-              >
-                <MenuItem value="TRS">Tree Removal Specialist</MenuItem>
-                <MenuItem value="GC">Ground Crew</MenuItem>
-                <MenuItem value="EO">Equipment Operator</MenuItem>
-                <MenuItem value="CLM">Climber</MenuItem>
-                <MenuItem value="SPT">Safety Spotter</MenuItem>
-                <MenuItem value="MECH">Mechanic</MenuItem>
-                <MenuItem value="MGR">Manager</MenuItem>
-              </Select>
-            </FormControl>
           </Box>
-        </TabPanel>
 
-        {/* TAB 1: PRIMARY SKILL */}
-        <TabPanel value={activeTab} index={1}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-            <Typography variant="body2" sx={{ color: '#B3B3B3' }}>
-              Select the primary career track for this employee. The primary skill receives full
-              hourly premium.
-            </Typography>
+          <Divider sx={{ borderColor: '#007AFF', my: 1 }} />
 
-            <Divider sx={{ borderColor: '#2A2A2A' }} />
-
+          {/* REAL-TIME COST CALCULATION DISPLAY */}
+          <Box
+            sx={{
+              p: 3,
+              background: 'linear-gradient(135deg, #0A0A0A 0%, #1A1A1A 100%)',
+              border: '2px solid #007AFF',
+              borderRadius: 2,
+              position: 'sticky',
+              bottom: 0,
+              zIndex: 1,
+            }}
+          >
             <Typography
-              variant="subtitle2"
-              sx={{ color: '#007AFF', fontWeight: 600, fontSize: '0.75rem', letterSpacing: '0.05em' }}
+              variant="h6"
+              sx={{ color: '#007AFF', fontWeight: 600, mb: 2, textAlign: 'center' }}
             >
-              ADD PRIMARY SKILL
+              FULLY BURDENED COST
             </Typography>
 
-            <FormControl fullWidth>
-              <InputLabel sx={{ color: '#B3B3B3', '&.Mui-focused': { color: '#007AFF' } }}>
-                Career Track
-              </InputLabel>
-              <Select
-                value={newSkill.trackId || ''}
-                onChange={(e) =>
-                  setNewSkill({
-                    ...newSkill,
-                    trackId: e.target.value as Id<'careerTracks'>,
-                    isPrimary: true,
-                  })
-                }
-                label="Career Track"
-                sx={{
-                  color: '#FFFFFF',
-                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2A2A2A' },
-                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#007AFF' },
-                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#007AFF' },
-                  '& .MuiSvgIcon-root': { color: '#FFFFFF' },
-                }}
-              >
-                <MenuItem value="">
-                  <em>None</em>
-                </MenuItem>
-                {careerTracks.map((track) => (
-                  <MenuItem key={track._id} value={track._id}>
-                    {track.name} ({track.code}) - ${track.hourlyPremium || 0}/hr
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
-              <FormControl fullWidth>
-                <InputLabel sx={{ color: '#B3B3B3', '&.Mui-focused': { color: '#007AFF' } }}>
-                  Proficiency Level
-                </InputLabel>
-                <Select
-                  value={newSkill.proficiencyLevel}
-                  onChange={(e) =>
-                    setNewSkill({
-                      ...newSkill,
-                      proficiencyLevel: e.target.value as any,
-                    })
-                  }
-                  label="Proficiency Level"
-                  sx={{
-                    color: '#FFFFFF',
-                    '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2A2A2A' },
-                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#007AFF' },
-                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#007AFF' },
-                    '& .MuiSvgIcon-root': { color: '#FFFFFF' },
-                  }}
-                >
-                  <MenuItem value="learning">Learning</MenuItem>
-                  <MenuItem value="qualified">Qualified</MenuItem>
-                  <MenuItem value="expert">Expert</MenuItem>
-                </Select>
-              </FormControl>
-
-              <TextField
-                label="Years Experience"
-                type="number"
-                value={newSkill.yearsExperience || ''}
-                onChange={(e) =>
-                  setNewSkill({
-                    ...newSkill,
-                    yearsExperience: parseFloat(e.target.value) || undefined,
-                  })
-                }
-                sx={{
-                  '& .MuiInputLabel-root': { color: '#B3B3B3' },
-                  '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
-                  '& .MuiOutlinedInput-root': {
-                    color: '#FFFFFF',
-                    '& fieldset': { borderColor: '#2A2A2A' },
-                    '&:hover fieldset': { borderColor: '#007AFF' },
-                    '&.Mui-focused fieldset': { borderColor: '#007AFF' },
-                  },
-                }}
-              />
-            </Box>
-
-            <Button
-              variant="contained"
-              startIcon={<AddIcon />}
-              onClick={() => {
-                setNewSkill({ ...newSkill, isPrimary: true });
-                handleAddSkill();
-              }}
-              sx={{
-                background: '#007AFF',
-                '&:hover': { background: '#0066DD' },
-              }}
-            >
-              Set as Primary Skill
-            </Button>
-
-            <Divider sx={{ borderColor: '#2A2A2A' }} />
-
-            <Typography
-              variant="subtitle2"
-              sx={{ color: '#666', fontWeight: 600, fontSize: '0.75rem', letterSpacing: '0.05em' }}
-            >
-              CURRENT PRIMARY SKILL
-            </Typography>
-
-            {skills.filter((s) => s.isPrimary).length === 0 ? (
-              <Typography variant="body2" sx={{ color: '#666', fontStyle: 'italic' }}>
-                No primary skill set
-              </Typography>
-            ) : (
-              <Paper
-                sx={{
-                  background: '#0A0A0A',
-                  border: '1px solid #007AFF',
-                  borderRadius: 1,
-                  overflow: 'hidden',
-                }}
-              >
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell sx={{ color: '#B3B3B3', borderColor: '#2A2A2A' }}>
-                        Career Track
-                      </TableCell>
-                      <TableCell sx={{ color: '#B3B3B3', borderColor: '#2A2A2A' }}>
-                        Proficiency
-                      </TableCell>
-                      <TableCell sx={{ color: '#B3B3B3', borderColor: '#2A2A2A' }}>
-                        Experience
-                      </TableCell>
-                      <TableCell sx={{ color: '#B3B3B3', borderColor: '#2A2A2A' }}>
-                        Actions
-                      </TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {skills
-                      .filter((s) => s.isPrimary)
-                      .map((skill, index) => {
-                        const actualIndex = skills.findIndex((s) => s === skill);
-                        return (
-                          <TableRow key={actualIndex}>
-                            <TableCell sx={{ color: '#FFFFFF', borderColor: '#2A2A2A' }}>
-                              <Chip
-                                label={getTrackName(skill.trackId)}
-                                size="small"
-                                sx={{ background: '#007AFF', color: '#FFFFFF' }}
-                              />
-                            </TableCell>
-                            <TableCell sx={{ color: '#FFFFFF', borderColor: '#2A2A2A' }}>
-                              {skill.proficiencyLevel}
-                            </TableCell>
-                            <TableCell sx={{ color: '#FFFFFF', borderColor: '#2A2A2A' }}>
-                              {skill.yearsExperience || 'N/A'} years
-                            </TableCell>
-                            <TableCell sx={{ color: '#FFFFFF', borderColor: '#2A2A2A' }}>
-                              <IconButton
-                                size="small"
-                                onClick={() => handleRemoveSkill(actualIndex)}
-                                sx={{ color: '#FF3B30' }}
-                              >
-                                <DeleteIcon />
-                              </IconButton>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                  </TableBody>
-                </Table>
-              </Paper>
-            )}
-          </Box>
-        </TabPanel>
-
-        {/* TAB 2: ADDITIONAL SKILLS */}
-        <TabPanel value={activeTab} index={2}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-            <Typography variant="body2" sx={{ color: '#B3B3B3' }}>
-              Add additional skills for this employee. Additional qualified/expert skills receive
-              50% of the hourly premium.
-            </Typography>
-
-            <Divider sx={{ borderColor: '#2A2A2A' }} />
-
-            <Typography
-              variant="subtitle2"
-              sx={{ color: '#007AFF', fontWeight: 600, fontSize: '0.75rem', letterSpacing: '0.05em' }}
-            >
-              ADD ADDITIONAL SKILL
-            </Typography>
-
-            <FormControl fullWidth>
-              <InputLabel sx={{ color: '#B3B3B3', '&.Mui-focused': { color: '#007AFF' } }}>
-                Career Track
-              </InputLabel>
-              <Select
-                value={newSkill.trackId || ''}
-                onChange={(e) =>
-                  setNewSkill({
-                    ...newSkill,
-                    trackId: e.target.value as Id<'careerTracks'>,
-                    isPrimary: false,
-                  })
-                }
-                label="Career Track"
-                sx={{
-                  color: '#FFFFFF',
-                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2A2A2A' },
-                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#007AFF' },
-                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#007AFF' },
-                  '& .MuiSvgIcon-root': { color: '#FFFFFF' },
-                }}
-              >
-                <MenuItem value="">
-                  <em>None</em>
-                </MenuItem>
-                {careerTracks.map((track) => (
-                  <MenuItem key={track._id} value={track._id}>
-                    {track.name} ({track.code}) - ${(track.hourlyPremium || 0) * 0.5}/hr (50%)
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
-              <FormControl fullWidth>
-                <InputLabel sx={{ color: '#B3B3B3', '&.Mui-focused': { color: '#007AFF' } }}>
-                  Proficiency Level
-                </InputLabel>
-                <Select
-                  value={newSkill.proficiencyLevel}
-                  onChange={(e) =>
-                    setNewSkill({
-                      ...newSkill,
-                      proficiencyLevel: e.target.value as any,
-                    })
-                  }
-                  label="Proficiency Level"
-                  sx={{
-                    color: '#FFFFFF',
-                    '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2A2A2A' },
-                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#007AFF' },
-                    '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#007AFF' },
-                    '& .MuiSvgIcon-root': { color: '#FFFFFF' },
-                  }}
-                >
-                  <MenuItem value="learning">Learning</MenuItem>
-                  <MenuItem value="qualified">Qualified</MenuItem>
-                  <MenuItem value="expert">Expert</MenuItem>
-                </Select>
-              </FormControl>
-
-              <TextField
-                label="Years Experience"
-                type="number"
-                value={newSkill.yearsExperience || ''}
-                onChange={(e) =>
-                  setNewSkill({
-                    ...newSkill,
-                    yearsExperience: parseFloat(e.target.value) || undefined,
-                  })
-                }
-                sx={{
-                  '& .MuiInputLabel-root': { color: '#B3B3B3' },
-                  '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
-                  '& .MuiOutlinedInput-root': {
-                    color: '#FFFFFF',
-                    '& fieldset': { borderColor: '#2A2A2A' },
-                    '&:hover fieldset': { borderColor: '#007AFF' },
-                    '&.Mui-focused fieldset': { borderColor: '#007AFF' },
-                  },
-                }}
-              />
-            </Box>
-
-            <Button
-              variant="outlined"
-              startIcon={<AddIcon />}
-              onClick={() => {
-                setNewSkill({ ...newSkill, isPrimary: false });
-                handleAddSkill();
-              }}
-              sx={{
-                borderColor: '#007AFF',
-                color: '#007AFF',
-                '&:hover': { borderColor: '#0066DD', background: 'rgba(0, 122, 255, 0.1)' },
-              }}
-            >
-              Add Additional Skill
-            </Button>
-
-            <Divider sx={{ borderColor: '#2A2A2A' }} />
-
-            <Typography
-              variant="subtitle2"
-              sx={{ color: '#666', fontWeight: 600, fontSize: '0.75rem', letterSpacing: '0.05em' }}
-            >
-              ADDITIONAL SKILLS
-            </Typography>
-
-            {skills.filter((s) => !s.isPrimary).length === 0 ? (
-              <Typography variant="body2" sx={{ color: '#666', fontStyle: 'italic' }}>
-                No additional skills added
-              </Typography>
-            ) : (
-              <Paper
-                sx={{
-                  background: '#0A0A0A',
-                  border: '1px solid #2A2A2A',
-                  borderRadius: 1,
-                  overflow: 'hidden',
-                }}
-              >
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell sx={{ color: '#B3B3B3', borderColor: '#2A2A2A' }}>
-                        Career Track
-                      </TableCell>
-                      <TableCell sx={{ color: '#B3B3B3', borderColor: '#2A2A2A' }}>
-                        Proficiency
-                      </TableCell>
-                      <TableCell sx={{ color: '#B3B3B3', borderColor: '#2A2A2A' }}>
-                        Experience
-                      </TableCell>
-                      <TableCell sx={{ color: '#B3B3B3', borderColor: '#2A2A2A' }}>
-                        Actions
-                      </TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {skills
-                      .filter((s) => !s.isPrimary)
-                      .map((skill, index) => {
-                        const actualIndex = skills.findIndex((s) => s === skill);
-                        return (
-                          <TableRow key={actualIndex}>
-                            <TableCell sx={{ color: '#FFFFFF', borderColor: '#2A2A2A' }}>
-                              {getTrackName(skill.trackId)}
-                            </TableCell>
-                            <TableCell sx={{ color: '#FFFFFF', borderColor: '#2A2A2A' }}>
-                              {skill.proficiencyLevel}
-                            </TableCell>
-                            <TableCell sx={{ color: '#FFFFFF', borderColor: '#2A2A2A' }}>
-                              {skill.yearsExperience || 'N/A'} years
-                            </TableCell>
-                            <TableCell sx={{ color: '#FFFFFF', borderColor: '#2A2A2A' }}>
-                              <Box sx={{ display: 'flex', gap: 1 }}>
-                                <Button
-                                  size="small"
-                                  variant="outlined"
-                                  onClick={() => handleSetPrimarySkill(actualIndex)}
-                                  sx={{
-                                    borderColor: '#007AFF',
-                                    color: '#007AFF',
-                                    fontSize: '0.7rem',
-                                  }}
-                                >
-                                  Set Primary
-                                </Button>
-                                <IconButton
-                                  size="small"
-                                  onClick={() => handleRemoveSkill(actualIndex)}
-                                  sx={{ color: '#FF3B30' }}
-                                >
-                                  <DeleteIcon />
-                                </IconButton>
-                              </Box>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                  </TableBody>
-                </Table>
-              </Paper>
-            )}
-          </Box>
-        </TabPanel>
-
-        {/* TAB 3: MANAGEMENT */}
-        <TabPanel value={activeTab} index={3}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-            <Typography variant="body2" sx={{ color: '#B3B3B3' }}>
-              Assign management level and reporting structure for this employee.
-            </Typography>
-
-            <Divider sx={{ borderColor: '#2A2A2A' }} />
-
-            <FormControl fullWidth>
-              <InputLabel sx={{ color: '#B3B3B3', '&.Mui-focused': { color: '#007AFF' } }}>
-                Management Level
-              </InputLabel>
-              <Select
-                value={formData.managementLevelId || ''}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    managementLevelId: (e.target.value as Id<'careerTracks'>) || null,
-                  })
-                }
-                label="Management Level"
-                sx={{
-                  color: '#FFFFFF',
-                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2A2A2A' },
-                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#007AFF' },
-                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#007AFF' },
-                  '& .MuiSvgIcon-root': { color: '#FFFFFF' },
-                }}
-              >
-                <MenuItem value="">
-                  <em>None - Individual Contributor</em>
-                </MenuItem>
-                {managementLevels.map((level) => (
-                  <MenuItem key={level._id} value={level._id}>
-                    {level.name} - ${level.hourlyPremium ?? 0}/hr
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <FormControl fullWidth>
-              <InputLabel sx={{ color: '#B3B3B3', '&.Mui-focused': { color: '#007AFF' } }}>
-                Reports To
-              </InputLabel>
-              <Select
-                value={formData.reportsToEmployeeId || ''}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    reportsToEmployeeId: (e.target.value as Id<'employees'>) || null,
-                  })
-                }
-                label="Reports To"
-                sx={{
-                  color: '#FFFFFF',
-                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2A2A2A' },
-                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#007AFF' },
-                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#007AFF' },
-                  '& .MuiSvgIcon-root': { color: '#FFFFFF' },
-                }}
-              >
-                <MenuItem value="">
-                  <em>None</em>
-                </MenuItem>
-                {employees
-                  .filter((emp) => emp._id !== initialData?._id)
-                  .map((emp) => (
-                    <MenuItem key={emp._id} value={emp._id}>
-                      {emp.name} - {emp.positionCode || emp.position}
-                    </MenuItem>
-                  ))}
-              </Select>
-            </FormControl>
-
-            <Divider sx={{ borderColor: '#2A2A2A' }} />
-
-            <Typography
-              variant="subtitle2"
-              sx={{ color: '#666', fontWeight: 600, fontSize: '0.75rem', letterSpacing: '0.05em' }}
-            >
-              MANAGEMENT SUMMARY
-            </Typography>
-
-            <Box
-              sx={{
-                p: 2,
-                background: '#0A0A0A',
-                border: '1px solid #2A2A2A',
-                borderRadius: 1,
-              }}
-            >
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="body2" sx={{ color: '#B3B3B3' }}>
-                  Management Level:
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#FFFFFF', fontWeight: 600 }}>
-                  {formData.managementLevelId
-                    ? managementLevels.find((m) => m._id === formData.managementLevelId)?.name ||
-                      'Unknown'
-                    : 'None'}
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="body2" sx={{ color: '#B3B3B3' }}>
-                  Management Premium:
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#007AFF', fontWeight: 600 }}>
-                  ${costs.managementPremium.toFixed(2)}/hr
-                </Typography>
-              </Box>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Typography variant="body2" sx={{ color: '#B3B3B3' }}>
-                  Reports To:
+                  Base Pay:
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#FFFFFF', fontWeight: 600 }}>
-                  {formData.reportsToEmployeeId
-                    ? employees.find((e) => e._id === formData.reportsToEmployeeId)?.name ||
-                      'Unknown'
-                    : 'None'}
-                </Typography>
-              </Box>
-            </Box>
-          </Box>
-        </TabPanel>
-
-        {/* TAB 4: CERTIFICATIONS */}
-        <TabPanel value={activeTab} index={4}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-            <Typography variant="body2" sx={{ color: '#B3B3B3' }}>
-              Add professional certifications for this employee. Each certification may add an
-              hourly premium.
-            </Typography>
-
-            <Divider sx={{ borderColor: '#2A2A2A' }} />
-
-            <Typography
-              variant="subtitle2"
-              sx={{ color: '#007AFF', fontWeight: 600, fontSize: '0.75rem', letterSpacing: '0.05em' }}
-            >
-              ADD CERTIFICATION
-            </Typography>
-
-            <FormControl fullWidth>
-              <InputLabel sx={{ color: '#B3B3B3', '&.Mui-focused': { color: '#007AFF' } }}>
-                Certification
-              </InputLabel>
-              <Select
-                value={newCertif.certificationId || ''}
-                onChange={(e) =>
-                  setNewCertif({
-                    ...newCertif,
-                    certificationId: e.target.value as Id<'careerTracks'>,
-                  })
-                }
-                label="Certification"
-                sx={{
-                  color: '#FFFFFF',
-                  '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2A2A2A' },
-                  '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: '#007AFF' },
-                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#007AFF' },
-                  '& .MuiSvgIcon-root': { color: '#FFFFFF' },
-                }}
-              >
-                <MenuItem value="">
-                  <em>None</em>
-                </MenuItem>
-                {certifications.map((cert) => (
-                  <MenuItem key={cert._id} value={cert._id}>
-                    {cert.name} ({cert.code}) - ${cert.hourlyPremium || 0}/hr
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
-              <TextField
-                label="Date Earned"
-                type="date"
-                value={newCertif.dateEarned}
-                onChange={(e) =>
-                  setNewCertif({
-                    ...newCertif,
-                    dateEarned: e.target.value,
-                  })
-                }
-                InputLabelProps={{ shrink: true }}
-                sx={{
-                  '& .MuiInputLabel-root': { color: '#B3B3B3' },
-                  '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
-                  '& .MuiOutlinedInput-root': {
-                    color: '#FFFFFF',
-                    '& fieldset': { borderColor: '#2A2A2A' },
-                    '&:hover fieldset': { borderColor: '#007AFF' },
-                    '&.Mui-focused fieldset': { borderColor: '#007AFF' },
-                  },
-                }}
-              />
-
-              <TextField
-                label="Expires At (Optional)"
-                type="date"
-                value={newCertif.expiresAt || ''}
-                onChange={(e) =>
-                  setNewCertif({
-                    ...newCertif,
-                    expiresAt: e.target.value,
-                  })
-                }
-                InputLabelProps={{ shrink: true }}
-                sx={{
-                  '& .MuiInputLabel-root': { color: '#B3B3B3' },
-                  '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
-                  '& .MuiOutlinedInput-root': {
-                    color: '#FFFFFF',
-                    '& fieldset': { borderColor: '#2A2A2A' },
-                    '&:hover fieldset': { borderColor: '#007AFF' },
-                    '&.Mui-focused fieldset': { borderColor: '#007AFF' },
-                  },
-                }}
-              />
-            </Box>
-
-            <TextField
-              label="Certification Number (Optional)"
-              value={newCertif.certificationNumber || ''}
-              onChange={(e) =>
-                setNewCertif({
-                  ...newCertif,
-                  certificationNumber: e.target.value,
-                })
-              }
-              sx={{
-                '& .MuiInputLabel-root': { color: '#B3B3B3' },
-                '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
-                '& .MuiOutlinedInput-root': {
-                  color: '#FFFFFF',
-                  '& fieldset': { borderColor: '#2A2A2A' },
-                  '&:hover fieldset': { borderColor: '#007AFF' },
-                  '&.Mui-focused fieldset': { borderColor: '#007AFF' },
-                },
-              }}
-            />
-
-            <Button
-              variant="outlined"
-              startIcon={<AddIcon />}
-              onClick={handleAddCertification}
-              sx={{
-                borderColor: '#007AFF',
-                color: '#007AFF',
-                '&:hover': { borderColor: '#0066DD', background: 'rgba(0, 122, 255, 0.1)' },
-              }}
-            >
-              Add Certification
-            </Button>
-
-            <Divider sx={{ borderColor: '#2A2A2A' }} />
-
-            <Typography
-              variant="subtitle2"
-              sx={{ color: '#666', fontWeight: 600, fontSize: '0.75rem', letterSpacing: '0.05em' }}
-            >
-              CERTIFICATIONS
-            </Typography>
-
-            {certifs.length === 0 ? (
-              <Typography variant="body2" sx={{ color: '#666', fontStyle: 'italic' }}>
-                No certifications added
-              </Typography>
-            ) : (
-              <Paper
-                sx={{
-                  background: '#0A0A0A',
-                  border: '1px solid #2A2A2A',
-                  borderRadius: 1,
-                  overflow: 'hidden',
-                }}
-              >
-                <Table>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell sx={{ color: '#B3B3B3', borderColor: '#2A2A2A' }}>
-                        Certification
-                      </TableCell>
-                      <TableCell sx={{ color: '#B3B3B3', borderColor: '#2A2A2A' }}>
-                        Date Earned
-                      </TableCell>
-                      <TableCell sx={{ color: '#B3B3B3', borderColor: '#2A2A2A' }}>
-                        Expires
-                      </TableCell>
-                      <TableCell sx={{ color: '#B3B3B3', borderColor: '#2A2A2A' }}>
-                        Actions
-                      </TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {certifs.map((cert, index) => (
-                      <TableRow key={index}>
-                        <TableCell sx={{ color: '#FFFFFF', borderColor: '#2A2A2A' }}>
-                          {getCertificationName(cert.certificationId)}
-                        </TableCell>
-                        <TableCell sx={{ color: '#FFFFFF', borderColor: '#2A2A2A' }}>
-                          {cert.dateEarned}
-                        </TableCell>
-                        <TableCell sx={{ color: '#FFFFFF', borderColor: '#2A2A2A' }}>
-                          {cert.expiresAt || 'N/A'}
-                        </TableCell>
-                        <TableCell sx={{ color: '#FFFFFF', borderColor: '#2A2A2A' }}>
-                          <IconButton
-                            size="small"
-                            onClick={() => handleRemoveCertification(index)}
-                            sx={{ color: '#FF3B30' }}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </Paper>
-            )}
-          </Box>
-        </TabPanel>
-
-        {/* TAB 5: COMPENSATION */}
-        <TabPanel value={activeTab} index={5}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-            <Typography variant="body2" sx={{ color: '#B3B3B3' }}>
-              Review the complete compensation breakdown including all qualifications and
-              multipliers.
-            </Typography>
-
-            <Divider sx={{ borderColor: '#2A2A2A' }} />
-
-            <Typography
-              variant="subtitle2"
-              sx={{ color: '#666', fontWeight: 600, fontSize: '0.75rem', letterSpacing: '0.05em' }}
-            >
-              QUALIFICATION BREAKDOWN
-            </Typography>
-
-            <Box
-              sx={{
-                p: 2,
-                background: '#0A0A0A',
-                border: '1px solid #2A2A2A',
-                borderRadius: 1,
-              }}
-            >
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="body2" sx={{ color: '#B3B3B3' }}>
-                  Base Rate:
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#FFFFFF', fontWeight: 600 }}>
-                  ${costs.baseRate.toFixed(2)}/hr
-                </Typography>
-              </Box>
-
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="body2" sx={{ color: '#B3B3B3' }}>
-                  × Tier {formData.tierLevel} Multiplier:
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#FFFFFF', fontWeight: 600 }}>
-                  {costs.tierMultiplier}x
-                </Typography>
-              </Box>
-
-              <Divider sx={{ borderColor: '#2A2A2A', my: 1.5 }} />
-
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="body2" sx={{ color: '#007AFF' }}>
-                  Base after Tier:
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#007AFF', fontWeight: 600 }}>
-                  ${(costs.baseRate * costs.tierMultiplier).toFixed(2)}/hr
-                </Typography>
-              </Box>
-
-              <Divider sx={{ borderColor: '#2A2A2A', my: 1.5 }} />
-
-              <Typography
-                variant="caption"
-                sx={{
-                  color: '#666',
-                  fontWeight: 600,
-                  fontSize: '0.7rem',
-                  letterSpacing: '0.05em',
-                  display: 'block',
-                  mb: 1,
-                }}
-              >
-                PREMIUMS
-              </Typography>
-
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                <Typography variant="body2" sx={{ color: '#B3B3B3' }}>
-                  + Primary Skill:
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#FFFFFF' }}>
-                  ${costs.primarySkillPremium.toFixed(2)}/hr
-                </Typography>
-              </Box>
-
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                <Typography variant="body2" sx={{ color: '#B3B3B3' }}>
-                  + Additional Skills (50%):
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#FFFFFF' }}>
-                  ${costs.additionalSkillsPremiums.toFixed(2)}/hr
-                </Typography>
-              </Box>
-
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                <Typography variant="body2" sx={{ color: '#B3B3B3' }}>
-                  + Management:
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#FFFFFF' }}>
-                  ${costs.managementPremium.toFixed(2)}/hr
-                </Typography>
-              </Box>
-
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="body2" sx={{ color: '#B3B3B3' }}>
-                  + Certifications:
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#FFFFFF' }}>
-                  ${costs.certificationPremiums.toFixed(2)}/hr
-                </Typography>
-              </Box>
-
-              <Divider sx={{ borderColor: '#007AFF', my: 1.5 }} />
-
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1.5 }}>
-                <Typography variant="body2" sx={{ color: '#B3B3B3', fontWeight: 600 }}>
-                  Total Qualification Rate:
-                </Typography>
-                <Typography variant="h6" sx={{ color: '#FFFFFF', fontWeight: 600 }}>
-                  ${costs.qualificationRate.toFixed(2)}/hr
-                </Typography>
-              </Box>
-
-              <Typography variant="caption" sx={{ color: '#666', display: 'block', mb: 1.5 }}>
-                This is what the employee earns
-              </Typography>
-
-              <Divider sx={{ borderColor: '#007AFF', my: 1.5 }} />
-
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="body2" sx={{ color: '#666' }}>
-                  × Burden Multiplier ({costs.burdenMultiplier}x):
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#666' }}>
-                  Taxes, benefits, insurance
-                </Typography>
-              </Box>
-
-              <Divider sx={{ borderColor: '#007AFF', my: 1.5 }} />
-
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography variant="h6" sx={{ color: '#007AFF', fontWeight: 600 }}>
-                  FINAL EFFECTIVE RATE
-                </Typography>
-                <Typography variant="h5" sx={{ color: '#007AFF', fontWeight: 700 }}>
-                  ${costs.effectiveRate.toFixed(2)}/hr
-                </Typography>
-              </Box>
-
-              <Typography variant="caption" sx={{ color: '#666', display: 'block', mt: 0.5 }}>
-                True cost to company per hour
-              </Typography>
-            </Box>
-
-            <Divider sx={{ borderColor: '#2A2A2A' }} />
-
-            <Typography
-              variant="subtitle2"
-              sx={{ color: '#666', fontWeight: 600, fontSize: '0.75rem', letterSpacing: '0.05em' }}
-            >
-              ANNUAL PROJECTIONS
-            </Typography>
-
-            <Box
-              sx={{
-                p: 2,
-                background: '#0A0A0A',
-                border: '1px solid #2A2A2A',
-                borderRadius: 1,
-              }}
-            >
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                <Typography variant="body2" sx={{ color: '#B3B3B3' }}>
-                  Employee Earnings (2000 hrs):
-                </Typography>
-                <Typography variant="body2" sx={{ color: '#FFFFFF', fontWeight: 600 }}>
-                  ${(costs.qualificationRate * 2000).toLocaleString()}
+                  ${costs.hourlyRate.toFixed(2)}/hr
                 </Typography>
               </Box>
 
               <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography variant="body2" sx={{ color: '#B3B3B3' }}>
-                  Total Company Cost (2000 hrs):
+                <Typography variant="body2" sx={{ color: '#B3B3B3', fontSize: '0.875rem' }}>
+                  + Workers Comp ({formData.workersCompRate}%):
                 </Typography>
-                <Typography variant="body2" sx={{ color: '#007AFF', fontWeight: 700 }}>
-                  ${costs.annualCost.toLocaleString()}
+                <Typography variant="body2" sx={{ color: '#B3B3B3', fontSize: '0.875rem' }}>
+                  ${costs.workersComp.toFixed(2)}/hr
                 </Typography>
+              </Box>
+
+              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Typography variant="body2" sx={{ color: '#B3B3B3', fontSize: '0.875rem' }}>
+                  + Payroll Tax ({formData.payrollTaxRate}%):
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#B3B3B3', fontSize: '0.875rem' }}>
+                  ${costs.payrollTax.toFixed(2)}/hr
+                </Typography>
+              </Box>
+
+              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Typography variant="body2" sx={{ color: '#B3B3B3', fontSize: '0.875rem' }}>
+                  + Health Insurance:
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#B3B3B3', fontSize: '0.875rem' }}>
+                  ${costs.healthHourly.toFixed(2)}/hr
+                </Typography>
+              </Box>
+
+              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Typography variant="body2" sx={{ color: '#B3B3B3', fontSize: '0.875rem' }}>
+                  + PTO & Holidays:
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#B3B3B3', fontSize: '0.875rem' }}>
+                  ${costs.ptoHolidayCost.toFixed(2)}/hr
+                </Typography>
+              </Box>
+
+              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Typography variant="body2" sx={{ color: '#B3B3B3', fontSize: '0.875rem' }}>
+                  + Allowances:
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#B3B3B3', fontSize: '0.875rem' }}>
+                  ${(costs.phoneHourly + costs.vehicleHourly).toFixed(2)}/hr
+                </Typography>
+              </Box>
+
+              <Divider sx={{ borderColor: '#007AFF', my: 1 }} />
+
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box>
+                  <Typography variant="h5" sx={{ color: '#007AFF', fontWeight: 700 }}>
+                    ${costs.totalBurdenedHourly.toFixed(2)}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#666' }}>
+                    per hour true cost
+                  </Typography>
+                </Box>
+                <Box sx={{ textAlign: 'right' }}>
+                  <Typography variant="body2" sx={{ color: '#B3B3B3' }}>
+                    Burden: +{costs.burdenPercentage.toFixed(0)}%
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: '#666' }}>
+                    Annual: ${costs.annualBurdenedCost.toLocaleString()}
+                  </Typography>
+                </Box>
               </Box>
             </Box>
           </Box>
-        </TabPanel>
+        </Box>
       </DialogContent>
 
       <DialogActions sx={{ p: 2, borderTop: '1px solid #2A2A2A' }}>
@@ -1765,6 +819,7 @@ export default function EmployeeFormModal({
           sx={{
             background: '#007AFF',
             '&:hover': { background: '#0066DD' },
+            px: 4,
           }}
         >
           {isEditing ? 'Update Employee' : 'Create Employee'}

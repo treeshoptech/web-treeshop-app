@@ -139,12 +139,39 @@ export default defineSchema({
     emergencyContactPhone: v.optional(v.string()),
     emergencyContactRelationship: v.optional(v.string()),
 
-    // TreeShop Qualification Code System
+    // SIMPLE TRADITIONAL MODEL (Fully-Burdened Cost)
+    // Basic Info
+    positionTitle: v.optional(v.string()), // Simple text like "Crew Leader" or "Operator"
+    payType: v.optional(v.union(v.literal("hourly"), v.literal("salary"))), // hourly or salary
+
+    // Base Pay
+    baseHourlyRate: v.optional(v.number()), // For hourly employees
+    annualSalary: v.optional(v.number()), // For salaried employees
+
+    // Burden Rates & Benefits
+    workersCompRate: v.optional(v.number()), // Percentage (e.g., 8.5 for 8.5%)
+    payrollTaxRate: v.optional(v.number()), // Percentage (default 12%)
+    healthInsuranceMonthly: v.optional(v.number()), // $ per month
+    ptoHoursPerYear: v.optional(v.number()), // PTO hours
+    holidayHoursPerYear: v.optional(v.number()), // Holiday hours
+
+    // Allowances
+    phoneAllowance: v.optional(v.number()), // $ per month
+    vehicleAllowance: v.optional(v.number()), // $ per month
+    otherAllowances: v.optional(v.number()), // $ per month
+
+    // Work Schedule
+    overtimeEligible: v.optional(v.boolean()), // Can earn OT?
+    expectedAnnualBillableHours: v.optional(v.number()), // Expected billable hours per year
+
+    // Calculated Fully-Burdened Rate
+    fullyBurdenedHourlyRate: v.optional(v.number()), // Final calculated rate
+
+    // TreeShop Qualification Code System (LEGACY - DEPRECATED)
     positionCode: v.optional(v.string()), // "TRS", "GC", "EO", etc.
     tierLevel: v.optional(v.number()), // 1-5 (experience level)
-    baseHourlyRate: v.optional(v.number()), // Base rate before qualifications
 
-    // Leadership & Certifications (add to base rate)
+    // Leadership & Certifications (LEGACY - DEPRECATED)
     hasLeadership: v.optional(v.boolean()), // +L ($3/hr)
     hasSupervisor: v.optional(v.boolean()), // +S ($7/hr)
     equipmentLevel: v.optional(v.number()), // 1-4 (+$0, +$1.50, +$4, +$7)
@@ -152,18 +179,17 @@ export default defineSchema({
     hasCrane: v.optional(v.boolean()), // +$4/hr
     hasOSHA: v.optional(v.boolean()), // +$2/hr
 
-    // Calculated Qualification Rate
+    // Calculated Qualification Rate (LEGACY - DEPRECATED)
     qualificationRate: v.optional(v.number()), // Hourly rate after all qualifications
     qualificationCode: v.optional(v.string()), // "TRS4+S+E3+D3+CRA"
 
-    // Burden & Final Cost
+    // Burden & Final Cost (LEGACY - DEPRECATED)
     burdenMultiplier: v.optional(v.number()), // 1.6-2.2x (tier-based)
-    effectiveRate: v.number(), // Final cost per hour (qualificationRate × burdenMultiplier)
+    effectiveRate: v.optional(v.number()), // Final cost per hour (qualificationRate × burdenMultiplier) - NOW OPTIONAL
 
     // Legacy fields (backward compatibility)
     position: v.optional(v.string()),
     hourlyRate: v.optional(v.number()),
-    annualSalary: v.optional(v.number()),
     annualBenefits: v.optional(v.number()),
     annualPayrollTaxes: v.optional(v.number()),
     annualInsurance: v.optional(v.number()),
@@ -171,7 +197,7 @@ export default defineSchema({
     annualWorkingHours: v.optional(v.number()),
     hourlyCost: v.optional(v.number()),
 
-    // Multi-track System Fields
+    // Multi-track System Fields (LEGACY - DEPRECATED)
     managementLevelId: v.optional(v.id("managementLevels")), // Links to management level
     reportsToEmployeeId: v.optional(v.id("employees")), // Self-referential for reporting hierarchy
     employmentType: v.optional(

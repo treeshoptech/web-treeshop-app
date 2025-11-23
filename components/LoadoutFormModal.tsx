@@ -249,7 +249,7 @@ export default function LoadoutFormModal({
             >
               {employees?.map((emp) => (
                 <MenuItem key={emp._id} value={emp._id}>
-                  {emp.name} - ${emp.effectiveRate.toFixed(2)}/hr
+                  {emp.name} - ${(emp.effectiveRate || 0).toFixed(2)}/hr
                 </MenuItem>
               ))}
             </Select>
