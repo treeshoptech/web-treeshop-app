@@ -54,6 +54,7 @@ export const createEquipment = mutation({
     auctionPrice: v.number(),
     annualOperatingHours: v.number(),
     fuelConsumptionPerHour: v.number(),
+    fuelPricePerGallon: v.optional(v.number()), // Sent from form but not used (we use company setting)
     annualMaintenanceCost: v.number(),
     annualOtherCosts: v.optional(v.number()),
     overheadMultiplier: v.optional(v.number()),
@@ -130,6 +131,7 @@ export const updateEquipment = mutation({
     auctionPrice: v.number(),
     annualOperatingHours: v.number(),
     fuelConsumptionPerHour: v.number(),
+    fuelPricePerGallon: v.optional(v.number()), // Sent from form but not used
     annualMaintenanceCost: v.number(),
     annualOtherCosts: v.optional(v.number()),
     overheadMultiplier: v.optional(v.number()),
