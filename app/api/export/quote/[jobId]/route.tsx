@@ -1,3 +1,4 @@
+import React from 'react';
 import { NextRequest, NextResponse } from 'next/server';
 import { renderToStream } from '@react-pdf/renderer';
 import { CustomerQuotePDF } from '@/components/CustomerQuotePDF';
@@ -67,13 +68,13 @@ export async function GET(
 
     // Generate PDF
     const pdfStream = await renderToStream(
-      CustomerQuotePDF({ job, company })
+      <CustomerQuotePDF job={job} company={company} />
     );
 
     // Convert stream to buffer
     const chunks: Uint8Array[] = [];
     for await (const chunk of pdfStream) {
-      chunks.push(chunk);
+      chunks.push(chunk as Uint8Array);
     }
     const pdfBuffer = Buffer.concat(chunks);
 
