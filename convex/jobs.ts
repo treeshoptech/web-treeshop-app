@@ -115,12 +115,31 @@ export const getJob = query({
       }
     }
 
+    // Get loadout if assigned (includes employees + equipment)
+    let loadout = null;
+    if (job.assignedLoadoutId) {
+      loadout = await ctx.db.get(job.assignedLoadoutId);
+      if (loadout) {
+        // Batch fetch employees and equipment
+        const [employees, equipment] = await Promise.all([
+          Promise.all(loadout.employeeIds.map((id) => ctx.db.get(id))),
+          Promise.all(loadout.equipmentIds.map((id) => ctx.db.get(id))),
+        ]);
+        loadout = {
+          ...loadout,
+          employees: employees.filter((e) => e !== null),
+          equipment: equipment.filter((e) => e !== null),
+        };
+      }
+    }
+
     return {
       ...job,
       customer,
       lineItems,
       timeLogs: enrichedTimeLogs,
       crew,
+      loadout, // NEW: Include full loadout with employees + equipment
     };
   },
 });
@@ -210,6 +229,7 @@ export const createJob = mutation({
     )),
     notes: v.optional(v.string()),
     assignedCrewId: v.optional(v.id("crews")),
+    assignedLoadoutId: v.optional(v.id("loadouts")), // NEW: Loadout assignment
   },
   handler: async (ctx, args) => {
     const orgId = await getOrganizationId(ctx);
@@ -228,10 +248,20 @@ export const createJob = mutation({
       estimatedTotalHours: 0, // Will update when line items added
       totalInvestment: 0, // Will update when line items added
       assignedCrewId: args.assignedCrewId,
+      assignedLoadoutId: args.assignedLoadoutId, // NEW
       notes: args.notes,
       createdAt: Date.now(),
       updatedAt: Date.now(),
     });
+
+    // Get loadout hourly cost if assigned (for support task pricing)
+    let loadoutHourlyCost = 0;
+    if (args.assignedLoadoutId) {
+      const loadout = await ctx.db.get(args.assignedLoadoutId);
+      if (loadout) {
+        loadoutHourlyCost = loadout.totalHourlyCost;
+      }
+    }
 
     // Create default project phase line items
     // Phase 1: Mobilization
@@ -242,7 +272,7 @@ export const createJob = mutation({
       baseScore: 1,
       adjustedScore: 1,
       estimatedHours: 1,
-      lineItemTotal: 500,
+      lineItemTotal: loadoutHourlyCost > 0 ? loadoutHourlyCost * 1 : 500, // 1 hour × loadout cost
       status: "not_started",
       sortOrder: 1,
       createdAt: Date.now(),
@@ -255,7 +285,7 @@ export const createJob = mutation({
       baseScore: 1,
       adjustedScore: 1,
       estimatedHours: 0.5,
-      lineItemTotal: 250,
+      lineItemTotal: loadoutHourlyCost > 0 ? loadoutHourlyCost * 0.5 : 250, // 0.5 hours × loadout cost
       status: "not_started",
       sortOrder: 2,
       createdAt: Date.now(),
@@ -272,7 +302,7 @@ export const createJob = mutation({
       baseScore: 1,
       adjustedScore: 1,
       estimatedHours: 0.5,
-      lineItemTotal: 250,
+      lineItemTotal: loadoutHourlyCost > 0 ? loadoutHourlyCost * 0.5 : 250, // 0.5 hours × loadout cost
       status: "not_started",
       sortOrder: 98,
       createdAt: Date.now(),
@@ -285,7 +315,7 @@ export const createJob = mutation({
       baseScore: 1,
       adjustedScore: 1,
       estimatedHours: 1,
-      lineItemTotal: 500,
+      lineItemTotal: loadoutHourlyCost > 0 ? loadoutHourlyCost * 1 : 500, // 1 hour × loadout cost
       status: "not_started",
       sortOrder: 99,
       createdAt: Date.now(),
@@ -332,6 +362,77 @@ export const getDisplayId = query({
     const stage = job.lifecycleStage || "WO";
     const number = job.jobNumber.replace("WO-", ""); // Extract number part
     return `${stage}-${number}`;
+  },
+});
+
+// Assign or update loadout for a job
+export const assignLoadout = mutation({
+  args: {
+    jobId: v.id("jobs"),
+    loadoutId: v.id("loadouts"),
+    updateSupportTaskPricing: v.optional(v.boolean()), // If true, recalculate support task prices
+  },
+  handler: async (ctx, args) => {
+    const job = await ctx.db.get(args.jobId);
+    if (!job) throw new Error("Job not found");
+
+    // Verify ownership
+    await verifyDocumentOwnershipOptional(ctx, job, "job");
+
+    // Get the loadout
+    const loadout = await ctx.db.get(args.loadoutId);
+    if (!loadout) throw new Error("Loadout not found");
+
+    // Verify loadout ownership
+    await verifyDocumentOwnershipOptional(ctx, loadout, "loadout");
+
+    // Update job with loadout assignment
+    await ctx.db.patch(args.jobId, {
+      assignedLoadoutId: args.loadoutId,
+      updatedAt: Date.now(),
+    });
+
+    // Optionally update support task pricing based on loadout hourly cost
+    if (args.updateSupportTaskPricing) {
+      const supportTaskTypes = [
+        "transport_to_site",
+        "site_setup",
+        "site_cleanup",
+        "transport_from_site",
+      ];
+
+      const lineItems = await ctx.db
+        .query("jobLineItems")
+        .withIndex("by_job", (q) => q.eq("jobId", args.jobId))
+        .collect();
+
+      for (const item of lineItems) {
+        if (supportTaskTypes.includes(item.serviceType)) {
+          const newTotal = loadout.totalHourlyCost * item.estimatedHours;
+          await ctx.db.patch(item._id, {
+            lineItemTotal: newTotal,
+          });
+        }
+      }
+
+      // Recalculate job total investment
+      const updatedLineItems = await ctx.db
+        .query("jobLineItems")
+        .withIndex("by_job", (q) => q.eq("jobId", args.jobId))
+        .collect();
+
+      const newTotalInvestment = updatedLineItems.reduce(
+        (sum, item) => sum + item.lineItemTotal,
+        0
+      );
+
+      await ctx.db.patch(args.jobId, {
+        totalInvestment: newTotalInvestment,
+        updatedAt: Date.now(),
+      });
+    }
+
+    return { success: true };
   },
 });
 

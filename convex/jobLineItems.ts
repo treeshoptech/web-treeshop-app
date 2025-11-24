@@ -120,6 +120,59 @@ export const addLineItem = mutation({
   },
 });
 
+// Update line item hours (recalculates pricing for support tasks based on loadout)
+export const updateLineItemHours = mutation({
+  args: {
+    lineItemId: v.id("jobLineItems"),
+    estimatedHours: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const lineItem = await ctx.db.get(args.lineItemId);
+    if (!lineItem) throw new Error("Line item not found");
+
+    const job = await ctx.db.get(lineItem.jobId);
+    if (!job) throw new Error("Job not found");
+
+    // Check if this is a support task
+    const supportTaskTypes = [
+      "transport_to_site",
+      "site_setup",
+      "site_cleanup",
+      "transport_from_site",
+    ];
+    const isSupportTask = supportTaskTypes.includes(lineItem.serviceType);
+
+    let newLineItemTotal = lineItem.lineItemTotal;
+
+    // If support task and job has loadout, recalculate based on loadout hourly cost
+    if (isSupportTask && job.assignedLoadoutId) {
+      const loadout = await ctx.db.get(job.assignedLoadoutId);
+      if (loadout) {
+        newLineItemTotal = loadout.totalHourlyCost * args.estimatedHours;
+      }
+    }
+
+    // Calculate differences for job totals
+    const hoursDiff = args.estimatedHours - lineItem.estimatedHours;
+    const totalDiff = newLineItemTotal - lineItem.lineItemTotal;
+
+    // Update line item
+    await ctx.db.patch(args.lineItemId, {
+      estimatedHours: args.estimatedHours,
+      lineItemTotal: newLineItemTotal,
+    });
+
+    // Update job totals
+    await ctx.db.patch(lineItem.jobId, {
+      estimatedTotalHours: job.estimatedTotalHours + hoursDiff,
+      totalInvestment: job.totalInvestment + totalDiff,
+      updatedAt: Date.now(),
+    });
+
+    return { success: true };
+  },
+});
+
 // Delete line item
 export const deleteLineItem = mutation({
   args: { lineItemId: v.id("jobLineItems") },

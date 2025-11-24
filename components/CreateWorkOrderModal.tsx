@@ -34,9 +34,11 @@ interface CreateWorkOrderModalProps {
     status?: 'draft' | 'sent' | 'accepted' | 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
     notes?: string;
     assignedCrewId?: Id<'crews'>;
+    assignedLoadoutId?: Id<'loadouts'>;
   }) => void;
   customers: any[];
   crews: any[];
+  loadouts: any[];
 }
 
 export default function CreateWorkOrderModal({
@@ -45,6 +47,7 @@ export default function CreateWorkOrderModal({
   onSubmit,
   customers,
   crews,
+  loadouts,
 }: CreateWorkOrderModalProps) {
   const createCustomer = useMutation(api.customers.createCustomer);
   const { showError } = useSnackbar();
@@ -53,6 +56,7 @@ export default function CreateWorkOrderModal({
   const [customerId, setCustomerId] = useState<string>('');
   const [notes, setNotes] = useState('');
   const [assignedCrewId, setAssignedCrewId] = useState<string>('');
+  const [assignedLoadoutId, setAssignedLoadoutId] = useState<string>('');
 
   // New customer form fields
   const [newCustomer, setNewCustomer] = useState({
@@ -110,6 +114,7 @@ export default function CreateWorkOrderModal({
       status: 'draft', // Always start as draft
       notes: notes || undefined,
       assignedCrewId: assignedCrewId ? (assignedCrewId as Id<'crews'>) : undefined,
+      assignedLoadoutId: assignedLoadoutId ? (assignedLoadoutId as Id<'loadouts'>) : undefined,
     });
 
     // Reset form
@@ -468,15 +473,15 @@ export default function CreateWorkOrderModal({
 
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
 
-              {crews.length > 0 && (
+              {loadouts.length > 0 && (
                 <FormControl fullWidth>
                   <InputLabel sx={{ color: '#B3B3B3', '&.Mui-focused': { color: '#007AFF' } }}>
-                    Assign Crew (Optional)
+                    Assign Loadout (Recommended)
                   </InputLabel>
                   <Select
-                    value={assignedCrewId}
-                    onChange={(e) => setAssignedCrewId(e.target.value)}
-                    label="Assign Crew (Optional)"
+                    value={assignedLoadoutId}
+                    onChange={(e) => setAssignedLoadoutId(e.target.value)}
+                    label="Assign Loadout (Recommended)"
                     sx={{
                       color: '#FFFFFF',
                       '& .MuiOutlinedInput-notchedOutline': { borderColor: '#2A2A2A' },
@@ -486,11 +491,11 @@ export default function CreateWorkOrderModal({
                     }}
                   >
                     <MenuItem value="">
-                      <em>No crew assigned yet</em>
+                      <em>No loadout - crew only</em>
                     </MenuItem>
-                    {crews.map((crew) => (
-                      <MenuItem key={crew._id} value={crew._id}>
-                        {crew.name}
+                    {loadouts.map((loadout) => (
+                      <MenuItem key={loadout._id} value={loadout._id}>
+                        {loadout.name} (${loadout.totalHourlyCost?.toFixed(0)}/hr)
                       </MenuItem>
                     ))}
                   </Select>

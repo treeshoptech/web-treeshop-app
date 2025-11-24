@@ -28,6 +28,7 @@ export default function WorkOrdersPage() {
   const jobs = useQuery(api.jobs.listJobs);
   const customers = useQuery(api.customers.listCustomers);
   const crews = useQuery(api.crews.listCrews);
+  const loadouts = useQuery(api.loadouts.listLoadouts);
   const createJob = useMutation(api.jobs.createJob);
   const deleteJob = useMutation(api.jobs.deleteJob);
   const { showError, showConfirm } = useSnackbar();
@@ -328,6 +329,7 @@ export default function WorkOrdersPage() {
         onSubmit={handleCreateWorkOrder}
         customers={customers || []}
         crews={crews || []}
+        loadouts={loadouts || []}
       />
     </Container>
   );

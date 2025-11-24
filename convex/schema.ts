@@ -37,7 +37,8 @@ export default defineSchema({
     customerPhone: v.optional(v.string()),
 
     // Crew Assignment
-    assignedCrewId: v.optional(v.id("crews")),
+    assignedCrewId: v.optional(v.id("crews")), // Legacy - prefer assignedLoadoutId
+    assignedLoadoutId: v.optional(v.id("loadouts")), // NEW: Full crew + equipment assignment
 
     // Totals
     estimatedTotalHours: v.number(),
@@ -60,7 +61,8 @@ export default defineSchema({
     .index("by_customer", ["customerId"])
     .index("by_company", ["companyId"])
     .index("by_company_status", ["companyId", "status"])
-    .index("by_company_date", ["companyId", "startDate"]),
+    .index("by_company_date", ["companyId", "startDate"])
+    .index("by_loadout", ["assignedLoadoutId"]),
 
   // Job Line Items (Service Items in Work Order)
   jobLineItems: defineTable({
