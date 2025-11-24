@@ -225,145 +225,96 @@ export default function RightSidebar({ open, onClose }: RightSidebarProps) {
 
         <Divider sx={{ borderColor: '#1A1A1A' }} />
 
-        {/* User Profile Section (Bottom) */}
+        {/* User Profile Section (Bottom) - Compact */}
         <Box
           sx={{
-            p: 3,
+            p: 2,
             background: 'rgba(0, 0, 0, 0.3)',
             borderTop: '1px solid rgba(255, 255, 255, 0.05)',
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2.5, mb: 2.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
             <Avatar
               src={user?.imageUrl}
               sx={{
-                width: 52,
-                height: 52,
+                width: 36,
+                height: 36,
                 bgcolor: '#007AFF',
-                fontSize: '1.3rem',
+                fontSize: '0.9rem',
                 fontWeight: 700,
               }}
             >
-              {user?.firstName?.[0] || user?.emailAddresses?.[0]?.emailAddress?.[0]?.toUpperCase() || 'U'}
+              {user?.firstName?.[0] || 'U'}
             </Avatar>
-            <Box sx={{ flexGrow: 1 }}>
+            <Box sx={{ flexGrow: 1, minWidth: 0, overflow: 'hidden' }}>
               <Typography
                 sx={{
                   color: '#FFFFFF',
-                  fontWeight: 700,
-                  fontSize: '1rem',
-                  letterSpacing: '-0.01em',
-                }}
-              >
-                {user?.fullName || user?.emailAddresses?.[0]?.emailAddress || 'User'}
-              </Typography>
-              <Typography
-                sx={{
-                  color: '#8E8E93',
+                  fontWeight: 600,
                   fontSize: '0.85rem',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
                 }}
               >
-                {user?.primaryEmailAddress?.emailAddress || ''}
+                {user?.fullName || 'User'}
               </Typography>
+              {organization && (
+                <Typography
+                  sx={{
+                    color: '#666',
+                    fontSize: '0.7rem',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {organization.name}
+                </Typography>
+              )}
             </Box>
           </Box>
 
-          {/* User Action Buttons */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-            {/* Profile Link */}
-            <Link href="/shopos/profile" style={{ textDecoration: 'none' }}>
+          {/* Compact Actions */}
+          <Box sx={{ display: 'flex', gap: 1 }}>
+            <Link href="/shopos/profile" style={{ textDecoration: 'none', flex: 1 }}>
               <Button
                 fullWidth
+                size="small"
                 onClick={onClose}
-                startIcon={<AccountCircleIcon />}
                 sx={{
-                  color: '#FFFFFF',
+                  color: '#B3B3B3',
                   background: 'rgba(255, 255, 255, 0.05)',
-                  justifyContent: 'flex-start',
-                  px: 2,
-                  py: 1.2,
-                  borderRadius: 2,
+                  px: 1,
+                  py: 0.5,
+                  borderRadius: 1.5,
                   textTransform: 'none',
-                  fontWeight: 600,
-                  fontSize: '0.9rem',
-                  transition: 'all 0.2s ease',
+                  fontSize: '0.75rem',
+                  minWidth: 0,
                   '&:hover': {
                     background: 'rgba(0, 122, 255, 0.15)',
-                    transform: 'translateY(-1px)',
+                    color: '#FFFFFF',
                   },
                 }}
               >
-                User Profile
+                Profile
               </Button>
             </Link>
 
-            {/* Organization Switcher */}
-            <Box
-              sx={{
-                background: 'rgba(255, 255, 255, 0.05)',
-                borderRadius: 2,
-                p: 1.5,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1.5,
-                transition: 'all 0.2s ease',
-                '&:hover': {
-                  background: 'rgba(255, 255, 255, 0.08)',
-                },
-              }}
-            >
-              <BusinessIcon sx={{ color: '#007AFF', fontSize: 20 }} />
-              <Box sx={{ flexGrow: 1, minWidth: 0 }}>
-                <OrganizationSwitcher
-                  appearance={{
-                    elements: {
-                      rootBox: {
-                        width: '100%',
-                      },
-                      organizationSwitcherTrigger: {
-                        width: '100%',
-                        padding: '0',
-                        background: 'transparent',
-                        border: 'none',
-                        color: '#FFFFFF',
-                        fontSize: '0.9rem',
-                        fontWeight: 600,
-                        justifyContent: 'flex-start',
-                        '&:hover': {
-                          background: 'transparent',
-                        },
-                      },
-                      organizationPreview: {
-                        gap: '8px',
-                      },
-                      organizationSwitcherTriggerIcon: {
-                        color: '#8E8E93',
-                      },
-                    },
-                  }}
-                />
-              </Box>
-            </Box>
-
-            {/* Sign Out Button */}
             <SignOutButton>
               <Button
-                fullWidth
-                startIcon={<LogoutIcon />}
+                size="small"
                 sx={{
                   color: '#FF453A',
                   background: 'rgba(255, 69, 58, 0.1)',
-                  justifyContent: 'flex-start',
-                  px: 2,
-                  py: 1.2,
-                  borderRadius: 2,
+                  px: 1.5,
+                  py: 0.5,
+                  borderRadius: 1.5,
                   textTransform: 'none',
-                  fontWeight: 600,
-                  fontSize: '0.9rem',
-                  transition: 'all 0.2s ease',
+                  fontSize: '0.75rem',
+                  minWidth: 0,
                   '&:hover': {
                     background: 'rgba(255, 69, 58, 0.2)',
-                    transform: 'translateY(-1px)',
                   },
                 }}
               >
