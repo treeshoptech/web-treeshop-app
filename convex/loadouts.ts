@@ -8,14 +8,17 @@ export const listLoadouts = query({
   handler: async (ctx) => {
     const orgId = await getOrganizationId(ctx);
 
-    if (!orgId) {
-      return [];
-    }
-    const loadouts = await ctx.db
-      .query("loadouts")
-      .filter((q) => q.eq(q.field("companyId"), orgId))
-      .withIndex("by_active", (q) => q.eq("isActive", true))
-      .collect();
+    // Get loadouts - filter by orgId if available
+    const loadouts = orgId
+      ? await ctx.db
+          .query("loadouts")
+          .filter((q) => q.eq(q.field("companyId"), orgId))
+          .withIndex("by_active", (q) => q.eq("isActive", true))
+          .collect()
+      : await ctx.db
+          .query("loadouts")
+          .withIndex("by_active", (q) => q.eq("isActive", true))
+          .collect();
 
     // Batch fetch all unique employee and equipment IDs upfront
     const allEmployeeIds = Array.from(
