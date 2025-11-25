@@ -22,7 +22,7 @@ import {
 } from '@mui/material';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import SearchIcon from '@mui/icons-material/Search';
-import { Id } from '@/convex/_generated/dataModel';
+import { Id, Doc } from '@/convex/_generated/dataModel';
 import { useSnackbar } from '@/app/contexts/SnackbarContext';
 
 interface CreateWorkOrderModalProps {
@@ -36,9 +36,9 @@ interface CreateWorkOrderModalProps {
     assignedCrewId?: Id<'crews'>;
     assignedLoadoutId?: Id<'loadouts'>;
   }) => void;
-  customers: any[];
-  crews: any[];
-  loadouts: any[];
+  customers: Doc<'customers'>[];
+  crews?: Doc<'crews'>[];
+  loadouts: (Doc<'loadouts'> & { totalHourlyCost?: number })[];
 }
 
 export default function CreateWorkOrderModal({
@@ -46,12 +46,12 @@ export default function CreateWorkOrderModal({
   onClose,
   onSubmit,
   customers,
-  crews,
   loadouts,
 }: CreateWorkOrderModalProps) {
   const createCustomer = useMutation(api.customers.createCustomer);
   const { showError } = useSnackbar();
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [mode, setMode] = useState<'select' | 'create'>('select');
   const [customerId, setCustomerId] = useState<string>('');
   const [notes, setNotes] = useState('');
@@ -75,65 +75,70 @@ export default function CreateWorkOrderModal({
   const selectedCustomer = customers.find((c) => c._id === customerId);
 
   const handleSubmit = async () => {
-    let finalCustomerId = customerId;
+    setIsSubmitting(true);
+    try {
+      let finalCustomerId = customerId;
 
-    // If creating new customer, create it first
-    if (mode === 'create') {
-      if (!newCustomer.firstName || !newCustomer.lastName || !newCustomer.streetAddress || !newCustomer.city || !newCustomer.state || !newCustomer.zipCode) {
-        showError('Please fill in all required customer fields (Name, Address, City, State, Zip)');
+      // If creating new customer, create it first
+      if (mode === 'create') {
+        if (!newCustomer.firstName || !newCustomer.lastName || !newCustomer.streetAddress || !newCustomer.city || !newCustomer.state || !newCustomer.zipCode) {
+          showError('Please fill in all required customer fields (Name, Address, City, State, Zip)');
+          return;
+        }
+
+        try {
+          finalCustomerId = await createCustomer({
+            firstName: newCustomer.firstName,
+            lastName: newCustomer.lastName,
+            businessName: newCustomer.businessName || undefined,
+            phone: newCustomer.phone || undefined,
+            email: newCustomer.email || undefined,
+            streetAddress: newCustomer.streetAddress,
+            city: newCustomer.city,
+            state: newCustomer.state,
+            zipCode: newCustomer.zipCode,
+            propertyType: newCustomer.propertyType || undefined,
+            howDidTheyFindUs: undefined,
+            notes: undefined,
+          });
+        } catch (error) {
+          console.error('Error creating customer:', error);
+          showError('Error creating customer: ' + (error instanceof Error ? error.message : 'Unknown error'));
+          return;
+        }
+      } else if (!customerId) {
+        showError('Please select a customer');
         return;
       }
 
-      try {
-        finalCustomerId = await createCustomer({
-          firstName: newCustomer.firstName,
-          lastName: newCustomer.lastName,
-          businessName: newCustomer.businessName || undefined,
-          phone: newCustomer.phone || undefined,
-          email: newCustomer.email || undefined,
-          streetAddress: newCustomer.streetAddress,
-          city: newCustomer.city,
-          state: newCustomer.state,
-          zipCode: newCustomer.zipCode,
-          propertyType: newCustomer.propertyType || undefined,
-          howDidTheyFindUs: undefined,
-          notes: undefined,
-        });
-      } catch (error: any) {
-        console.error('Error creating customer:', error);
-        showError('Error creating customer: ' + (error.message || 'Unknown error'));
-        return;
-      }
-    } else if (!customerId) {
-      showError('Please select a customer');
-      return;
+      onSubmit({
+        customerId: finalCustomerId as Id<'customers'>,
+        status: 'draft', // Always start as draft
+        notes: notes || undefined,
+        assignedCrewId: assignedCrewId ? (assignedCrewId as Id<'crews'>) : undefined,
+        assignedLoadoutId: assignedLoadoutId ? (assignedLoadoutId as Id<'loadouts'>) : undefined,
+      });
+
+      // Reset form
+      setMode('select');
+      setCustomerId('');
+      setNotes('');
+      setAssignedCrewId('');
+      setNewCustomer({
+        firstName: '',
+        lastName: '',
+        businessName: '',
+        phone: '',
+        email: '',
+        streetAddress: '',
+        city: '',
+        state: '',
+        zipCode: '',
+        propertyType: '',
+      });
+    } finally {
+      setIsSubmitting(false);
     }
-
-    onSubmit({
-      customerId: finalCustomerId as Id<'customers'>,
-      status: 'draft', // Always start as draft
-      notes: notes || undefined,
-      assignedCrewId: assignedCrewId ? (assignedCrewId as Id<'crews'>) : undefined,
-      assignedLoadoutId: assignedLoadoutId ? (assignedLoadoutId as Id<'loadouts'>) : undefined,
-    });
-
-    // Reset form
-    setMode('select');
-    setCustomerId('');
-    setNotes('');
-    setAssignedCrewId('');
-    setNewCustomer({
-      firstName: '',
-      lastName: '',
-      businessName: '',
-      phone: '',
-      email: '',
-      streetAddress: '',
-      city: '',
-      state: '',
-      zipCode: '',
-      propertyType: '',
-    });
   };
 
   return (
@@ -142,6 +147,8 @@ export default function CreateWorkOrderModal({
       onClose={onClose}
       maxWidth="sm"
       fullWidth
+      aria-labelledby="create-work-order-title"
+      aria-describedby="create-work-order-description"
       PaperProps={{
         sx: {
           background: '#1A1A1A',
@@ -150,12 +157,12 @@ export default function CreateWorkOrderModal({
         },
       }}
     >
-      <DialogTitle sx={{ color: '#FFFFFF', borderBottom: '1px solid #2A2A2A' }}>
+      <DialogTitle id="create-work-order-title" sx={{ color: '#FFFFFF', borderBottom: '1px solid #2A2A2A' }}>
         <Box>
           <Typography sx={{ fontWeight: 600, fontSize: '1.25rem' }}>
             Create New Project
           </Typography>
-          <Typography variant="caption" sx={{ color: '#666' }}>
+          <Typography id="create-work-order-description" variant="caption" sx={{ color: '#666' }}>
             Job number will be auto-generated
           </Typography>
         </Box>
@@ -170,6 +177,7 @@ export default function CreateWorkOrderModal({
               exclusive
               onChange={(e, newMode) => newMode && setMode(newMode)}
               size="small"
+              aria-label="Customer selection mode"
               sx={{
                 '& .MuiToggleButton-root': {
                   px: 3,
@@ -561,6 +569,7 @@ export default function CreateWorkOrderModal({
         <Button
           variant="contained"
           onClick={handleSubmit}
+          disabled={isSubmitting}
           size="large"
           sx={{
             background: '#007AFF',
@@ -568,9 +577,13 @@ export default function CreateWorkOrderModal({
             px: 4,
             fontWeight: 600,
             '&:hover': { background: '#0066DD' },
+            '&.Mui-disabled': {
+              background: '#555',
+              color: '#999',
+            },
           }}
         >
-          Create Project
+          {isSubmitting ? 'Creating...' : 'Create Project'}
         </Button>
       </DialogActions>
     </Dialog>

@@ -1,4 +1,4 @@
-import { getOrganizationId, requireOrganizationId } from "./auth";
+import { getOrganizationId } from "./auth";
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { verifyDocumentOwnershipOptional } from "./authHelpers";
@@ -54,6 +54,9 @@ export const createEquipment = mutation({
     type: v.string(),
     category: v.optional(v.string()),
     subcategory: v.optional(v.string()),
+    vin: v.optional(v.string()),
+    serialNumber: v.optional(v.string()),
+    isAttachment: v.optional(v.boolean()),
     purchasePrice: v.number(),
     usefulLifeYears: v.number(),
     auctionPrice: v.number(),
@@ -62,6 +65,7 @@ export const createEquipment = mutation({
     fuelPricePerGallon: v.optional(v.number()), // Sent from form but not used (we use company setting)
     annualMaintenanceCost: v.number(),
     annualOtherCosts: v.optional(v.number()),
+    annualInsuranceCost: v.optional(v.number()),
     overheadMultiplier: v.optional(v.number()),
     notes: v.optional(v.string()),
   },
@@ -80,11 +84,13 @@ export const createEquipment = mutation({
     const annualDepreciation = (args.purchasePrice - args.auctionPrice) / args.usefulLifeYears;
     const hourlyDepreciation = annualDepreciation / args.annualOperatingHours;
 
-    const hourlyFuel = args.fuelConsumptionPerHour * fuelPricePerGallon;
+    // Attachments don't use fuel - only main equipment does
+    const hourlyFuel = args.isAttachment ? 0 : args.fuelConsumptionPerHour * fuelPricePerGallon;
     const hourlyMaintenance = args.annualMaintenanceCost / args.annualOperatingHours;
     const hourlyOther = (args.annualOtherCosts || 0) / args.annualOperatingHours;
+    const hourlyInsurance = (args.annualInsuranceCost || 0) / args.annualOperatingHours;
 
-    const hourlyCostBeforeOverhead = hourlyDepreciation + hourlyFuel + hourlyMaintenance + hourlyOther;
+    const hourlyCostBeforeOverhead = hourlyDepreciation + hourlyFuel + hourlyMaintenance + hourlyOther + hourlyInsurance;
     const overheadMultiplier = args.overheadMultiplier || 1.15;
     const hourlyCost = hourlyCostBeforeOverhead * overheadMultiplier;
 
@@ -97,6 +103,9 @@ export const createEquipment = mutation({
       type: args.type,
       category: args.category,
       subcategory: args.subcategory,
+      vin: args.vin,
+      serialNumber: args.serialNumber,
+      isAttachment: args.isAttachment,
       purchasePrice: args.purchasePrice,
       usefulLifeYears: args.usefulLifeYears,
       auctionPrice: args.auctionPrice,
@@ -104,10 +113,12 @@ export const createEquipment = mutation({
       fuelConsumptionPerHour: args.fuelConsumptionPerHour,
       annualMaintenanceCost: args.annualMaintenanceCost,
       annualOtherCosts: args.annualOtherCosts,
+      annualInsuranceCost: args.annualInsuranceCost,
       hourlyDepreciation,
       hourlyFuel,
       hourlyMaintenance,
       hourlyOther,
+      hourlyInsurance,
       hourlyCostBeforeOverhead,
       overheadMultiplier,
       hourlyCost,
@@ -131,6 +142,9 @@ export const updateEquipment = mutation({
     type: v.string(),
     category: v.optional(v.string()),
     subcategory: v.optional(v.string()),
+    vin: v.optional(v.string()),
+    serialNumber: v.optional(v.string()),
+    isAttachment: v.optional(v.boolean()),
     purchasePrice: v.number(),
     usefulLifeYears: v.number(),
     auctionPrice: v.number(),
@@ -139,6 +153,7 @@ export const updateEquipment = mutation({
     fuelPricePerGallon: v.optional(v.number()), // Sent from form but not used
     annualMaintenanceCost: v.number(),
     annualOtherCosts: v.optional(v.number()),
+    annualInsuranceCost: v.optional(v.number()),
     overheadMultiplier: v.optional(v.number()),
     notes: v.optional(v.string()),
     isActive: v.boolean(),
@@ -168,11 +183,13 @@ export const updateEquipment = mutation({
     const annualDepreciation = (data.purchasePrice - data.auctionPrice) / data.usefulLifeYears;
     const hourlyDepreciation = annualDepreciation / data.annualOperatingHours;
 
-    const hourlyFuel = data.fuelConsumptionPerHour * fuelPricePerGallon;
+    // Attachments don't use fuel - only main equipment does
+    const hourlyFuel = data.isAttachment ? 0 : data.fuelConsumptionPerHour * fuelPricePerGallon;
     const hourlyMaintenance = data.annualMaintenanceCost / data.annualOperatingHours;
     const hourlyOther = (data.annualOtherCosts || 0) / data.annualOperatingHours;
+    const hourlyInsurance = (data.annualInsuranceCost || 0) / data.annualOperatingHours;
 
-    const hourlyCostBeforeOverhead = hourlyDepreciation + hourlyFuel + hourlyMaintenance + hourlyOther;
+    const hourlyCostBeforeOverhead = hourlyDepreciation + hourlyFuel + hourlyMaintenance + hourlyOther + hourlyInsurance;
     const overheadMultiplier = data.overheadMultiplier || 1.15;
     const hourlyCost = hourlyCostBeforeOverhead * overheadMultiplier;
 
@@ -182,6 +199,7 @@ export const updateEquipment = mutation({
       hourlyFuel,
       hourlyMaintenance,
       hourlyOther,
+      hourlyInsurance,
       hourlyCostBeforeOverhead,
       overheadMultiplier,
       hourlyCost,

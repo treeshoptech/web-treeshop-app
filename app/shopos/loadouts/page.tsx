@@ -17,7 +17,7 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import GroupsIcon from '@mui/icons-material/Groups';
-import { Id } from '@/convex/_generated/dataModel';
+import { Doc, Id } from '@/convex/_generated/dataModel';
 import LoadoutFormModal from '@/components/LoadoutFormModal';
 import { useSnackbar } from '@/app/contexts/SnackbarContext';
 import DirectoryCard from '@/components/DirectoryCard';
@@ -28,9 +28,9 @@ export default function LoadoutsPage() {
   const { showError, showConfirm } = useSnackbar();
 
   const [formOpen, setFormOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<any>(null);
+  const [editingItem, setEditingItem] = useState<Doc<'loadouts'> | null>(null);
 
-  const handleOpenForm = (item?: any) => {
+  const handleOpenForm = (item?: Doc<'loadouts'>) => {
     setEditingItem(item || null);
     setFormOpen(true);
   };
@@ -41,8 +41,8 @@ export default function LoadoutsPage() {
       async () => {
         try {
           await deleteLoadout({ loadoutId: id });
-        } catch (error: any) {
-          showError(error.message);
+        } catch (error) {
+          showError(error instanceof Error ? error.message : 'An error occurred');
         }
       },
       'Delete Loadout'
@@ -119,7 +119,7 @@ export default function LoadoutsPage() {
                   value: (
                     <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
                       {(loadout.employees?.length ?? 0) > 0 ? (
-                        (loadout.employees ?? []).map((emp: any) => (
+                        (loadout.employees ?? []).map((emp: Doc<'employees'>) => (
                           <Chip
                             key={emp._id}
                             label={emp.name}
@@ -141,7 +141,7 @@ export default function LoadoutsPage() {
                   value: (
                     <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5 }}>
                       {(loadout.equipment?.length ?? 0) > 0 ? (
-                        (loadout.equipment ?? []).map((equip: any) => (
+                        (loadout.equipment ?? []).map((equip: Doc<'equipment'>) => (
                           <Chip
                             key={equip._id}
                             label={equip.name}
@@ -185,7 +185,7 @@ export default function LoadoutsPage() {
           setFormOpen(false);
           setEditingItem(null);
         }}
-        initialData={editingItem}
+        initialData={editingItem ?? undefined}
       />
     </Container>
   );

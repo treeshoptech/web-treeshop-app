@@ -16,19 +16,19 @@ interface ExportState {
   error: string | null;
 }
 
+// Generate safe filename helper - moved outside hook to avoid dependency warnings
+const getSafeFilename = (jobNumber: string, customerName: string | undefined, extension: 'pdf' | 'jpg') => {
+  const safeName = customerName
+    ? customerName.replace(/[^a-zA-Z0-9]/g, '_')
+    : 'Customer';
+  return `Quote_${jobNumber}_${safeName}.${extension}`;
+};
+
 export const useQuoteExport = ({ jobId, jobNumber, customerName }: UseQuoteExportOptions) => {
   const [state, setState] = useState<ExportState>({
     isExporting: false,
     error: null,
   });
-
-  // Generate safe filename
-  const getSafeFilename = (extension: 'pdf' | 'jpg') => {
-    const safeName = customerName
-      ? customerName.replace(/[^a-zA-Z0-9]/g, '_')
-      : 'Customer';
-    return `Quote_${jobNumber}_${safeName}.${extension}`;
-  };
 
   // Export to PDF via API route
   const exportToPDF = useCallback(async () => {
@@ -54,7 +54,7 @@ export const useQuoteExport = ({ jobId, jobNumber, customerName }: UseQuoteExpor
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = getSafeFilename('pdf');
+      link.download = getSafeFilename(jobNumber, customerName, 'pdf');
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -108,7 +108,7 @@ export const useQuoteExport = ({ jobId, jobNumber, customerName }: UseQuoteExpor
           const url = URL.createObjectURL(blob);
           const link = document.createElement('a');
           link.href = url;
-          link.download = getSafeFilename('jpg');
+          link.download = getSafeFilename(jobNumber, customerName, 'jpg');
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
@@ -172,7 +172,7 @@ export const useQuoteExport = ({ jobId, jobNumber, customerName }: UseQuoteExpor
         imgHeight * ratio
       );
 
-      pdf.save(getSafeFilename('pdf'));
+      pdf.save(getSafeFilename(jobNumber, customerName, 'pdf'));
 
       setState({ isExporting: false, error: null });
     } catch (error) {

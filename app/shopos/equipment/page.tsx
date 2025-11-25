@@ -16,7 +16,7 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import BuildIcon from '@mui/icons-material/Build';
-import { Id } from '@/convex/_generated/dataModel';
+import { Doc, Id } from '@/convex/_generated/dataModel';
 import EquipmentFormModal from '@/components/EquipmentFormModal';
 import { useSnackbar } from '@/app/contexts/SnackbarContext';
 import DirectoryCard from '@/components/DirectoryCard';
@@ -30,29 +30,33 @@ export default function EquipmentPage() {
   const deleteEquipment = useMutation(api.equipment.deleteEquipment);
   const { showError, showConfirm } = useSnackbar();
 
-  // DEBUG LOGGING
-  console.log("🔍 EQUIPMENT DEBUG:", {
-    equipment,
-    isUndefined: equipment === undefined,
-    isNull: equipment === null,
-    isArray: Array.isArray(equipment),
-    length: equipment?.length,
-    data: equipment,
-  });
-
   const [formOpen, setFormOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<any>(null);
+  const [editingItem, setEditingItem] = useState<Doc<'equipment'> | null>(null);
 
-  const handleOpenForm = (item?: any) => {
+  const handleOpenForm = (item?: Doc<'equipment'>) => {
     setEditingItem(item || null);
     setFormOpen(true);
   };
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: {
+    name: string;
+    type: string;
+    category?: string;
+    categoryId?: Id<'equipmentCategories'>;
+    typeId?: Id<'equipmentTypes'>;
+    hourlyCost: number;
+    purchasePrice?: number;
+    usefulLifeYears?: number;
+    auctionPrice?: number;
+    annualOperatingHours?: number;
+    fuelConsumptionPerHour?: number;
+    annualMaintenanceCost?: number;
+    notes?: string;
+  }) => {
     try {
       // Look up category and type names from IDs
-      const category = categories?.find((c: any) => c._id === data.categoryId);
-      const type = allTypes?.find((t: any) => t._id === data.typeId);
+      const category = categories?.find((c) => c._id === data.categoryId);
+      const type = allTypes?.find((t) => t._id === data.typeId);
 
       const submitData = {
         ...data,
@@ -69,14 +73,14 @@ export default function EquipmentPage() {
           equipmentId: editingItem._id,
           ...submitData,
           isActive: true,
-        });
+        } as Parameters<typeof updateEquipment>[0]);
       } else {
-        await createEquipment(submitData);
+        await createEquipment(submitData as Parameters<typeof createEquipment>[0]);
       }
       setFormOpen(false);
       setEditingItem(null);
-    } catch (error: any) {
-      showError(error.message);
+    } catch (error) {
+      showError(error instanceof Error ? error.message : 'An error occurred');
     }
   };
 
@@ -86,8 +90,8 @@ export default function EquipmentPage() {
       async () => {
         try {
           await deleteEquipment({ equipmentId: id });
-        } catch (error: any) {
-          showError(error.message);
+        } catch (error) {
+          showError(error instanceof Error ? error.message : 'An error occurred');
         }
       },
       'Delete Equipment'
@@ -153,7 +157,7 @@ export default function EquipmentPage() {
               No equipment yet
             </Typography>
             <Typography variant="body2" sx={{ color: '#8E8E93' }}>
-              Click "Add Equipment" to create your first equipment record
+              Click &quot;Add Equipment&quot; to create your first equipment record
             </Typography>
           </CardContent>
         </Card>
@@ -267,8 +271,8 @@ export default function EquipmentPage() {
           setFormOpen(false);
           setEditingItem(null);
         }}
-        onSubmit={handleSubmit}
-        initialData={editingItem}
+        onSubmit={handleSubmit as (data: Record<string, unknown>) => Promise<void>}
+        initialData={editingItem ?? undefined}
         isEditing={!!editingItem}
       />
     </Container>

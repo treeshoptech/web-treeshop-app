@@ -1,4 +1,3 @@
-import { getOrganizationId } from "./auth";
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
 import { verifyDocumentOwnershipOptional } from "./authHelpers";

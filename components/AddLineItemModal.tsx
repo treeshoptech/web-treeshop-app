@@ -65,19 +65,25 @@ export default function AddLineItemModal({ open, onClose, onSubmit }: AddLineIte
   // Load company default margin
   useEffect(() => {
     if (company && !profitMargin) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setProfitMargin(company.defaultProfitMargin.toString());
     }
-  }, [company]);
+  }, [company, profitMargin]);
 
   // Auto-populate production rate when loadout selected
   useEffect(() => {
     if (useLoadout && selectedLoadoutId && loadouts) {
       const selectedLoadout = loadouts.find(l => l._id === selectedLoadoutId);
       if (selectedLoadout?.productionRates) {
+        interface ProductionRate {
+          serviceType: string;
+          actualRatePerDay: number;
+        }
         const rate = selectedLoadout.productionRates.find(
-          (r: any) => r.serviceType === serviceType
+          (r: ProductionRate) => r.serviceType === serviceType
         );
         if (rate) {
+          // eslint-disable-next-line react-hooks/set-state-in-effect
           setProductionRate(rate.actualRatePerDay.toString());
         }
       }
@@ -119,7 +125,9 @@ export default function AddLineItemModal({ open, onClose, onSubmit }: AddLineIte
       }
 
       const margin = parseFloat(profitMargin) || 0;
-      const billingRate = totalCostPerHour * (1 + margin / 100);
+      // True margin formula: cost / (1 - margin%) = price where (price - cost) / price = margin%
+      // e.g., $200 / 0.70 = $285.71 → ($285.71 - $200) / $285.71 = 30% margin
+      const billingRate = margin > 0 ? totalCostPerHour / (1 - margin / 100) : totalCostPerHour;
       const totalCost = totalCostPerHour * estimatedHours;
       const lineItemTotal = billingRate * estimatedHours;
 
@@ -537,7 +545,7 @@ export default function AddLineItemModal({ open, onClose, onSubmit }: AddLineIte
 
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                   <Typography variant="caption" sx={{ color: '#666' }}>
-                    {acres || '0'} acres × {dbhPackage || '0'}" DBH
+                    {acres || '0'} acres × {dbhPackage || '0'}&quot; DBH
                   </Typography>
                 </Box>
 

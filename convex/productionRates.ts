@@ -1,6 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { getOrganizationId, requireOrganizationId } from "./auth";
+import { getOrganizationId } from "./auth";
 
 // Get production rates for an employee
 export const getEmployeeProductionRates = query({
@@ -23,7 +23,7 @@ export const getProductionRate = query({
     conditions: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    let query = ctx.db
+    const query = ctx.db
       .query("productionRates")
       .withIndex("by_employee", (q) => q.eq("employeeId", args.employeeId))
       .filter((q) => q.eq(q.field("serviceType"), args.serviceType));

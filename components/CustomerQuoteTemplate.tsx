@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Box, Typography, Card, CardContent, Divider, Stack } from '@mui/material';
+import { Box, Typography, Card, CardContent, Stack } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import type { Id } from '@/convex/_generated/dataModel';
 
@@ -366,7 +366,7 @@ export const CustomerQuoteTemplate = React.forwardRef<HTMLDivElement, CustomerQu
             borderBottom: '1px solid #E0E0E0',
           }}
         >
-          What's Included
+          What&apos;s Included
         </Typography>
         <Stack spacing={1.5} sx={{ marginBottom: 3 }}>
           {[

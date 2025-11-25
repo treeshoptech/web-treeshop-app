@@ -316,6 +316,13 @@ export default defineSchema({
     category: v.optional(v.string()),
     subcategory: v.optional(v.string()),
 
+    // Identification
+    vin: v.optional(v.string()), // Vehicle Identification Number
+    serialNumber: v.optional(v.string()), // Serial Number for non-vehicle equipment
+
+    // Equipment Classification
+    isAttachment: v.optional(v.boolean()), // Attachments don't require fuel tracking
+
     // Financial Data (TreeShop Method) - Optional for backward compatibility
     purchasePrice: v.optional(v.number()),
     usefulLifeYears: v.optional(v.number()),
@@ -327,15 +334,17 @@ export default defineSchema({
     fuelPricePerGallon: v.optional(v.number()), // DEPRECATED - use company defaultFuelPricePerGallon
     salvageValue: v.optional(v.number()), // DEPRECATED - use auctionPrice
 
-    // Maintenance
+    // Maintenance & Insurance
     annualMaintenanceCost: v.optional(v.number()),
     annualOtherCosts: v.optional(v.number()), // filters, belts, etc.
+    annualInsuranceCost: v.optional(v.number()), // Annual insurance premium
 
     // Calculated Costs
     hourlyDepreciation: v.optional(v.number()),
     hourlyFuel: v.optional(v.number()),
     hourlyMaintenance: v.optional(v.number()),
     hourlyOther: v.optional(v.number()),
+    hourlyInsurance: v.optional(v.number()), // Calculated from annualInsuranceCost
     hourlyCostBeforeOverhead: v.optional(v.number()),
     overheadMultiplier: v.optional(v.number()), // Default 1.15 (15% overhead)
     hourlyCost: v.number(), // Final cost per hour (always required)
@@ -395,6 +404,7 @@ export default defineSchema({
     defaultProfitMargin: v.number(), // Default profit margin %
     defaultFuelPricePerGallon: v.optional(v.number()),
     defaultEquipmentOverhead: v.optional(v.number()),
+    supportTaskMargin: v.optional(v.number()), // Margin for transport/setup/cleanup (decimal, e.g., 0.15 = 15%)
 
     // SOPs and Documentation
     sops: v.optional(v.string()), // JSON string of SOPs or markdown

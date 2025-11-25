@@ -1,6 +1,6 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
-import { getOrganizationId, requireOrganizationId } from "./auth";
+import { getOrganizationId } from "./auth";
 import { verifyDocumentOwnershipOptional } from "./authHelpers";
 
 // Generate comprehensive project report when job is completed
@@ -62,6 +62,7 @@ export const generateProjectReport = mutation({
     );
 
     // Group time logs by employee
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const timeLogsByEmployee = enrichedTimeLogs.reduce((acc: any, log: any) => {
       if (!acc[log.employeeId]) {
         acc[log.employeeId] = {
@@ -86,6 +87,7 @@ export const generateProjectReport = mutation({
     }, {});
 
     // Get crew info
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let crewMembers: any[] = [];
     if (job.assignedCrewId) {
       const crew = await ctx.db.get(job.assignedCrewId);

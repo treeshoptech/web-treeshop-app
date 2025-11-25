@@ -41,15 +41,6 @@ export default function ProjectReportsPage() {
     });
   };
 
-  const formatDateTime = (timestamp: number) => {
-    return new Date(timestamp).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-    });
-  };
 
   if (reports === undefined) {
     return (
@@ -203,7 +194,7 @@ export default function ProjectReportsPage() {
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <CalendarTodayIcon sx={{ color: '#666', fontSize: 16 }} />
                           <Typography variant="body2" sx={{ color: '#B3B3B3' }}>
-                            {formatDate(report.completedAt ?? Date.now())}
+                            {report.completedAt ? formatDate(report.completedAt) : 'N/A'}
                           </Typography>
                         </Box>
                       </Grid>

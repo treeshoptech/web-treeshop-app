@@ -12,6 +12,8 @@ export default function Header({ onMenuClick }: HeaderProps) {
   return (
     <AppBar
       position="fixed"
+      component="nav"
+      aria-label="Main navigation"
       sx={{
         background: 'rgba(0, 0, 0, 0.85)',
         backdropFilter: 'blur(20px)',
@@ -44,7 +46,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
         <IconButton
           edge="end"
           color="inherit"
-          aria-label="menu"
+          aria-label="Open navigation menu"
           onClick={onMenuClick}
           sx={{
             position: 'absolute',

@@ -20,11 +20,11 @@ export interface SummaryTableColumn {
   align?: 'left' | 'center' | 'right';
   sortable?: boolean;
   minWidth?: number;
-  format?: (value: any) => string;
+  format?: (value: string | number | null | undefined) => string;
 }
 
 export interface SummaryTableRow {
-  [key: string]: any;
+  [key: string]: string | number | null | undefined;
 }
 
 export interface SummaryTableProps {

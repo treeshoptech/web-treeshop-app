@@ -20,8 +20,8 @@ export default function CheckTokenPage() {
         } else {
           setError('No token received');
         }
-      } catch (e: any) {
-        setError(e.message);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'An error occurred');
       }
     };
     fetchToken();

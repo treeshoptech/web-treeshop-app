@@ -144,11 +144,26 @@ export const updateLineItemHours = mutation({
 
     let newLineItemTotal = lineItem.lineItemTotal;
 
-    // If support task and job has loadout, recalculate based on loadout hourly cost
+    // If support task and job has loadout, recalculate based on loadout hourly cost with margin
     if (isSupportTask && job.assignedLoadoutId) {
       const loadout = await ctx.db.get(job.assignedLoadoutId);
       if (loadout) {
-        newLineItemTotal = loadout.totalHourlyCost * args.estimatedHours;
+        // Get company support task margin (default 15%)
+        let supportTaskMargin = 0.15;
+        if (job.companyId) {
+          const company = await ctx.db
+            .query("companies")
+            .withIndex("by_company", (q) => q.eq("companyId", job.companyId))
+            .first();
+          if (company?.supportTaskMargin !== undefined) {
+            supportTaskMargin = company.supportTaskMargin;
+          }
+        }
+        // Apply true margin formula: cost / (1 - margin) = billable rate
+        const billableRate = supportTaskMargin > 0
+          ? loadout.totalHourlyCost / (1 - supportTaskMargin)
+          : loadout.totalHourlyCost;
+        newLineItemTotal = billableRate * args.estimatedHours;
       }
     }
 

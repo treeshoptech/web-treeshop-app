@@ -18,10 +18,15 @@ import {
 import { Id } from '@/convex/_generated/dataModel';
 import { useSnackbar } from '@/app/contexts/SnackbarContext';
 
+interface LineItem {
+  _id: string;
+  displayName: string;
+}
+
 interface ManualTimeEntryModalProps {
   open: boolean;
   onClose: () => void;
-  lineItems: any[];
+  lineItems: LineItem[];
   employeeId: Id<'employees'> | undefined;
   onSubmit: (data: {
     taskName: string;
@@ -122,7 +127,7 @@ export default function ManualTimeEntryModal({
             Add Manual Time Entry
           </Typography>
           <Typography variant="caption" sx={{ color: '#666' }}>
-            Log time that wasn't tracked with the timer
+            Log time that wasn&apos;t tracked with the timer
           </Typography>
         </Box>
       </DialogTitle>

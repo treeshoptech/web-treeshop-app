@@ -16,19 +16,15 @@ import {
 } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import AssignmentIcon from '@mui/icons-material/Assignment';
-import DescriptionIcon from '@mui/icons-material/Description';
 import AnalyticsIcon from '@mui/icons-material/Analytics';
 import SettingsIcon from '@mui/icons-material/Settings';
 import CloseIcon from '@mui/icons-material/Close';
 import BuildIcon from '@mui/icons-material/Build';
 import PeopleIcon from '@mui/icons-material/People';
 import PersonIcon from '@mui/icons-material/Person';
-import LogoutIcon from '@mui/icons-material/Logout';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import BusinessIcon from '@mui/icons-material/Business';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 import Link from 'next/link';
-import { useUser, useOrganization, SignOutButton, OrganizationSwitcher } from '@clerk/nextjs';
+import { useUser, useOrganization, SignOutButton } from '@clerk/nextjs';
 
 interface RightSidebarProps {
   open: boolean;
@@ -147,7 +143,7 @@ export default function RightSidebar({ open, onClose }: RightSidebarProps) {
 
           <Divider sx={{ borderColor: 'rgba(255, 255, 255, 0.06)', mb: 2 }} />
 
-          {menuSections.map((section, sectionIndex) => (
+          {menuSections.map((section) => (
             <Box key={section.title} sx={{ mb: 3 }}>
               <Typography
                 variant="caption"

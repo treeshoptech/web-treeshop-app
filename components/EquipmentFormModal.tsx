@@ -12,6 +12,8 @@ import {
   Typography,
   Divider,
   MenuItem,
+  FormControlLabel,
+  Checkbox,
 } from '@mui/material';
 import { useSnackbar } from '@/app/contexts/SnackbarContext';
 import { useQuery } from 'convex/react';
@@ -22,6 +24,9 @@ interface EquipmentFormData {
   year: string;
   make: string;
   model: string;
+  vin: string;
+  serialNumber: string;
+  isAttachment: boolean;
   categoryId: string;
   typeId: string;
   purchasePrice: string;
@@ -31,16 +36,39 @@ interface EquipmentFormData {
   fuelConsumptionPerHour: string;
   annualMaintenanceCost: string;
   annualOtherCosts: string;
+  annualInsuranceCost: string;
   notes: string;
 }
 
 interface EquipmentFormModalProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (data: any) => void;
-  initialData?: any;
+  onSubmit: (data: Record<string, unknown>) => void | Promise<void>;
+  initialData?: Record<string, unknown>;
   isEditing: boolean;
 }
+
+// Default empty form state (outside component to avoid recreation on each render)
+const emptyFormData: EquipmentFormData = {
+  name: '',
+  year: '',
+  make: '',
+  model: '',
+  vin: '',
+  serialNumber: '',
+  isAttachment: false,
+  categoryId: '',
+  typeId: '',
+  purchasePrice: '',
+  usefulLifeYears: '5',
+  auctionPrice: '0',
+  annualOperatingHours: '1500',
+  fuelConsumptionPerHour: '',
+  annualMaintenanceCost: '',
+  annualOtherCosts: '',
+  annualInsuranceCost: '',
+  notes: '',
+};
 
 export default function EquipmentFormModal({
   open,
@@ -50,6 +78,7 @@ export default function EquipmentFormModal({
   isEditing,
 }: EquipmentFormModalProps) {
   const { showError } = useSnackbar();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Fetch equipment categories and types
   const categories = useQuery(api.equipmentCategories.listCategories) || [];
@@ -61,6 +90,9 @@ export default function EquipmentFormModal({
     year: '',
     make: '',
     model: '',
+    vin: '',
+    serialNumber: '',
+    isAttachment: false,
     categoryId: '',
     typeId: '',
     purchasePrice: '',
@@ -70,40 +102,55 @@ export default function EquipmentFormModal({
     fuelConsumptionPerHour: '',
     annualMaintenanceCost: '',
     annualOtherCosts: '',
+    annualInsuranceCost: '',
     notes: '',
   });
 
   // Filter types based on selected category
+  interface EquipmentType {
+    _id: string;
+    categoryId: string;
+    name: string;
+  }
   const filteredTypes = formData.categoryId
-    ? allTypes.filter((t: any) => t.categoryId === formData.categoryId)
+    ? allTypes.filter((t: EquipmentType) => t.categoryId === formData.categoryId)
     : [];
 
   // Get org fuel price (default to 3.50 if not set)
   const orgFuelPrice = company?.defaultFuelPricePerGallon || 3.50;
 
-  // Populate form when editing
+  // Reset or populate form when modal opens
   useEffect(() => {
-    if (initialData) {
-      // Removed salvagePercent calculation - using direct auction price
-
-      setFormData({
-        name: initialData.name,
-        year: initialData.year || '',
-        make: initialData.make || '',
-        model: initialData.model || '',
-        categoryId: initialData.categoryId || '',
-        typeId: initialData.typeId || '',
-        purchasePrice: initialData.purchasePrice.toString(),
-        usefulLifeYears: initialData.usefulLifeYears.toString(),
-        auctionPrice: initialData.auctionPrice?.toString() || '0',
-        annualOperatingHours: initialData.annualOperatingHours.toString(),
-        fuelConsumptionPerHour: initialData.fuelConsumptionPerHour.toString(),
-        annualMaintenanceCost: initialData.annualMaintenanceCost.toString(),
-        annualOtherCosts: initialData.annualOtherCosts?.toString() || '',
-        notes: initialData.notes || '',
-      });
+    if (open) {
+      if (initialData) {
+        // Editing - populate with existing data
+        const data = initialData as Record<string, string | number | boolean | undefined>;
+        setFormData({
+          name: String(data.name || ''),
+          year: String(data.year || ''),
+          make: String(data.make || ''),
+          model: String(data.model || ''),
+          vin: String(data.vin || ''),
+          serialNumber: String(data.serialNumber || ''),
+          isAttachment: Boolean(data.isAttachment),
+          categoryId: String(data.categoryId || ''),
+          typeId: String(data.typeId || ''),
+          purchasePrice: String(data.purchasePrice || '0'),
+          usefulLifeYears: String(data.usefulLifeYears || '1'),
+          auctionPrice: String(data.auctionPrice || '0'),
+          annualOperatingHours: String(data.annualOperatingHours || '0'),
+          fuelConsumptionPerHour: String(data.fuelConsumptionPerHour || '0'),
+          annualMaintenanceCost: String(data.annualMaintenanceCost || '0'),
+          annualOtherCosts: String(data.annualOtherCosts || ''),
+          annualInsuranceCost: String(data.annualInsuranceCost || ''),
+          notes: String(data.notes || ''),
+        });
+      } else {
+        // Creating new - reset to empty form
+        setFormData(emptyFormData);
+      }
     }
-  }, [initialData]);
+  }, [open, initialData]);
 
   // Calculate costs in real-time (using org fuel price)
   const calculateCosts = () => {
@@ -114,14 +161,17 @@ export default function EquipmentFormModal({
     const fuelConsumption = parseFloat(formData.fuelConsumptionPerHour) || 0;
     const annualMaintenance = parseFloat(formData.annualMaintenanceCost) || 0;
     const annualOther = parseFloat(formData.annualOtherCosts) || 0;
+    const annualInsurance = parseFloat(formData.annualInsuranceCost) || 0;
 
     // Calculations (using org fuel price)
     const annualDepreciation = (purchasePrice - auctionPrice) / usefulLifeYears;
     const hourlyDepreciation = annualDepreciation / annualOperatingHours;
-    const hourlyFuel = fuelConsumption * orgFuelPrice;
+    // Attachments don't use fuel - only main equipment does
+    const hourlyFuel = formData.isAttachment ? 0 : fuelConsumption * orgFuelPrice;
     const hourlyMaintenance = annualMaintenance / annualOperatingHours;
     const hourlyOther = annualOther / annualOperatingHours;
-    const hourlyCostBeforeOverhead = hourlyDepreciation + hourlyFuel + hourlyMaintenance + hourlyOther;
+    const hourlyInsurance = annualInsurance / annualOperatingHours;
+    const hourlyCostBeforeOverhead = hourlyDepreciation + hourlyFuel + hourlyMaintenance + hourlyOther + hourlyInsurance;
     const hourlyCost = hourlyCostBeforeOverhead * 1.15; // 15% overhead
 
     return {
@@ -130,6 +180,7 @@ export default function EquipmentFormModal({
       hourlyFuel,
       hourlyMaintenance,
       hourlyOther,
+      hourlyInsurance,
       hourlyCostBeforeOverhead,
       hourlyCost,
     };
@@ -137,7 +188,7 @@ export default function EquipmentFormModal({
 
   const costs = calculateCosts();
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!formData.name || !formData.categoryId || !formData.typeId || !formData.purchasePrice) {
       showError('Please fill in required fields (Name, Category, Type, Purchase Price)');
       return;
@@ -146,24 +197,35 @@ export default function EquipmentFormModal({
     const purchasePrice = parseFloat(formData.purchasePrice);
     const auctionPrice = parseFloat(formData.auctionPrice) || 0;
 
-    onSubmit({
-      name: formData.name,
-      year: formData.year || undefined,
-      make: formData.make || undefined,
-      model: formData.model || undefined,
-      categoryId: formData.categoryId,
-      typeId: formData.typeId,
-      purchasePrice,
-      usefulLifeYears: parseFloat(formData.usefulLifeYears) || 5,
-      auctionPrice,
-      annualOperatingHours: parseFloat(formData.annualOperatingHours) || 1500,
-      fuelConsumptionPerHour: parseFloat(formData.fuelConsumptionPerHour) || 0,
-      fuelPricePerGallon: orgFuelPrice, // Use org fuel price
-      annualMaintenanceCost: parseFloat(formData.annualMaintenanceCost) || 0,
-      annualOtherCosts: parseFloat(formData.annualOtherCosts) || 0,
-      overheadMultiplier: 1.15,
-      notes: formData.notes || undefined,
-    });
+    setIsSubmitting(true);
+    try {
+      await onSubmit({
+        name: formData.name,
+        year: formData.year || undefined,
+        make: formData.make || undefined,
+        model: formData.model || undefined,
+        vin: formData.vin || undefined,
+        serialNumber: formData.serialNumber || undefined,
+        isAttachment: formData.isAttachment,
+        categoryId: formData.categoryId,
+        typeId: formData.typeId,
+        purchasePrice,
+        usefulLifeYears: parseFloat(formData.usefulLifeYears) || 5,
+        auctionPrice,
+        annualOperatingHours: parseFloat(formData.annualOperatingHours) || 1500,
+        fuelConsumptionPerHour: parseFloat(formData.fuelConsumptionPerHour) || 0,
+        fuelPricePerGallon: orgFuelPrice, // Use org fuel price
+        annualMaintenanceCost: parseFloat(formData.annualMaintenanceCost) || 0,
+        annualOtherCosts: parseFloat(formData.annualOtherCosts) || 0,
+        annualInsuranceCost: parseFloat(formData.annualInsuranceCost) || 0,
+        overheadMultiplier: 1.15,
+        notes: formData.notes || undefined,
+      });
+    } catch {
+      // Error handling is done by parent component
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -271,6 +333,65 @@ export default function EquipmentFormModal({
 
           <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
             <TextField
+              fullWidth
+              label="VIN"
+              value={formData.vin}
+              onChange={(e) => setFormData({ ...formData, vin: e.target.value })}
+              placeholder="Vehicle Identification Number"
+              sx={{
+                '& .MuiInputLabel-root': { color: '#B3B3B3' },
+                '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
+                '& .MuiOutlinedInput-root': {
+                  color: '#FFFFFF',
+                  '& fieldset': { borderColor: '#2A2A2A' },
+                  '&:hover fieldset': { borderColor: '#007AFF' },
+                  '&.Mui-focused fieldset': { borderColor: '#007AFF' },
+                },
+              }}
+            />
+            <TextField
+              fullWidth
+              label="Serial Number"
+              value={formData.serialNumber}
+              onChange={(e) => setFormData({ ...formData, serialNumber: e.target.value })}
+              placeholder="Equipment serial number"
+              sx={{
+                '& .MuiInputLabel-root': { color: '#B3B3B3' },
+                '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
+                '& .MuiOutlinedInput-root': {
+                  color: '#FFFFFF',
+                  '& fieldset': { borderColor: '#2A2A2A' },
+                  '&:hover fieldset': { borderColor: '#007AFF' },
+                  '&.Mui-focused fieldset': { borderColor: '#007AFF' },
+                },
+              }}
+            />
+          </Box>
+
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={formData.isAttachment}
+                onChange={(e) => setFormData({ ...formData, isAttachment: e.target.checked })}
+                sx={{
+                  color: '#666',
+                  '&.Mui-checked': { color: '#007AFF' },
+                }}
+              />
+            }
+            label={
+              <Box>
+                <Typography sx={{ color: '#FFFFFF' }}>This is an attachment</Typography>
+                <Typography variant="caption" sx={{ color: '#666' }}>
+                  Attachments do not consume fuel (e.g., mulching heads, grapples)
+                </Typography>
+              </Box>
+            }
+            sx={{ alignItems: 'flex-start' }}
+          />
+
+          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+            <TextField
               select
               fullWidth
               label="Category *"
@@ -287,7 +408,7 @@ export default function EquipmentFormModal({
                 },
               }}
             >
-              {categories.map((category: any) => (
+              {categories.map((category: { _id: string; name: string }) => (
                 <MenuItem key={category._id} value={category._id}>
                   {category.name}
                 </MenuItem>
@@ -312,7 +433,7 @@ export default function EquipmentFormModal({
                 },
               }}
             >
-              {filteredTypes.map((type: any) => (
+              {filteredTypes.map((type: EquipmentType) => (
                 <MenuItem key={type._id} value={type._id}>
                   {type.name}
                 </MenuItem>
@@ -457,12 +578,12 @@ export default function EquipmentFormModal({
 
           <Divider sx={{ borderColor: '#2A2A2A' }} />
 
-          {/* Maintenance & Other */}
+          {/* Maintenance, Insurance & Other */}
           <Typography variant="subtitle2" sx={{ color: '#007AFF', fontWeight: 600 }}>
-            MAINTENANCE & OTHER COSTS
+            MAINTENANCE, INSURANCE & OTHER COSTS
           </Typography>
 
-          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 2 }}>
             <TextField
               label="Annual Maintenance Cost"
               type="number"
@@ -470,6 +591,26 @@ export default function EquipmentFormModal({
               onChange={(e) => setFormData({ ...formData, annualMaintenanceCost: e.target.value })}
               placeholder="6750"
               helperText="Oil changes, parts, service"
+              sx={{
+                '& .MuiInputLabel-root': { color: '#B3B3B3' },
+                '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
+                '& .MuiOutlinedInput-root': {
+                  color: '#FFFFFF',
+                  '& fieldset': { borderColor: '#2A2A2A' },
+                  '&:hover fieldset': { borderColor: '#007AFF' },
+                  '&.Mui-focused fieldset': { borderColor: '#007AFF' },
+                },
+                '& .MuiFormHelperText-root': { color: '#666' },
+              }}
+            />
+
+            <TextField
+              label="Annual Insurance Cost"
+              type="number"
+              value={formData.annualInsuranceCost}
+              onChange={(e) => setFormData({ ...formData, annualInsuranceCost: e.target.value })}
+              placeholder="2500"
+              helperText="Annual premium"
               sx={{
                 '& .MuiInputLabel-root': { color: '#B3B3B3' },
                 '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
@@ -566,6 +707,15 @@ export default function EquipmentFormModal({
               </Typography>
             </Box>
 
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+              <Typography variant="body2" sx={{ color: '#B3B3B3' }}>
+                Insurance
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#FFFFFF', fontWeight: 600 }}>
+                ${costs.hourlyInsurance.toFixed(2)}/hr
+              </Typography>
+            </Box>
+
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
               <Typography variant="body2" sx={{ color: '#B3B3B3' }}>
                 Other (filters, belts, etc.)
@@ -622,12 +772,17 @@ export default function EquipmentFormModal({
         <Button
           variant="contained"
           onClick={handleSubmit}
+          disabled={isSubmitting}
           sx={{
             background: '#007AFF',
             '&:hover': { background: '#0066DD' },
+            '&.Mui-disabled': {
+              background: '#555',
+              color: '#999',
+            },
           }}
         >
-          {isEditing ? 'Update Equipment' : 'Create Equipment'}
+          {isSubmitting ? 'Saving...' : (isEditing ? 'Update Equipment' : 'Create Equipment')}
         </Button>
       </DialogActions>
     </Dialog>

@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect } from 'react';
 import {
   Box,
   Container,
@@ -10,7 +9,6 @@ import {
   List,
   ListItem,
   ListItemButton,
-  ListItemText,
   CircularProgress,
 } from '@mui/material';
 import Link from 'next/link';
@@ -19,7 +17,6 @@ import {
   PlayArrow,
   CheckCircle,
   Schedule,
-  Pending,
   Edit,
 } from '@mui/icons-material';
 import { useQuery } from 'convex/react';
@@ -31,16 +28,6 @@ export default function ShopOSDashboard() {
   const { organization } = useOrganization();
   const jobs = useQuery(api.jobs.listJobs);
 
-  // Listen for organization changes and log for debugging
-  useEffect(() => {
-    if (organization) {
-      console.log('Organization changed:', {
-        id: organization.id,
-        name: organization.name,
-        slug: organization.slug,
-      });
-    }
-  }, [organization?.id]); // Re-run when organization ID changes
 
   if (!organization) {
     return <OrganizationRequired />;
@@ -74,7 +61,7 @@ export default function ShopOSDashboard() {
 
 
   return (
-    <Box sx={{ minHeight: '100vh', background: '#000000', py: 4 }}>
+    <Box component="main" role="main" sx={{ minHeight: '100vh', background: '#000000', py: 4 }}>
       <Container maxWidth="lg">
         {/* Header with Create Button */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
@@ -98,6 +85,7 @@ export default function ShopOSDashboard() {
             href="/shopos/work-orders"
             variant="contained"
             startIcon={<Add />}
+            aria-label="Create new project"
             sx={{
               background: '#007AFF',
               fontWeight: 600,
@@ -136,7 +124,7 @@ export default function ShopOSDashboard() {
               borderRadius: 2,
             }}
           >
-            <List sx={{ p: 0 }}>
+            <List sx={{ p: 0 }} role="list" aria-label="Quotes and proposals">
               {quotes.length === 0 ? (
                 <ListItem sx={{ py: 6 }}>
                   <Typography variant="body2" sx={{ color: '#8E8E93' }}>
@@ -235,7 +223,7 @@ export default function ShopOSDashboard() {
               borderRadius: 2,
             }}
           >
-            <List sx={{ p: 0 }}>
+            <List sx={{ p: 0 }} role="list" aria-label="Active jobs">
               {active.length === 0 ? (
                 <ListItem sx={{ py: 6 }}>
                   <Typography variant="body2" sx={{ color: '#8E8E93' }}>
@@ -337,7 +325,7 @@ export default function ShopOSDashboard() {
               borderRadius: 2,
             }}
           >
-            <List sx={{ p: 0 }}>
+            <List sx={{ p: 0 }} role="list" aria-label="Projects completed today">
               {completedToday.length === 0 ? (
                 <ListItem sx={{ py: 6 }}>
                   <Typography variant="body2" sx={{ color: '#8E8E93' }}>

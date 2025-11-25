@@ -63,7 +63,7 @@ export default function DebugPage() {
                 </Typography>
               ) : (
                 <Typography sx={{ color: '#FF9500' }}>
-                  ⚠ User authenticated but no organization ID in token. Make sure you've:
+                  ⚠ User authenticated but no organization ID in token. Make sure you&apos;ve:
                   <br />1. Created/joined an organization in Clerk
                   <br />2. Added org_id claim to your Clerk JWT template
                   <br />3. Signed out and back in to get fresh token

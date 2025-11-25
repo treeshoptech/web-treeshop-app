@@ -34,11 +34,27 @@ interface CustomerFormData {
   notes: string;
 }
 
+interface CustomerData {
+  firstName: string;
+  lastName: string;
+  businessName?: string;
+  email?: string;
+  phone?: string;
+  alternatePhone?: string;
+  streetAddress: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  propertyType?: string;
+  howDidTheyFindUs?: string;
+  notes?: string;
+}
+
 interface CustomerFormModalProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (data: any) => void;
-  initialData?: any;
+  onSubmit: (data: CustomerData) => void;
+  initialData?: Partial<CustomerFormData>;
   isEditing: boolean;
 }
 
@@ -50,6 +66,7 @@ export default function CustomerFormModal({
   isEditing,
 }: CustomerFormModalProps) {
   const { showError } = useSnackbar();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState<CustomerFormData>({
     firstName: '',
     lastName: '',
@@ -86,27 +103,34 @@ export default function CustomerFormModal({
     }
   }, [initialData]);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!formData.firstName || !formData.lastName || !formData.streetAddress || !formData.city || !formData.state || !formData.zipCode) {
       showError('Please fill in all required fields');
       return;
     }
 
-    onSubmit({
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      businessName: formData.businessName || undefined,
-      email: formData.email || undefined,
-      phone: formData.phone || undefined,
-      alternatePhone: formData.alternatePhone || undefined,
-      streetAddress: formData.streetAddress,
-      city: formData.city,
-      state: formData.state,
-      zipCode: formData.zipCode,
-      propertyType: formData.propertyType || undefined,
-      howDidTheyFindUs: formData.howDidTheyFindUs || undefined,
-      notes: formData.notes || undefined,
-    });
+    setIsSubmitting(true);
+    try {
+      await onSubmit({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        businessName: formData.businessName || undefined,
+        email: formData.email || undefined,
+        phone: formData.phone || undefined,
+        alternatePhone: formData.alternatePhone || undefined,
+        streetAddress: formData.streetAddress,
+        city: formData.city,
+        state: formData.state,
+        zipCode: formData.zipCode,
+        propertyType: formData.propertyType || undefined,
+        howDidTheyFindUs: formData.howDidTheyFindUs || undefined,
+        notes: formData.notes || undefined,
+      });
+    } catch {
+      // Error handling is done by parent component
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const textFieldSx = {
@@ -127,6 +151,8 @@ export default function CustomerFormModal({
       onClose={onClose}
       maxWidth="md"
       fullWidth
+      aria-labelledby="customer-form-title"
+      aria-describedby="customer-form-description"
       PaperProps={{
         sx: {
           background: '#1A1A1A',
@@ -134,12 +160,12 @@ export default function CustomerFormModal({
         },
       }}
     >
-      <DialogTitle sx={{ color: '#FFFFFF', borderBottom: '1px solid #2A2A2A' }}>
+      <DialogTitle id="customer-form-title" sx={{ color: '#FFFFFF', borderBottom: '1px solid #2A2A2A' }}>
         <Box>
           <Typography sx={{ fontWeight: 600, fontSize: '1.25rem' }}>
             {isEditing ? 'Edit Customer' : 'Add New Customer'}
           </Typography>
-          <Typography variant="caption" sx={{ color: '#666' }}>
+          <Typography id="customer-form-description" variant="caption" sx={{ color: '#666' }}>
             Complete customer profile for projects
           </Typography>
         </Box>
@@ -321,12 +347,17 @@ export default function CustomerFormModal({
         <Button
           variant="contained"
           onClick={handleSubmit}
+          disabled={isSubmitting}
           sx={{
             background: '#007AFF',
             '&:hover': { background: '#0066DD' },
+            '&.Mui-disabled': {
+              background: '#555',
+              color: '#999',
+            },
           }}
         >
-          {isEditing ? 'Update Customer' : 'Create Customer'}
+          {isSubmitting ? 'Saving...' : (isEditing ? 'Update Customer' : 'Create Customer')}
         </Button>
       </DialogActions>
     </Dialog>

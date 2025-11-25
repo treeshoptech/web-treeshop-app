@@ -1,6 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { getOrganizationId, requireOrganizationId } from "./auth";
+import { getOrganizationId } from "./auth";
 import { verifyDocumentOwnershipOptional } from "./authHelpers";
 
 // Get all jobs for user's organization
@@ -205,6 +205,7 @@ export const markJobComplete = mutation({
     });
 
     // Schedule project report generation
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await ctx.scheduler.runAfter(0, "projectReports:generateProjectReport" as any, {
       jobId: args.jobId,
     });
@@ -263,6 +264,28 @@ export const createJob = mutation({
       }
     }
 
+    // Get company support task margin (default 15%)
+    let supportTaskMargin = 0.15;
+    if (orgId) {
+      const company = await ctx.db
+        .query("companies")
+        .withIndex("by_company", (q) => q.eq("companyId", orgId))
+        .first();
+      if (company?.supportTaskMargin !== undefined) {
+        supportTaskMargin = company.supportTaskMargin;
+      }
+    }
+
+    // Helper: Calculate billable rate with true margin
+    // Formula: cost / (1 - margin) = price where margin = (price - cost) / price
+    const calculateBillableTotal = (costPerHour: number, hours: number, fallbackTotal: number) => {
+      if (costPerHour <= 0) return fallbackTotal;
+      const billableRate = supportTaskMargin > 0
+        ? costPerHour / (1 - supportTaskMargin)
+        : costPerHour;
+      return billableRate * hours;
+    };
+
     // Create default project phase line items
     // Phase 1: Mobilization
     await ctx.db.insert("jobLineItems", {
@@ -272,7 +295,7 @@ export const createJob = mutation({
       baseScore: 1,
       adjustedScore: 1,
       estimatedHours: 1,
-      lineItemTotal: loadoutHourlyCost > 0 ? loadoutHourlyCost * 1 : 500, // 1 hour × loadout cost
+      lineItemTotal: calculateBillableTotal(loadoutHourlyCost, 1, 500),
       status: "not_started",
       sortOrder: 1,
       createdAt: Date.now(),
@@ -285,7 +308,7 @@ export const createJob = mutation({
       baseScore: 1,
       adjustedScore: 1,
       estimatedHours: 0.5,
-      lineItemTotal: loadoutHourlyCost > 0 ? loadoutHourlyCost * 0.5 : 250, // 0.5 hours × loadout cost
+      lineItemTotal: calculateBillableTotal(loadoutHourlyCost, 0.5, 250),
       status: "not_started",
       sortOrder: 2,
       createdAt: Date.now(),
@@ -302,7 +325,7 @@ export const createJob = mutation({
       baseScore: 1,
       adjustedScore: 1,
       estimatedHours: 0.5,
-      lineItemTotal: loadoutHourlyCost > 0 ? loadoutHourlyCost * 0.5 : 250, // 0.5 hours × loadout cost
+      lineItemTotal: calculateBillableTotal(loadoutHourlyCost, 0.5, 250),
       status: "not_started",
       sortOrder: 98,
       createdAt: Date.now(),
@@ -315,7 +338,7 @@ export const createJob = mutation({
       baseScore: 1,
       adjustedScore: 1,
       estimatedHours: 1,
-      lineItemTotal: loadoutHourlyCost > 0 ? loadoutHourlyCost * 1 : 500, // 1 hour × loadout cost
+      lineItemTotal: calculateBillableTotal(loadoutHourlyCost, 1, 500),
       status: "not_started",
       sortOrder: 99,
       createdAt: Date.now(),

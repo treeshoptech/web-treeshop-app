@@ -52,11 +52,46 @@ interface EmployeeFormData {
   emergencyContactRelationship: string;
 }
 
+interface EmployeeData {
+  name: string;
+  firstName: string;
+  lastName: string;
+  position: string;
+  employmentType: 'full_time' | 'part_time' | 'seasonal' | 'contractor';
+  hireDate: string;
+  payType: 'hourly' | 'salary';
+  positionTitle: string;
+  baseHourlyRate: number;
+  hourlyRate: number;
+  annualSalary: number;
+  expectedAnnualBillableHours: number;
+  annualWorkingHours: number;
+  overtimeEligible: boolean;
+  fullyBurdenedHourlyRate: number;
+  workersCompRate: number;
+  payrollTaxRate: number;
+  healthInsuranceMonthly: number;
+  ptoHoursPerYear: number;
+  holidayHoursPerYear: number;
+  phoneAllowance: number;
+  vehicleAllowance: number;
+  effectiveRate: number;
+  totalAnnualCost: number;
+  burdenMultiplier: number;
+  emergencyContactName?: string;
+  emergencyContactPhone?: string;
+  emergencyContactRelationship?: string;
+  positionCode: string;
+  tierLevel: number;
+  qualificationRate: number;
+  qualificationCode: string;
+}
+
 interface EmployeeFormModalProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (data: any) => void;
-  initialData?: any;
+  onSubmit: (data: EmployeeData) => Promise<void>;
+  initialData?: Record<string, unknown>;
   isEditing: boolean;
 }
 
@@ -77,8 +112,10 @@ export default function EmployeeFormModal({
   isEditing,
 }: EmployeeFormModalProps) {
   const { showError, showSuccess } = useSnackbar();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const [formData, setFormData] = useState<EmployeeFormData>({
+  // Default empty form state
+  const getEmptyFormData = (): EmployeeFormData => ({
     firstName: '',
     lastName: '',
     name: '',
@@ -105,41 +142,50 @@ export default function EmployeeFormModal({
     emergencyContactRelationship: '',
   });
 
-  // Load initial data for editing
+  const [formData, setFormData] = useState<EmployeeFormData>(getEmptyFormData());
+
+  // Reset or populate form when modal opens
   useEffect(() => {
-    if (initialData) {
-      const hourlyRate = initialData.baseHourlyRate || initialData.hourlyRate || 20;
-      const annualHours = initialData.annualWorkingHours || 2000;
-      const salary = initialData.annualSalary || (hourlyRate * annualHours);
+    if (open) {
+      if (initialData) {
+        // Editing - populate with existing data
+        const hourlyRate = Number(initialData.baseHourlyRate || initialData.hourlyRate || 20);
+        const annualHours = Number(initialData.annualWorkingHours || 2000);
+        const salary = Number(initialData.annualSalary) || (hourlyRate * annualHours);
 
-      setFormData({
-        firstName: initialData.firstName || '',
-        lastName: initialData.lastName || '',
-        name: initialData.name || '',
-        position: initialData.position || initialData.positionCode || '',
-        employmentType: initialData.employmentType || 'full_time',
-        hireDate: initialData.hireDate || new Date().toISOString().split('T')[0],
+        const data = initialData as Record<string, string | number | boolean | undefined>;
+        setFormData({
+          firstName: String(data.firstName || ''),
+          lastName: String(data.lastName || ''),
+          name: String(data.name || ''),
+          position: String(data.position || data.positionCode || ''),
+          employmentType: (data.employmentType as EmployeeFormData['employmentType']) || 'full_time',
+          hireDate: String(data.hireDate || new Date().toISOString().split('T')[0]),
 
-        payType: initialData.payType || 'hourly',
-        baseHourlyRate: hourlyRate.toString(),
-        annualSalary: Math.round(salary).toString(),
-        expectedAnnualHours: annualHours.toString(),
-        overtimeEligible: initialData.overtimeEligible ?? true,
+          payType: (data.payType as EmployeeFormData['payType']) || 'hourly',
+          baseHourlyRate: hourlyRate.toString(),
+          annualSalary: Math.round(salary).toString(),
+          expectedAnnualHours: annualHours.toString(),
+          overtimeEligible: data.overtimeEligible !== false,
 
-        workersCompRate: (initialData.workersCompRate || 28).toString(),
-        payrollTaxRate: (initialData.payrollTaxRate || 12).toString(),
-        healthInsuranceMonthly: (initialData.healthInsuranceMonthly || 400).toString(),
-        ptoDays: (initialData.ptoDays || 10).toString(),
-        holidayDays: (initialData.holidayDays || 6).toString(),
-        phoneAllowance: (initialData.phoneAllowance || 0).toString(),
-        vehicleAllowance: (initialData.vehicleAllowance || 0).toString(),
+          workersCompRate: String(Number(data.workersCompRate || 28)),
+          payrollTaxRate: String(Number(data.payrollTaxRate || 12)),
+          healthInsuranceMonthly: String(Number(data.healthInsuranceMonthly || 400)),
+          ptoDays: String(Number(data.ptoDays || 10)),
+          holidayDays: String(Number(data.holidayDays || 6)),
+          phoneAllowance: String(Number(data.phoneAllowance || 0)),
+          vehicleAllowance: String(Number(data.vehicleAllowance || 0)),
 
-        emergencyContactName: initialData.emergencyContactName || '',
-        emergencyContactPhone: initialData.emergencyContactPhone || '',
-        emergencyContactRelationship: initialData.emergencyContactRelationship || '',
-      });
+          emergencyContactName: String(data.emergencyContactName || ''),
+          emergencyContactPhone: String(data.emergencyContactPhone || ''),
+          emergencyContactRelationship: String(data.emergencyContactRelationship || ''),
+        });
+      } else {
+        // Creating new - reset to empty form
+        setFormData(getEmptyFormData());
+      }
     }
-  }, [initialData]);
+  }, [open, initialData]);
 
   // Calculate fully burdened hourly cost in real-time
   const calculateBurdenedCost = () => {
@@ -153,7 +199,6 @@ export default function EmployeeFormModal({
       : (parseFloat(annualSalary) || 0) / (parseFloat(expectedAnnualHours) || 2000);
 
     const annualHours = parseFloat(expectedAnnualHours) || 2000;
-    const workingHoursPerYear = 2080; // Standard full-time
 
     // Calculate hourly costs
     const wcRate = parseFloat(workersCompRate) || 0;
@@ -253,6 +298,7 @@ export default function EmployeeFormModal({
       return;
     }
 
+    setIsSubmitting(true);
     try {
       const employeeData = {
         name: formData.name,
@@ -301,8 +347,11 @@ export default function EmployeeFormModal({
 
       await onSubmit(employeeData);
       showSuccess(isEditing ? 'Employee updated successfully' : 'Employee created successfully');
-    } catch (error: any) {
-      showError(error.message || 'Failed to save employee');
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save employee';
+      showError(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -410,7 +459,7 @@ export default function EmployeeFormModal({
                 </InputLabel>
                 <Select
                   value={formData.employmentType}
-                  onChange={(e) => setFormData({ ...formData, employmentType: e.target.value as any })}
+                  onChange={(e) => setFormData({ ...formData, employmentType: e.target.value as 'full_time' | 'part_time' | 'seasonal' | 'contractor' })}
                   label="Employment Type"
                   sx={selectStyles}
                 >
@@ -442,7 +491,7 @@ export default function EmployeeFormModal({
                 value={formData.payType}
                 exclusive
                 onChange={(_, value) => {
-                  if (value) setFormData({ ...formData, payType: value });
+                  if (value) setFormData({ ...formData, payType: value as 'hourly' | 'salary' });
                 }}
                 fullWidth
                 sx={{
@@ -815,13 +864,18 @@ export default function EmployeeFormModal({
         <Button
           variant="contained"
           onClick={handleSubmit}
+          disabled={isSubmitting}
           sx={{
             background: '#007AFF',
             '&:hover': { background: '#0066DD' },
             px: 4,
+            '&.Mui-disabled': {
+              background: '#555',
+              color: '#999',
+            },
           }}
         >
-          {isEditing ? 'Update Employee' : 'Create Employee'}
+          {isSubmitting ? 'Saving...' : (isEditing ? 'Update Employee' : 'Create Employee')}
         </Button>
       </DialogActions>
     </Dialog>

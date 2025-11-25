@@ -22,6 +22,7 @@ import CreateWorkOrderModal from '@/components/CreateWorkOrderModal';
 import DirectoryCard from '@/components/DirectoryCard';
 import { useSnackbar } from '@/app/contexts/SnackbarContext';
 import type { ActionItem, DetailField } from '@/components/DirectoryCard';
+import type { Id } from '@/convex/_generated/dataModel';
 
 export default function WorkOrdersPage() {
   const router = useRouter();
@@ -37,7 +38,7 @@ export default function WorkOrdersPage() {
   const [stageFilter, setStageFilter] = useState<string>('ALL');
 
   // Helper to get display ID based on lifecycle stage
-  const getDisplayId = (job: any) => {
+  const getDisplayId = (job: { lifecycleStage?: string; jobNumber: string }) => {
     const stage = job.lifecycleStage || 'WO';
     const number = job.jobNumber.replace('WO-', '');
     return `${stage}-${number}`;
@@ -82,13 +83,20 @@ export default function WorkOrdersPage() {
     }
   };
 
-  const handleCreateWorkOrder = async (data: any) => {
+  const handleCreateWorkOrder = async (data: {
+    customerId: Id<'customers'>;
+    startDate?: string;
+    status?: 'draft' | 'sent' | 'accepted' | 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
+    notes?: string;
+    assignedCrewId?: Id<'crews'>;
+    assignedLoadoutId?: Id<'loadouts'>;
+  }) => {
     try {
       const jobId = await createJob(data);
       setCreateModalOpen(false);
       router.push(`/shopos/work-orders/${jobId}`);
-    } catch (error: any) {
-      showError(error.message);
+    } catch (error) {
+      showError(error instanceof Error ? error.message : 'Failed to create work order');
     }
   };
 
@@ -195,7 +203,7 @@ export default function WorkOrdersPage() {
               No projects yet
             </Typography>
             <Typography variant="body2" sx={{ color: '#8E8E93' }}>
-              Click "New Project" to get started
+              Click &quot;New Project&quot; to get started
             </Typography>
           </CardContent>
         </Card>
@@ -232,8 +240,8 @@ export default function WorkOrdersPage() {
                     async () => {
                       try {
                         await deleteJob({ jobId: job._id });
-                      } catch (error: any) {
-                        showError(error.message);
+                      } catch (error) {
+                        showError(error instanceof Error ? error.message : 'Failed to delete job');
                       }
                     },
                     'Delete Project'

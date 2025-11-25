@@ -1,20 +1,6 @@
-import { SignUp } from '@clerk/nextjs';
-import { Box, Container } from '@mui/material';
+import { redirect } from 'next/navigation';
 
+// Sign-up is disabled - users are invited via Clerk by admin
 export default function SignUpPage() {
-  return (
-    <Box
-      sx={{
-        minHeight: '100vh',
-        background: '#000000',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
-      <Container maxWidth="sm">
-        <SignUp />
-      </Container>
-    </Box>
-  );
+  redirect('/sign-in');
 }

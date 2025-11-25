@@ -5,7 +5,7 @@
 // 2. clerk.treeshopterminal.com (without https://)
 // 3. https://clerk.treeshopterminal.com/ (with trailing slash)
 
-export default {
+const authConfig = {
   providers: [
     // Try format WITHOUT https:// prefix (most common for Clerk production)
     {
@@ -19,3 +19,5 @@ export default {
     },
   ]
 };
+
+export default authConfig;

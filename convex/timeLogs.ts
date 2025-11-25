@@ -1,5 +1,33 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import type { Id } from "./_generated/dataModel";
+
+// Helper to get equipment cost from job's assigned loadout
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function getEquipmentCostFromJob(ctx: any, jobId: Id<"jobs">): Promise<number> {
+  const job = await ctx.db.get(jobId);
+  if (!job?.assignedLoadoutId) {
+    return 0; // No loadout assigned, no equipment cost
+  }
+
+  const loadout = await ctx.db.get(job.assignedLoadoutId);
+  if (!loadout?.equipmentIds || loadout.equipmentIds.length === 0) {
+    return 0; // Loadout has no equipment
+  }
+
+  // Calculate equipment cost from loadout's equipment
+  const equipment = await Promise.all(
+    loadout.equipmentIds.map((id: Id<"equipment">) => ctx.db.get(id))
+  );
+
+  const equipmentCost = equipment.reduce(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (sum: number, equip: any) => sum + (equip?.hourlyCost || 0),
+    0
+  );
+
+  return equipmentCost;
+}
 
 // Start a timer for a task
 export const startTimer = mutation({
@@ -28,6 +56,9 @@ export const startTimer = mutation({
       throw new Error("Employee not found");
     }
 
+    // Get equipment cost from job's assigned loadout
+    const equipmentCost = await getEquipmentCostFromJob(ctx, args.jobId);
+
     // Create time log
     const timeLogId = await ctx.db.insert("timeLogs", {
       jobId: args.jobId,
@@ -37,7 +68,7 @@ export const startTimer = mutation({
       taskName: args.taskName,
       startTime: Date.now(),
       employeeRate: employee.effectiveRate || employee.fullyBurdenedHourlyRate || 40,
-      equipmentCost: 110, // TODO: Calculate from actual equipment assigned
+      equipmentCost,
       createdAt: Date.now(),
     });
 
@@ -121,10 +152,13 @@ export const addManualTimeEntry = mutation({
       throw new Error("Employee not found");
     }
 
+    // Get equipment cost from job's assigned loadout
+    const equipmentCost = await getEquipmentCostFromJob(ctx, args.jobId);
+
     const now = Date.now();
     const startTime = now - args.durationHours * 60 * 60 * 1000; // Backdate start time
     const employeeRate = employee.effectiveRate || employee.fullyBurdenedHourlyRate || 40;
-    const hourlyCost = employeeRate + 110; // TODO: Calculate actual equipment cost
+    const hourlyCost = employeeRate + equipmentCost;
     const totalCost = hourlyCost * args.durationHours;
 
     // Create completed time log
@@ -138,7 +172,7 @@ export const addManualTimeEntry = mutation({
       endTime: now,
       durationHours: args.durationHours,
       employeeRate,
-      equipmentCost: 110,
+      equipmentCost,
       totalCost,
       notes: args.notes,
       createdAt: now,
@@ -157,10 +191,13 @@ export const addManualTimeEntry = mutation({
 });
 
 // Helper function to update job actuals
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function updateJobActuals(ctx: any, jobId: any) {
   const timeLogs = await ctx.db
     .query("timeLogs")
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .withIndex("by_job", (q: any) => q.eq("jobId", jobId))
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .filter((q: any) => q.neq(q.field("endTime"), undefined))
     .collect();
 
@@ -186,10 +223,13 @@ async function updateJobActuals(ctx: any, jobId: any) {
 }
 
 // Helper function to update line item actuals
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function updateLineItemActuals(ctx: any, lineItemId: any) {
   const timeLogs = await ctx.db
     .query("timeLogs")
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .withIndex("by_job_line_item", (q: any) => q.eq("jobLineItemId", lineItemId))
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     .filter((q: any) => q.neq(q.field("endTime"), undefined))
     .collect();
 

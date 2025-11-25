@@ -176,6 +176,7 @@ export const seedAllForCompany = mutation({
   },
   handler: async (ctx, args) => {
     const companyId = args.companyId;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const results: any = {
       managementLevels: { success: false, count: 0 },
       certifications: { success: false, count: 0 },

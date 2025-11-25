@@ -1,6 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { getOrganizationId, requireOrganizationId } from "./auth";
+import { getOrganizationId } from "./auth";
 
 export const getCompany = query({
   args: {},
@@ -31,6 +31,7 @@ export const createOrUpdateCompany = mutation({
     email: v.optional(v.string()),
     website: v.optional(v.string()),
     defaultProfitMargin: v.number(),
+    supportTaskMargin: v.optional(v.number()), // Decimal, e.g., 0.15 for 15%
     defaultFuelPricePerGallon: v.optional(v.number()),
     defaultEquipmentOverhead: v.optional(v.number()),
     sops: v.optional(v.string()),

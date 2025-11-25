@@ -5,7 +5,6 @@ import {
   Text,
   View,
   StyleSheet,
-  Font,
 } from '@react-pdf/renderer';
 import type { Id } from '@/convex/_generated/dataModel';
 
@@ -383,7 +382,7 @@ export const CustomerQuotePDF: React.FC<CustomerQuotePDFProps> = ({ job, company
         </View>
 
         {/* Benefits/Value Proposition */}
-        <Text style={styles.sectionHeader}>What's Included</Text>
+        <Text style={styles.sectionHeader}>What&apos;s Included</Text>
         <View style={styles.benefitsContainer}>
           <View style={styles.benefitItem}>
             <Text style={styles.checkmark}>✓</Text>

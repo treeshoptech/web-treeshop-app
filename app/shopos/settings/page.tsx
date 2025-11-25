@@ -46,20 +46,10 @@ export default function SettingsPage() {
   const company = useQuery(api.companies.getCompany);
   const companyRates = useQuery(api.companies.getCompanyProductionRates);
   const saveCompany = useMutation(api.companies.createOrUpdateCompany);
-  const saveRate = useMutation(api.companies.upsertCompanyProductionRate);
   const { showError, showSuccess } = useSnackbar();
 
   const [tabValue, setTabValue] = useState(0);
 
-  // Listen for organization changes
-  useEffect(() => {
-    if (organization) {
-      console.log('Settings page - Organization changed:', {
-        id: organization.id,
-        name: organization.name,
-      });
-    }
-  }, [organization?.id]);
 
   // Company form state
   const [companyForm, setCompanyForm] = useState({
@@ -72,6 +62,7 @@ export default function SettingsPage() {
     email: '',
     website: '',
     defaultProfitMargin: '30',
+    supportTaskMargin: '15',
     defaultFuelPrice: '3.50',
     equipmentOverheadMultiplier: '1.5',
     sops: '',
@@ -80,6 +71,7 @@ export default function SettingsPage() {
   // Load company data when available
   useEffect(() => {
     if (company) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCompanyForm({
         name: company.name,
         address: company.address || '',
@@ -90,6 +82,7 @@ export default function SettingsPage() {
         email: company.email || '',
         website: company.website || '',
         defaultProfitMargin: company.defaultProfitMargin.toString(),
+        supportTaskMargin: company.supportTaskMargin !== undefined ? (company.supportTaskMargin * 100).toString() : '15',
         defaultFuelPrice: company.defaultFuelPricePerGallon?.toString() || '3.50',
         equipmentOverheadMultiplier: company.defaultEquipmentOverhead?.toString() || '1.5',
         sops: company.sops || '',
@@ -114,13 +107,14 @@ export default function SettingsPage() {
         email: companyForm.email || undefined,
         website: companyForm.website || undefined,
         defaultProfitMargin: parseFloat(companyForm.defaultProfitMargin) || 30,
+        supportTaskMargin: (parseFloat(companyForm.supportTaskMargin) || 15) / 100, // Convert % to decimal
         defaultFuelPricePerGallon: parseFloat(companyForm.defaultFuelPrice) || 3.50,
         defaultEquipmentOverhead: parseFloat(companyForm.equipmentOverheadMultiplier) || 1.5,
         sops: companyForm.sops || undefined,
       });
       showSuccess('Company settings saved');
-    } catch (error: any) {
-      showError(error.message);
+    } catch (error) {
+      showError(error instanceof Error ? error.message : 'Failed to save company settings');
     }
   };
 
@@ -315,6 +309,27 @@ export default function SettingsPage() {
                 value={companyForm.defaultProfitMargin}
                 onChange={(e) => setCompanyForm({ ...companyForm, defaultProfitMargin: e.target.value })}
                 helperText="Default profit margin % for new projects"
+                sx={{
+                  '& .MuiInputLabel-root': { color: '#B3B3B3' },
+                  '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
+                  '& .MuiOutlinedInput-root': {
+                    color: '#FFFFFF',
+                    '& fieldset': { borderColor: '#2A2A2A' },
+                    '&:hover fieldset': { borderColor: '#007AFF' },
+                    '&.Mui-focused fieldset': { borderColor: '#007AFF' },
+                  },
+                  '& .MuiFormHelperText-root': { color: '#666' },
+                }}
+              />
+
+              <TextField
+                fullWidth
+                label="Support Task Margin (%)"
+                type="number"
+                value={companyForm.supportTaskMargin}
+                onChange={(e) => setCompanyForm({ ...companyForm, supportTaskMargin: e.target.value })}
+                helperText="Profit margin for transport, setup, and cleanup tasks"
+                inputProps={{ step: '1', min: '0', max: '50' }}
                 sx={{
                   '& .MuiInputLabel-root': { color: '#B3B3B3' },
                   '& .MuiInputLabel-root.Mui-focused': { color: '#007AFF' },
@@ -549,7 +564,7 @@ export default function SettingsPage() {
                         When you switch organizations:
                       </Typography>
                       <Box component="ul" sx={{ color: '#B3B3B3', pl: 2, mb: 0 }}>
-                        <li>All data automatically refreshes to show the new organization's data</li>
+                        <li>All data automatically refreshes to show the new organization&apos;s data</li>
                         <li>Projects, customers, employees, and equipment are filtered by organization</li>
                         <li>Your settings and preferences remain intact</li>
                         <li>No stale data from the previous organization is retained</li>

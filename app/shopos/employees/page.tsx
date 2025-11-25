@@ -17,7 +17,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import PersonIcon from '@mui/icons-material/Person';
 import BlockIcon from '@mui/icons-material/Block';
-import { Id } from '@/convex/_generated/dataModel';
+import { Doc, Id } from '@/convex/_generated/dataModel';
 import EmployeeFormModal from '@/components/EmployeeFormModal';
 import DirectoryCard, { ActionItem, MetricItem, DetailField } from '@/components/DirectoryCard';
 import { useSnackbar } from '@/app/contexts/SnackbarContext';
@@ -30,14 +30,25 @@ export default function EmployeesPage() {
   const { showError, showConfirm } = useSnackbar();
 
   const [formOpen, setFormOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<any>(null);
+  const [editingItem, setEditingItem] = useState<Doc<'employees'> | null>(null);
 
-  const handleOpenForm = (item?: any) => {
+  const handleOpenForm = (item?: Doc<'employees'>) => {
     setEditingItem(item || null);
     setFormOpen(true);
   };
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: {
+    name: string;
+    position?: string;
+    qualificationCode?: string;
+    tierLevel?: number;
+    burdenMultiplier?: number;
+    hasLeadership?: boolean;
+    hasSupervisor?: boolean;
+    hasCDL?: boolean;
+    hasCrane?: boolean;
+    hasOSHA?: boolean;
+  }) => {
     try {
       if (editingItem) {
         await updateEmployee({
@@ -50,8 +61,8 @@ export default function EmployeesPage() {
       }
       setFormOpen(false);
       setEditingItem(null);
-    } catch (error: any) {
-      showError(error.message);
+    } catch (error) {
+      showError(error instanceof Error ? error.message : 'An error occurred');
     }
   };
 
@@ -61,15 +72,15 @@ export default function EmployeesPage() {
       async () => {
         try {
           await deleteEmployee({ employeeId: id });
-        } catch (error: any) {
-          showError(error.message);
+        } catch (error) {
+          showError(error instanceof Error ? error.message : 'An error occurred');
         }
       },
       'Delete Employee'
     );
   };
 
-  const handleDeactivate = async (emp: any) => {
+  const handleDeactivate = async (emp: Doc<'employees'>) => {
     showConfirm(
       `${emp.isActive ? 'Deactivate' : 'Activate'} ${emp.name}?`,
       async () => {
@@ -88,8 +99,8 @@ export default function EmployeesPage() {
             hasOSHA: emp.hasOSHA,
             isActive: !emp.isActive,
           });
-        } catch (error: any) {
-          showError(error.message);
+        } catch (error) {
+          showError(error instanceof Error ? error.message : 'An error occurred');
         }
       },
       `${emp.isActive ? 'Deactivate' : 'Activate'} Employee`
@@ -154,7 +165,7 @@ export default function EmployeesPage() {
               No employees yet
             </Typography>
             <Typography variant="body2" sx={{ color: '#8E8E93' }}>
-              Click "Add Employee" to create your first employee record
+              Click &quot;Add Employee&quot; to create your first employee record
             </Typography>
           </CardContent>
         </Card>
@@ -283,7 +294,7 @@ export default function EmployeesPage() {
           setEditingItem(null);
         }}
         onSubmit={handleSubmit}
-        initialData={editingItem}
+        initialData={editingItem ?? undefined}
         isEditing={!!editingItem}
       />
     </Container>

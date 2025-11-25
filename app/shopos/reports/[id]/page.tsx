@@ -26,13 +26,6 @@ import {
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import PrintIcon from '@mui/icons-material/Print';
-import DownloadIcon from '@mui/icons-material/Download';
-import PersonIcon from '@mui/icons-material/Person';
-import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
-import AccessTimeIcon from '@mui/icons-material/AccessTime';
-import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import BuildIcon from '@mui/icons-material/Build';
 
 export default function ProjectReportDetailPage() {
   const params = useParams();
@@ -270,7 +263,7 @@ export default function ProjectReportDetailPage() {
                   >
                     PROJECT DATES
                   </Typography>
-                  {(report.startDate ?? null) && (
+                  {report.startDate && (
                     <Typography
                       variant="body1"
                       sx={{
@@ -279,7 +272,7 @@ export default function ProjectReportDetailPage() {
                         '@media print': { color: '#000000' },
                       }}
                     >
-                      Start: {new Date(report.startDate ?? Date.now()).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                      Start: {new Date(report.startDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                     </Typography>
                   )}
                   <Typography
@@ -289,7 +282,7 @@ export default function ProjectReportDetailPage() {
                       '@media print': { color: '#000000' },
                     }}
                   >
-                    Completed: {formatDate(report.completedAt ?? Date.now())}
+                    Completed: {report.completedAt ? formatDate(report.completedAt) : 'N/A'}
                   </Typography>
                 </Box>
               </Grid>
@@ -630,7 +623,13 @@ export default function ProjectReportDetailPage() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {(report.lineItems ?? []).map((item: any, index: number) => (
+                  {(report.lineItems ?? []).map((item: {
+                    displayName?: string;
+                    estimatedHours?: number;
+                    actualProductiveHours?: number;
+                    variance?: number;
+                    lineItemTotal?: number;
+                  }, index: number) => (
                     <TableRow key={index}>
                       <TableCell
                         sx={{
@@ -723,7 +722,19 @@ export default function ProjectReportDetailPage() {
               Crew Time Breakdown
             </Typography>
 
-            {Object.values(report.timeLogs ?? {}).map((employeeData: any, index: number) => (
+            {(Object.values(report.timeLogs ?? {}) as Array<{
+              employeeName?: string;
+              employeePosition?: string;
+              totalHours?: number;
+              totalCost?: number;
+              logs?: Array<{
+                taskName?: string;
+                notes?: string;
+                taskType?: string;
+                durationHours?: number;
+                totalCost?: number;
+              }>;
+            }>).map((employeeData, index) => (
               <Box key={index} sx={{ mb: 3 }}>
                 <Box
                   sx={{
@@ -838,7 +849,13 @@ export default function ProjectReportDetailPage() {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {(employeeData.logs ?? []).map((log: any, logIndex: number) => (
+                      {(employeeData.logs ?? []).map((log: {
+                        taskName?: string;
+                        notes?: string;
+                        taskType?: string;
+                        durationHours?: number;
+                        totalCost?: number;
+                      }, logIndex: number) => (
                         <TableRow key={logIndex}>
                           <TableCell
                             sx={{
@@ -946,7 +963,11 @@ export default function ProjectReportDetailPage() {
               </Typography>
 
               <Grid container spacing={2}>
-                {(report.crewMembers ?? []).map((member: any, index: number) => (
+                {(report.crewMembers ?? []).map((member: {
+                  name?: string;
+                  position?: string;
+                  effectiveRate?: number;
+                }, index: number) => (
                   <Grid size={{ xs: 12, sm: 6, md: 4 }} key={index}>
                     <Box
                       sx={{
@@ -1041,7 +1062,7 @@ export default function ProjectReportDetailPage() {
               '@media print': { color: '#666666' },
             }}
           >
-            Report generated on {formatDateTime(report.createdAt ?? Date.now())}
+            Report generated on {report.createdAt ? formatDateTime(report.createdAt) : 'N/A'}
           </Typography>
         </Box>
       </Container>

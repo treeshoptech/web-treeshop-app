@@ -75,7 +75,6 @@ export interface DirectoryCardProps {
 }
 
 export default function DirectoryCard({
-  id,
   icon,
   title,
   subtitle,
@@ -121,6 +120,8 @@ export default function DirectoryCard({
 
   return (
     <Card
+      role="article"
+      aria-label={`${title}${subtitle ? `, ${subtitle}` : ''}`}
       sx={{
         background: '#1C1C1E',
         border: '1px solid #2A2A2A',
@@ -218,6 +219,7 @@ export default function DirectoryCard({
               <Tooltip title="Collapse">
                 <IconButton
                   size="small"
+                  aria-label="Collapse card details"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleExpandClick();
@@ -233,6 +235,7 @@ export default function DirectoryCard({
               <Tooltip title="Expand">
                 <IconButton
                   size="small"
+                  aria-label="Expand card details"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleExpandClick();
@@ -249,6 +252,9 @@ export default function DirectoryCard({
                 <Tooltip title="Actions">
                   <IconButton
                     size="small"
+                    aria-label="Open actions menu"
+                    aria-haspopup="true"
+                    aria-expanded={menuOpen}
                     onClick={handleMenuClick}
                     sx={{ color: '#8E8E93' }}
                   >
@@ -259,6 +265,7 @@ export default function DirectoryCard({
                   anchorEl={anchorEl}
                   open={menuOpen}
                   onClose={handleMenuClose}
+                  aria-label="Card actions"
                   PaperProps={{
                     sx: {
                       background: '#1C1C1E',

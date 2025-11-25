@@ -23,10 +23,24 @@ import {
 import { Id } from '@/convex/_generated/dataModel';
 import { useSnackbar } from '@/app/contexts/SnackbarContext';
 
+interface ProductionRate {
+  serviceType: string;
+  actualRatePerDay: number;
+}
+
+interface LoadoutInitialData {
+  _id: Id<'loadouts'>;
+  name: string;
+  description?: string;
+  employeeIds?: Id<'employees'>[];
+  equipmentIds?: Id<'equipment'>[];
+  productionRates?: ProductionRate[];
+}
+
 interface LoadoutFormModalProps {
   open: boolean;
   onClose: () => void;
-  initialData?: any;
+  initialData?: LoadoutInitialData;
 }
 
 export default function LoadoutFormModal({
@@ -39,6 +53,7 @@ export default function LoadoutFormModal({
   const createLoadout = useMutation(api.loadouts.createLoadout);
   const updateLoadout = useMutation(api.loadouts.updateLoadout);
   const { showError } = useSnackbar();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -52,38 +67,43 @@ export default function LoadoutFormModal({
   const [landClearingRate, setLandClearingRate] = useState('1.3');
   const [treeTrimmingRate, setTreeTrimmingRate] = useState('1.0');
 
+  // Reset or populate form when modal opens
   useEffect(() => {
-    if (initialData) {
-      setName(initialData.name);
-      setDescription(initialData.description || '');
-      setSelectedEmployeeIds(initialData.employeeIds || []);
-      setSelectedEquipmentIds(initialData.equipmentIds || []);
+    if (open) {
+      if (initialData) {
+        // Editing - populate with existing data
+        setName(initialData.name);
+        setDescription(initialData.description || '');
+        setSelectedEmployeeIds(initialData.employeeIds || []);
+        setSelectedEquipmentIds(initialData.equipmentIds || []);
 
-      // Load production rates if they exist
-      const rates = initialData.productionRates || [];
-      const mulching = rates.find((r: any) => r.serviceType === 'forestry_mulching');
-      const stump = rates.find((r: any) => r.serviceType === 'stump_grinding');
-      const treeRemoval = rates.find((r: any) => r.serviceType === 'tree_removal');
-      const landClearing = rates.find((r: any) => r.serviceType === 'land_clearing');
-      const treeTrimming = rates.find((r: any) => r.serviceType === 'tree_trimming');
+        // Load production rates if they exist
+        const rates = initialData.productionRates || [];
+        const mulching = rates.find((r: ProductionRate) => r.serviceType === 'forestry_mulching');
+        const stump = rates.find((r: ProductionRate) => r.serviceType === 'stump_grinding');
+        const treeRemoval = rates.find((r: ProductionRate) => r.serviceType === 'tree_removal');
+        const landClearing = rates.find((r: ProductionRate) => r.serviceType === 'land_clearing');
+        const treeTrimming = rates.find((r: ProductionRate) => r.serviceType === 'tree_trimming');
 
-      setMulchingRate(mulching?.actualRatePerDay?.toString() || '');
-      setStumpRate(stump?.actualRatePerDay?.toString() || '');
-      setTreeRemovalRate(treeRemoval?.actualRatePerDay?.toString() || '');
-      setLandClearingRate(landClearing?.actualRatePerDay?.toString() || '');
-      setTreeTrimmingRate(treeTrimming?.actualRatePerDay?.toString() || '');
-    } else {
-      setName('');
-      setDescription('');
-      setSelectedEmployeeIds([]);
-      setSelectedEquipmentIds([]);
-      setMulchingRate('1.5');
-      setStumpRate('1.8');
-      setTreeRemovalRate('1.2');
-      setLandClearingRate('1.3');
-      setTreeTrimmingRate('1.0');
+        setMulchingRate(mulching?.actualRatePerDay?.toString() || '');
+        setStumpRate(stump?.actualRatePerDay?.toString() || '');
+        setTreeRemovalRate(treeRemoval?.actualRatePerDay?.toString() || '');
+        setLandClearingRate(landClearing?.actualRatePerDay?.toString() || '');
+        setTreeTrimmingRate(treeTrimming?.actualRatePerDay?.toString() || '');
+      } else {
+        // Creating new - reset to empty form
+        setName('');
+        setDescription('');
+        setSelectedEmployeeIds([]);
+        setSelectedEquipmentIds([]);
+        setMulchingRate('1.5');
+        setStumpRate('1.8');
+        setTreeRemovalRate('1.2');
+        setLandClearingRate('1.3');
+        setTreeTrimmingRate('1.0');
+      }
     }
-  }, [initialData, open]);
+  }, [open, initialData]);
 
   const calculateTotalCost = () => {
     const employeeCost = selectedEmployeeIds.reduce((sum, id) => {
@@ -122,6 +142,7 @@ export default function LoadoutFormModal({
       return;
     }
 
+    setIsSubmitting(true);
     try {
       const rateData = {
         mulchingRate: parseFloat(mulchingRate) || undefined,
@@ -150,8 +171,11 @@ export default function LoadoutFormModal({
         });
       }
       onClose();
-    } catch (error: any) {
-      showError(error.message);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to save loadout';
+      showError(errorMessage);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -459,6 +483,7 @@ export default function LoadoutFormModal({
         <Button
           variant="contained"
           onClick={handleSubmit}
+          disabled={isSubmitting}
           size="large"
           sx={{
             background: '#007AFF',
@@ -466,9 +491,13 @@ export default function LoadoutFormModal({
             px: 4,
             fontWeight: 600,
             '&:hover': { background: '#0066DD' },
+            '&.Mui-disabled': {
+              background: '#555',
+              color: '#999',
+            },
           }}
         >
-          {initialData ? 'Update' : 'Create'} Loadout
+          {isSubmitting ? 'Saving...' : (initialData ? 'Update' : 'Create') + ' Loadout'}
         </Button>
       </DialogActions>
     </Dialog>

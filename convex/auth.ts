@@ -1,4 +1,3 @@
-import { Auth } from "convex/server";
 import { QueryCtx, MutationCtx } from "./_generated/server";
 
 export async function getUserIdentity(ctx: QueryCtx | MutationCtx) {
@@ -20,13 +19,17 @@ export async function getOrganizationId(ctx: QueryCtx | MutationCtx): Promise<st
     // - Custom JWT template: org_id (top-level)
     // - Default session token: o.id (nested, accessed as "o.id" string key)
     // - Legacy: orgId, org_id
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const orgId = (identity as any).org_id ||           // Custom JWT template claim
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   (identity as any)["o.id"] ||          // Clerk default session token (nested)
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   (identity as any).orgId ||            // Legacy format
                   null;
 
     console.log("getOrganizationId - orgId found:", orgId);
     console.log("getOrganizationId - all identity keys:", Object.keys(identity));
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     console.log("getOrganizationId - checking o.id:", (identity as any)["o.id"]);
 
     if (!orgId || typeof orgId !== 'string') {

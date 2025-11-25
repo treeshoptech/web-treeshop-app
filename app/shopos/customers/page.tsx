@@ -19,7 +19,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import PersonIcon from '@mui/icons-material/Person';
 import PhoneIcon from '@mui/icons-material/Phone';
 import EmailIcon from '@mui/icons-material/Email';
-import { Id } from '@/convex/_generated/dataModel';
+import { Doc, Id } from '@/convex/_generated/dataModel';
 import CustomerFormModal from '@/components/CustomerFormModal';
 import { useSnackbar } from '@/app/contexts/SnackbarContext';
 import DirectoryCard from '@/components/DirectoryCard';
@@ -33,14 +33,26 @@ export default function CustomersPage() {
   const { showError, showConfirm } = useSnackbar();
 
   const [formOpen, setFormOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState<any>(null);
+  const [editingItem, setEditingItem] = useState<Doc<'customers'> | null>(null);
 
-  const handleOpenForm = (item?: any) => {
+  const handleOpenForm = (item?: Doc<'customers'>) => {
     setEditingItem(item || null);
     setFormOpen(true);
   };
 
-  const handleSubmit = async (data: any) => {
+  const handleSubmit = async (data: {
+    firstName: string;
+    lastName: string;
+    businessName?: string;
+    email?: string;
+    phone?: string;
+    streetAddress: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    propertyType?: string;
+    notes?: string;
+  }) => {
     try {
       if (editingItem) {
         await updateCustomer({
@@ -52,8 +64,8 @@ export default function CustomersPage() {
       }
       setFormOpen(false);
       setEditingItem(null);
-    } catch (error: any) {
-      showError(error.message);
+    } catch (error) {
+      showError(error instanceof Error ? error.message : 'An error occurred');
     }
   };
 
@@ -63,8 +75,8 @@ export default function CustomersPage() {
       async () => {
         try {
           await deleteCustomer({ customerId: id });
-        } catch (error: any) {
-          showError(error.message);
+        } catch (error) {
+          showError(error instanceof Error ? error.message : 'An error occurred');
         }
       },
       'Delete Customer'
@@ -127,7 +139,7 @@ export default function CustomersPage() {
               No customers yet
             </Typography>
             <Typography variant="body2" sx={{ color: '#8E8E93' }}>
-              Click "Add Customer" to create your first customer record
+              Click &quot;Add Customer&quot; to create your first customer record
             </Typography>
           </CardContent>
         </Card>
@@ -224,7 +236,7 @@ export default function CustomersPage() {
           setEditingItem(null);
         }}
         onSubmit={handleSubmit}
-        initialData={editingItem}
+        initialData={editingItem ?? undefined}
         isEditing={!!editingItem}
       />
     </Container>

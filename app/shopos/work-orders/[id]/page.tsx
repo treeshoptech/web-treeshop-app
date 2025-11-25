@@ -3,7 +3,7 @@
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { useParams } from 'next/navigation';
-import { Id } from '@/convex/_generated/dataModel';
+import { Id, Doc } from '@/convex/_generated/dataModel';
 import { useState, useEffect, useRef } from 'react';
 import {
   Box,
@@ -65,6 +65,7 @@ export default function WorkOrderDetailPage() {
   // Auto-select first crew member on load
   useEffect(() => {
     if (!selectedEmployeeId && job?.crew?.members?.[0]) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSelectedEmployeeId(job.crew?.members[0]._id as Id<'employees'>);
     }
   }, [job, selectedEmployeeId]);
@@ -140,8 +141,8 @@ export default function WorkOrderDetailPage() {
         taskType,
         taskName,
       });
-    } catch (error: any) {
-      showError(error.message);
+    } catch (error) {
+      showError(error instanceof Error ? error.message : 'Failed to start timer');
     }
   };
 
@@ -156,8 +157,8 @@ export default function WorkOrderDetailPage() {
       await stopTimer({ timeLogId: activeTimer._id, notes: stopTimerNotes || undefined });
       setStopTimerDialogOpen(false);
       setStopTimerNotes('');
-    } catch (error: any) {
-      showError(error.message);
+    } catch (error) {
+      showError(error instanceof Error ? error.message : 'Failed to stop timer');
     }
   };
 
@@ -172,8 +173,8 @@ export default function WorkOrderDetailPage() {
         try {
           await markJobComplete({ jobId });
           showSuccess('Job marked as complete!');
-        } catch (error: any) {
-          showError(error.message);
+        } catch (error) {
+          showError(error instanceof Error ? error.message : 'Failed to complete job');
         }
       },
       'Complete Job'
@@ -231,8 +232,8 @@ export default function WorkOrderDetailPage() {
         try {
           await deleteLineItem({ lineItemId: selectedTaskId });
           handleCloseTaskMenu();
-        } catch (error: any) {
-          showError(error.message);
+        } catch (error) {
+          showError(error instanceof Error ? error.message : 'Failed to delete task');
         }
       },
       'Delete Task'
@@ -261,20 +262,28 @@ export default function WorkOrderDetailPage() {
         durationHours: data.durationHours,
         notes: data.notes || undefined,
       });
-    } catch (error: any) {
-      showError(error.message);
+    } catch (error) {
+      showError(error instanceof Error ? error.message : 'Failed to add time entry');
     }
   };
 
-  const handleAddLineItem = async (data: any) => {
+  const handleAddLineItem = async (data: {
+    serviceType: string;
+    displayName: string;
+    baseScore: number;
+    adjustedScore: number;
+    estimatedHours: number;
+    lineItemTotal: number;
+    scopeDetails?: string;
+  }) => {
     try {
       await addLineItem({
         jobId,
         ...data,
       });
       setAddLineItemModalOpen(false);
-    } catch (error: any) {
-      showError(error.message);
+    } catch (error) {
+      showError(error instanceof Error ? error.message : 'Failed to add line item');
     }
   };
 
@@ -445,7 +454,7 @@ export default function WorkOrderDetailPage() {
       {employees && employees.length > 0 && (
         <Box sx={{ mb: 3, p: 3, background: '#1C1C1E', border: '1px solid #2A2A2A', borderRadius: 3 }}>
           <Typography variant="caption" sx={{ color: '#8E8E93', mb: 1, display: 'block', fontWeight: 600, letterSpacing: '0.05em' }}>
-            WHO'S LOGGING TIME?
+            WHO&apos;S LOGGING TIME?
           </Typography>
           <Select
             value={selectedEmployeeId || ''}
@@ -830,12 +839,12 @@ export default function WorkOrderDetailPage() {
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                 {job.timeLogs
-                  .filter((log: any) => {
+                  .filter((log: Doc<'timeLogs'> & { employeeName?: string }) => {
                     if (activityFilter === 'all') return true;
                     return log.taskType === activityFilter;
                   })
                   .slice(0, 10)
-                  .map((log: any) => (
+                  .map((log: Doc<'timeLogs'> & { employeeName?: string }) => (
                   <Box
                     key={log._id}
                     sx={{
@@ -857,7 +866,7 @@ export default function WorkOrderDetailPage() {
                       </Typography>
                       {log.notes && (
                         <Typography variant="caption" sx={{ color: '#B3B3B3', display: 'block', mt: 0.5, fontStyle: 'italic' }}>
-                          "{log.notes}"
+                          &quot;{log.notes}&quot;
                         </Typography>
                       )}
                     </Box>
@@ -997,7 +1006,7 @@ export default function WorkOrderDetailPage() {
                 </Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                   <AvatarGroup max={3}>
-                    {job.crew?.members?.map((member: any) => (
+                    {job.crew?.members?.map((member: { _id: Id<'employees'>; name: string }) => (
                       <Avatar
                         key={member._id}
                         sx={{
@@ -1013,7 +1022,7 @@ export default function WorkOrderDetailPage() {
                     ))}
                   </AvatarGroup>
                   <Typography variant="caption" sx={{ color: '#B3B3B3' }}>
-                    {job.crew?.members?.map((m: any) => m.name).join(', ') ?? ''}
+                    {job.crew?.members?.map((m: { _id: Id<'employees'>; name: string }) => m.name).join(', ') ?? ''}
                   </Typography>
                 </Box>
               </Box>

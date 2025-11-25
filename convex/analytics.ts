@@ -1,6 +1,6 @@
 import { query } from "./_generated/server";
 import { v } from "convex/values";
-import { requireOrganizationId, getOrganizationId } from "./auth";
+import { getOrganizationId } from "./auth";
 
 // ============================================================================
 // 1. FINANCIAL OVERVIEW
@@ -602,20 +602,6 @@ export const getEquipmentUtilization = query({
       .query("equipment")
       .withIndex("by_company", (q) => q.eq("companyId", orgId))
       .collect();
-
-    // Get all time logs with equipment costs
-    const allTimeLogs = await ctx.db.query("timeLogs").collect();
-
-    // Filter time logs to only include those for jobs in this organization
-    const orgJobs = await ctx.db
-      .query("jobs")
-      .withIndex("by_company", (q) => q.eq("companyId", orgId))
-      .collect();
-    const orgJobIds = new Set(orgJobs.map(j => j._id));
-
-    const relevantTimeLogs = allTimeLogs.filter(log =>
-      orgJobIds.has(log.jobId) && log.equipmentCost && log.equipmentCost > 0
-    );
 
     // Note: The current schema doesn't directly track which equipment is used in each time log
     // This is an approximation based on equipment cost presence

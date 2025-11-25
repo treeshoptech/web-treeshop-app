@@ -19,7 +19,6 @@ import PersonIcon from '@mui/icons-material/Person';
 import PhoneIcon from '@mui/icons-material/Phone';
 import EmailIcon from '@mui/icons-material/Email';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
-import BusinessIcon from '@mui/icons-material/Business';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import Link from 'next/link';
@@ -75,7 +74,6 @@ export default function CustomerDetailPage() {
   const fullName = customer.businessName
     ? `${customer.firstName} ${customer.lastName} (${customer.businessName})`
     : `${customer.firstName} ${customer.lastName}`;
-  const fullAddress = `${customer.streetAddress}, ${customer.city}, ${customer.state} ${customer.zipCode}`;
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>

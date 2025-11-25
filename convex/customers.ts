@@ -1,6 +1,6 @@
 import { query, mutation } from "./_generated/server";
 import { v } from "convex/values";
-import { getOrganizationId, requireOrganizationId } from "./auth";
+import { getOrganizationId } from "./auth";
 import { verifyDocumentOwnershipOptional } from "./authHelpers";
 
 // List all customers for user's organization
@@ -82,6 +82,7 @@ export const createCustomer = mutation({
 
       console.log("Customer created successfully:", customerId);
       return customerId;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       console.error("Error inserting customer:", error);
       throw new Error(`Database error: ${error.message}`);

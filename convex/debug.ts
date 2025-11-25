@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { query } from "./_generated/server";
 
 export const checkAuth = query({
